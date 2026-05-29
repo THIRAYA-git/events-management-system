@@ -18,7 +18,7 @@ app.get('/', async (req, res) => {
     const result = await db.query('SELECT NOW() as server_time');
     res.json({
       message: '✅ EMS API is running',
-      project: 'Aazath Plaza Reception Hall',
+      project: 'Events Management System for Aazath Plaza Reception Hall',
       database: '✅ PostgreSQL Connected',
       server_time: result.rows[0].server_time
     });
