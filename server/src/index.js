@@ -11,10 +11,32 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'EMS API is running' });
+const db = require('./config/db');
+
+app.get('/', async (req, res) => {
+  try {
+    const result = await db.query('SELECT NOW() as server_time');
+    res.json({
+      message: '✅ EMS API is running',
+      project: 'Aazath Plaza Reception Hall',
+      database: '✅ PostgreSQL Connected',
+      server_time: result.rows[0].server_time
+    });
+  } catch (err) {
+    res.status(500).json({ error: '❌ DB connection failed', details: err.message });
+  }
 });
 
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+const start = async () => {
+  try {
+    await db.testConnection();
+    app.listen(PORT, () => {
+      console.log(`🚀 Server running on port ${PORT}`);
+    });
+  } catch (err) {
+    console.error('❌ Failed to start server:', err.message);
+    process.exit(1);
+  }
+};
+
+start();
