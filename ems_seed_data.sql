@@ -20,7 +20,7 @@ INSERT INTO users (full_name, email, password_hash, phone, role, is_active, is_v
 -- Admin
 ('Fathima Thiraya',        'admin@aazathplaza.lk',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94771234567', 'admin',       TRUE, TRUE),
 -- Manager
-('Mohamed Irshad',         'manager@aazathplaza.lk',    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94772345678', 'manager',     TRUE, TRUE),
+('Mohamed Zahin',         'manager@aazathplaza.lk',    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94772345678', 'manager',     TRUE, TRUE),
 -- Front Desk Staff
 ('Aisha Nusrath',          'staff@aazathplaza.lk',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94773456789', 'front_desk',  TRUE, TRUE),
 -- Customers

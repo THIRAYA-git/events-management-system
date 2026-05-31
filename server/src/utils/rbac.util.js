@@ -1,0 +1,81 @@
+// ─────────────────────────────────────────────────────────────
+//  server/src/utils/rbac.util.js
+//  NEW FILE — permissions for all 7 roles in your user_role enum
+//  Roles: customer | front_desk | manager | admin |
+//         organizer | sponsor | restaurant
+// ─────────────────────────────────────────────────────────────
+const PERMISSIONS = {
+  // ── Bookings ──────────────────────────────────────────────
+  "booking:create":    ["admin", "manager", "front_desk", "customer"],
+  "booking:read_own":  ["admin", "manager", "front_desk", "customer"],
+  "booking:read_all":  ["admin", "manager", "front_desk"],
+  "booking:update":    ["admin", "manager", "front_desk"],
+  "booking:delete":    ["admin", "manager"],
+  "booking:approve":   ["admin", "manager"],
+  "booking:cancel":    ["admin", "manager", "front_desk"],
+
+  // ── Packages ──────────────────────────────────────────────
+  "package:create":    ["admin"],
+  "package:read":      ["admin", "manager", "front_desk", "customer", "organizer", "sponsor", "restaurant"],
+  "package:update":    ["admin", "manager"],
+  "package:delete":    ["admin"],
+
+  // ── Payments ──────────────────────────────────────────────
+  "payment:create":    ["admin", "manager", "front_desk", "customer"],
+  "payment:read_own":  ["admin", "manager", "front_desk", "customer"],
+  "payment:read_all":  ["admin", "manager"],
+  "payment:refund":    ["admin"],
+
+  // ── Menu items ────────────────────────────────────────────
+  "menu:create":       ["admin", "restaurant"],
+  "menu:read":         ["admin", "manager", "front_desk", "customer", "restaurant"],
+  "menu:update":       ["admin", "restaurant"],
+  "menu:delete":       ["admin"],
+
+  // ── Catering orders ───────────────────────────────────────
+  "catering:create":   ["admin", "manager", "front_desk", "customer", "restaurant"],
+  "catering:read":     ["admin", "manager", "front_desk", "restaurant"],
+  "catering:update":   ["admin", "manager", "restaurant"],
+
+  // ── Organizers ────────────────────────────────────────────
+  "organizer:read":    ["admin", "manager", "front_desk", "organizer"],
+  "organizer:manage":  ["admin", "manager"],
+
+  // ── Sponsors ──────────────────────────────────────────────
+  "sponsor:read":      ["admin", "manager", "sponsor"],
+  "sponsor:manage":    ["admin", "manager"],
+
+  // ── Event timelines ───────────────────────────────────────
+  "timeline:read":     ["admin", "manager", "front_desk", "customer", "organizer"],
+  "timeline:manage":   ["admin", "manager", "front_desk"],
+
+  // ── Feedback ──────────────────────────────────────────────
+  "feedback:create":   ["customer"],
+  "feedback:read":     ["admin", "manager", "front_desk"],
+
+  // ── Reports ───────────────────────────────────────────────
+  "report:view":       ["admin", "manager"],
+  "report:export":     ["admin"],
+
+  // ── User management ───────────────────────────────────────
+  "user:read":         ["admin", "manager"],
+  "user:manage":       ["admin"],
+
+  // ── Notifications ─────────────────────────────────────────
+  "notification:send": ["admin", "manager", "front_desk"],
+
+  // ── Audit log ─────────────────────────────────────────────
+  "audit:view":        ["admin"],
+
+  // ── Settings ──────────────────────────────────────────────
+  "settings:manage":   ["admin"],
+};
+
+// Check if a role has a specific permission
+const can = (role, permission) => (PERMISSIONS[permission] || []).includes(role);
+
+// Get all permissions for a role (returned in login response)
+const getPermissions = (role) =>
+  Object.keys(PERMISSIONS).filter((p) => PERMISSIONS[p].includes(role));
+
+module.exports = { can, getPermissions, PERMISSIONS };
