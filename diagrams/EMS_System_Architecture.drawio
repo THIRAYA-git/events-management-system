@@ -1,6 +1,6 @@
 <mxfile host="65bd71144e">
     <diagram id="2M4qvdH6Y_AEmQ_AlZz3" name="Page-1">
-        <mxGraphModel dx="979" dy="662" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
+        <mxGraphModel dx="1136" dy="563" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1654" pageHeight="1169" math="0" shadow="0">
             <root>
                 <mxCell id="0"/>
                 <mxCell id="1" parent="0"/>
@@ -133,13 +133,13 @@
                 <mxCell id="db-organizers" value="🤝 organizers&#xa;organizer_id, user_id,&#xa;specialty, portfolio,&#xa;rating, availability" style="shape=table;startSize=110;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#e1d5e7;strokeColor=#9673a6;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="800" y="608" width="180" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="db-sponsors" value="💼 sponsors&#xa;sponsor_id, user_id,&#xa;company, budget_range,&#xa;event_types, status" style="shape=table;startSize=20;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" parent="1" vertex="1">
+                <mxCell id="db-sponsors" value="💼 sponsors&#xa;sponsor_id, user_id,&#xa;company, budget_range,&#xa;event_types, status" style="shape=table;startSize=110;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#ffe6cc;strokeColor=#d79b00;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="990" y="608" width="180" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="db-orders" value="🍽️ catering_orders&#xa;order_id, booking_id,&#xa;menu_items, total,&#xa;status, delivery_time" style="shape=table;startSize=20;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#f0e6ff;strokeColor=#7950f2;fontSize=10;" parent="1" vertex="1">
+                <mxCell id="db-orders" value="🍽️ catering_orders&#xa;order_id, booking_id,&#xa;menu_items, total,&#xa;status, delivery_time" style="shape=table;startSize=110;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#f0e6ff;strokeColor=#7950f2;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="1180" y="608" width="180" height="110" as="geometry"/>
                 </mxCell>
-                <mxCell id="db-feedback" value="⭐ feedback&#xa;feedback_id, booking_id,&#xa;rating, comment,&#xa;created_at" style="shape=table;startSize=20;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" parent="1" vertex="1">
+                <mxCell id="db-feedback" value="⭐ feedback&#xa;feedback_id, booking_id,&#xa;rating, comment,&#xa;created_at" style="shape=table;startSize=110;container=0;collapsible=0;childLayout=tableLayout;fixedRows=1;rowLines=0;fontStyle=1;align=center;resizeLast=1;rounded=1;fillColor=#d5e8d4;strokeColor=#82b366;fontSize=10;" parent="1" vertex="1">
                     <mxGeometry x="1380" y="608" width="190" height="110" as="geometry"/>
                 </mxCell>
                 <mxCell id="db-main" value="🗄️  PostgreSQL Database (v15+)  |  Hosted on Neon Cloud  |  Connection Pooling  |  SSL Encrypted" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#1F3864;strokeColor=#0d2445;fontColor=#FFFFFF;fontSize=13;fontStyle=1;" parent="1" vertex="1">
