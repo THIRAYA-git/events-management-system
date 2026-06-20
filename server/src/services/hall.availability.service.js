@@ -244,8 +244,10 @@ const getHallSchedule = async ({ hallId, eventDate }) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  4. assignHallToBooking
-//  Atomically check conflict and insert hall_booking row.
+//  Atomically check conflict, capacity, and combined-cap, then insert.
 // ─────────────────────────────────────────────────────────────────────────────
+const VENUE_COMBINED_CAPACITY = 1200;
+
 const assignHallToBooking = async ({
   hallId,
   bookingId,
@@ -255,7 +257,39 @@ const assignHallToBooking = async ({
   assignedBy = null,
   notes      = null,
 }) => {
-  // Check for conflicts first
+  // Confirm the hall exists, is active, and fetch its capacity
+  const hallResult = await query(
+    `SELECT hall_id, hall_name, capacity
+       FROM halls
+      WHERE hall_id = $1 AND is_active = true`,
+    [hallId]
+  );
+
+  if (hallResult.rows.length === 0) {
+    throw new Error(`Hall with ID ${hallId} not found or is inactive.`);
+  }
+  const hall = hallResult.rows[0];
+
+  // Confirm the booking exists and fetch its guest_count
+  const bookingCheck = await query(
+    `SELECT booking_id, guest_count FROM bookings WHERE booking_id = $1`,
+    [bookingId]
+  );
+
+  if (bookingCheck.rows.length === 0) {
+    throw new Error(`Booking ID ${bookingId} not found.`);
+  }
+  const booking = bookingCheck.rows[0];
+
+  // Guest count must fit inside the chosen hall's own capacity
+  if (booking.guest_count > hall.capacity) {
+    throw new Error(
+      `Guest count (${booking.guest_count}) exceeds ${hall.hall_name}'s capacity ` +
+      `of ${hall.capacity} seats. Choose the other hall or reduce guest_count.`
+    );
+  }
+
+  // Check for time-slot conflicts on this hall
   const conflictResult = await query(
     `SELECT hall_booking_id
        FROM hall_bookings
@@ -274,14 +308,27 @@ const assignHallToBooking = async ({
     );
   }
 
-  // Confirm the booking exists
-  const bookingCheck = await query(
-    `SELECT booking_id FROM bookings WHERE booking_id = $1`,
-    [bookingId]
+  // Combined guest count across BOTH halls for this date must not exceed
+  // the venue-wide 1,200-seat cap (defense in depth — the DB trigger
+  // check_combined_hall_capacity() also enforces this as a last resort).
+  const combinedResult = await query(
+    `SELECT COALESCE(SUM(b.guest_count), 0) AS total_guests
+       FROM hall_bookings hb
+       JOIN bookings b ON b.booking_id = hb.booking_id
+      WHERE hb.event_date = $1
+        AND hb.status     = ANY($2)`,
+    [eventDate, ACTIVE_STATUSES]
   );
 
-  if (bookingCheck.rows.length === 0) {
-    throw new Error(`Booking ID ${bookingId} not found.`);
+  const existingGuests  = parseInt(combinedResult.rows[0].total_guests, 10);
+  const projectedGuests = existingGuests + booking.guest_count;
+
+  if (projectedGuests > VENUE_COMBINED_CAPACITY) {
+    throw new Error(
+      `Combined guest count (${projectedGuests}) across both halls on ${eventDate} ` +
+      `would exceed the venue-wide cap of ${VENUE_COMBINED_CAPACITY} seats. ` +
+      `${existingGuests} seats already committed for this date.`
+    );
   }
 
   // Insert the hall booking
@@ -301,7 +348,7 @@ const assignHallToBooking = async ({
 //  5. releaseHallBooking
 //  Soft-cancel: set status = 'cancelled'. Never hard-deletes.
 // ─────────────────────────────────────────────────────────────────────────────
-const releaseHallBooking = async ({ hallBookingId }) => {
+const releaseHallBooking = async ({ hallBookingId, cancelledBy = null }) => {
   const existing = await query(
     `SELECT hall_booking_id, status FROM hall_bookings WHERE hall_booking_id = $1`,
     [hallBookingId]
@@ -316,10 +363,15 @@ const releaseHallBooking = async ({ hallBookingId }) => {
 
   const updated = await query(
     `UPDATE hall_bookings
-        SET status = 'cancelled', updated_at = NOW()
+        SET status = 'cancelled',
+            notes = CASE
+                      WHEN $2::int IS NULL THEN notes
+                      ELSE COALESCE(notes || ' | ', '') || 'Cancelled by user_id ' || $2::int
+                    END,
+            updated_at = NOW()
       WHERE hall_booking_id = $1
       RETURNING *`,
-    [hallBookingId]
+    [hallBookingId, cancelledBy]
   );
 
   return updated.rows[0];
@@ -377,4 +429,5 @@ module.exports = {
   BUFFER_MINUTES,
   OPEN_TIME,
   CLOSE_TIME,
+  VENUE_COMBINED_CAPACITY,
 };

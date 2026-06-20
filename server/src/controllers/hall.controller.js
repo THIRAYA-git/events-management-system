@@ -112,8 +112,12 @@ const assignHall = async (req, res, next) => {
     });
   } catch (err) {
     if (isServiceError(err)) {
-      // Conflict errors should return 409
-      const status = err.message.includes('no longer available') ? 409 : 400;
+      // Conflict / capacity errors should return 409
+      const isConflict =
+        err.message.includes('no longer available') ||
+        err.message.includes('exceeds') ||
+        err.message.includes('would exceed');
+      const status = isConflict ? 409 : 400;
       return res.status(status).json({ success: false, message: err.message });
     }
     next(err);
@@ -150,6 +154,7 @@ const releaseHall = async (req, res, next) => {
 const SERVICE_ERROR_PATTERNS = [
   'cannot', 'must', 'not found', 'no longer available',
   'already cancelled', 'past date', 'before', 'after',
+  'exceeds', 'would exceed',
 ];
 const isServiceError = (err) =>
   SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));
@@ -161,3 +166,4 @@ module.exports = {
   assignHall,
   releaseHall,
 };
+
