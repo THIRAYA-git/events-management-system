@@ -1,0 +1,49 @@
+// ─────────────────────────────────────────────────────────────────────────────
+//  src/validators/pricing.validator.js
+// ─────────────────────────────────────────────────────────────────────────────
+const { body, query } = require('express-validator');
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/pricing/event-types
+// ─────────────────────────────────────────────────────────────────────────────
+const validateGetEventPricing = [
+  query('include_inactive')
+    .optional()
+    .isBoolean().withMessage('include_inactive must be true or false')
+    .toBoolean(),
+];
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  POST /api/pricing/calculate
+// ─────────────────────────────────────────────────────────────────────────────
+const validateCalculatePrice = [
+  body('event_type')
+    .notEmpty().withMessage('event_type is required')
+    .isString().trim()
+    .isLength({ max: 80 }).withMessage('event_type must not exceed 80 characters'),
+
+  body('room_count')
+    .optional()
+    .isInt({ min: 0, max: 5 }).withMessage('room_count must be between 0 and 5')
+    .toInt(),
+
+  body('extra_addons')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('extra_addons must not be negative')
+    .toFloat(),
+
+  body('discount_amount')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('discount_amount must not be negative')
+    .toFloat(),
+
+  body('tax_amount')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('tax_amount must not be negative')
+    .toFloat(),
+];
+
+module.exports = {
+  validateGetEventPricing,
+  validateCalculatePrice,
+};

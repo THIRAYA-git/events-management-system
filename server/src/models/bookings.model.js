@@ -9,7 +9,6 @@ const bookingStatus = pgEnum('booking_status', [
 const bookings = pgTable('bookings', {
   booking_id:       serial('booking_id').primaryKey(),
   user_id:          integer('user_id').notNull(),
-  package_id:       integer('package_id'),
   booking_ref:      varchar('booking_ref', { length: 20 }).notNull().unique(),
   event_date:       date('event_date').notNull(),
   event_start_time: time('event_start_time').notNull().default('08:00:00'),
