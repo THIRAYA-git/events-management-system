@@ -69,6 +69,12 @@ const PERMISSIONS = {
 
   // ── Settings ──────────────────────────────────────────────
   "settings:manage":   ["admin"],
+
+  // ── Sponsor Requests ──────────────────────────────────────
+  "sponsor_request:create":    ["sponsor"],
+  "sponsor_request:read_own":  ["sponsor"],
+  "sponsor_request:read_all":  ["admin", "manager", "front_desk"],
+  "sponsor_request:respond":   ["admin", "manager"],
 };
 
 // Check if a role has a specific permission

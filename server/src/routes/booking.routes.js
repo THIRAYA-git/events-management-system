@@ -3,7 +3,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 const express = require('express');
 
-const { authenticate, restrictTo } = require('../middleware/auth.middleware');
+const { authenticate, authorize, restrictTo } = require('../middleware/auth.middleware');
 const { validate }                 = require('../middleware/validate');
 const {
   validateCreateBooking,
@@ -13,6 +13,10 @@ const {
   createBookingHandler,
   getBookingHandler,
 } = require('../controllers/booking.controller');
+const {
+  listOrganizersForBookingHandler,
+  assignOrganizerHandler,
+} = require('../controllers/organizer.controller');
 
 const router = express.Router();
 
@@ -43,4 +47,23 @@ router.get(
   getBookingHandler
 );
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings/:bookingId/organizers — organizers assigned to a booking
+// ─────────────────────────────────────────────────────────────────────────────
+router.get(
+  '/:bookingId/organizers',
+  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  listOrganizersForBookingHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  POST /api/bookings/:bookingId/organizers — staff assigns an organizer
+// ─────────────────────────────────────────────────────────────────────────────
+router.post(
+  '/:bookingId/organizers',
+  authorize('organizer:manage'),
+  assignOrganizerHandler
+);
+
 module.exports = router;
+
