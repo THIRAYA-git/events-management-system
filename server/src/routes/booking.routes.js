@@ -17,6 +17,11 @@ const {
   listOrganizersForBookingHandler,
   assignOrganizerHandler,
 } = require('../controllers/organizer.controller');
+const {
+  listSponsorRequestsForBookingHandler,
+  createSponsorRequestHandler,
+  withdrawSponsorRequestHandler,
+} = require('../controllers/sponsor.controller');
 
 const router = express.Router();
 
@@ -65,5 +70,31 @@ router.post(
   assignOrganizerHandler
 );
 
-module.exports = router;
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings/:bookingId/sponsors — sponsor requests on a booking
+// ─────────────────────────────────────────────────────────────────────────────
+router.get(
+  '/:bookingId/sponsors',
+  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  listSponsorRequestsForBookingHandler
+);
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  POST /api/bookings/:bookingId/sponsors — customer proposes a sponsor
+// ─────────────────────────────────────────────────────────────────────────────
+router.post(
+  '/:bookingId/sponsors',
+  authorize('sponsor_request:create'),
+  createSponsorRequestHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PATCH /api/bookings/:bookingId/sponsors/:requestId/withdraw — customer withdraws
+// ─────────────────────────────────────────────────────────────────────────────
+router.patch(
+  '/:bookingId/sponsors/:requestId/withdraw',
+  authorize('sponsor_request:withdraw'),
+  withdrawSponsorRequestHandler
+);
+
+module.exports = router;

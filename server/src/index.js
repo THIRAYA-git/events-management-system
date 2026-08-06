@@ -13,6 +13,8 @@ const userRoutes     = require("./routes/user.routes");
 const pricingRoutes = require("./routes/pricing.routes");
 const bookingRoutes = require("./routes/booking.routes");
 const paymentRoutes = require("./routes/payment.routes");
+const organizerRoutes = require("./routes/organizer.routes");
+const sponsorRoutes = require("./routes/sponsor.routes");
 
 
 const app  = express();
@@ -42,6 +44,8 @@ app.use("/api/halls",     hallRoutes);
 app.use("/api/pricing", pricingRoutes);
 app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);
+app.use("/api/organizers", organizerRoutes);
+app.use("/api/sponsors", sponsorRoutes);
 
 
 // ── Health check ──────────────────────────────────────────────
