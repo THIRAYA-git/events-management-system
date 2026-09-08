@@ -15,6 +15,8 @@ const bookingRoutes = require("./routes/booking.routes");
 const paymentRoutes = require("./routes/payment.routes");
 const organizerRoutes = require("./routes/organizer.routes");
 const sponsorRoutes = require("./routes/sponsor.routes");
+const menuRoutes     = require("./routes/menu.routes");
+const cateringRoutes = require("./routes/catering.routes");
 
 
 const app  = express();
@@ -46,7 +48,8 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/organizers", organizerRoutes);
 app.use("/api/sponsors", sponsorRoutes);
-
+app.use("/api/menu-items", menuRoutes);
+app.use("/api/catering-orders", cateringRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");

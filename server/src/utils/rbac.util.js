@@ -48,7 +48,7 @@ const PERMISSIONS = {
     "customer",
     "restaurant",
   ],
-  "catering:read": ["admin", "manager", "front_desk", "restaurant"],
+  "catering:read": ["admin", "manager", "front_desk", "restaurant", "customer"],
   "catering:update": ["admin", "manager", "restaurant"],
 
   // ── Organizers ────────────────────────────────────────────

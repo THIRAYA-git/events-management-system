@@ -22,6 +22,10 @@ const {
   createSponsorRequestHandler,
   withdrawSponsorRequestHandler,
 } = require('../controllers/sponsor.controller');
+const {
+  createCateringOrderHandler,
+  listCateringOrdersForBookingHandler,
+} = require('../controllers/catering.controller');
 
 const router = express.Router();
 
@@ -95,6 +99,24 @@ router.patch(
   '/:bookingId/sponsors/:requestId/withdraw',
   authorize('sponsor_request:withdraw'),
   withdrawSponsorRequestHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings/:bookingId/catering-orders — catering orders on a booking
+// ─────────────────────────────────────────────────────────────────────────────
+router.get(
+  '/:bookingId/catering-orders',
+  authorize('catering:read'),
+  listCateringOrdersForBookingHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  POST /api/bookings/:bookingId/catering-orders — customer places a catering order
+// ─────────────────────────────────────────────────────────────────────────────
+router.post(
+  '/:bookingId/catering-orders',
+  authorize('catering:create'),
+  createCateringOrderHandler
 );
 
 module.exports = router;
