@@ -2,7 +2,13 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { DateTimeStep } from "@/components/booking/DateTimeStep";
 import { HallSelectionStep } from "@/components/booking/HallSelectionStep";
 import { EventDetailsStep } from "@/components/booking/EventDetailsStep";
@@ -23,7 +29,8 @@ export default function BookingWizardPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const [slot, setSlot] = useState<SlotSelection | null>(null);
-  const [availability, setAvailability] = useState<AvailableHallsResponse | null>(null);
+  const [availability, setAvailability] =
+    useState<AvailableHallsResponse | null>(null);
   const [selectedHall, setSelectedHall] = useState<Hall | null>(null);
   const [details, setDetails] = useState<{
     eventType: string;
@@ -41,7 +48,9 @@ export default function BookingWizardPage() {
       setAvailability(avail);
       setStep("halls");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message || "Could not check availability.");
+      toast.error(
+        err?.response?.data?.message || "Could not check availability."
+      );
     } finally {
       setIsLoading(false);
     }
@@ -64,7 +73,8 @@ export default function BookingWizardPage() {
       setResult(booking);
       setStep("success");
     } catch (err: any) {
-      const msg = err?.response?.data?.message || "Booking failed. Please try again.";
+      const msg =
+        err?.response?.data?.message || "Booking failed. Please try again.";
       toast.error(msg);
       // Conflict/capacity errors mean the slot changed under us — send back to step 1
       if (err?.response?.status === 409) {
@@ -110,14 +120,16 @@ export default function BookingWizardPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              <span className="font-medium">Hall:</span> {selectedHall.hall_name}
+              <span className="font-medium">Hall:</span>{" "}
+              {selectedHall.hall_name}
             </p>
             <p>
-              <span className="font-medium">Date:</span> {slot.event_date}, {slot.start_time}–
-              {slot.end_time}
+              <span className="font-medium">Date:</span> {slot.event_date},{" "}
+              {slot.start_time}–{slot.end_time}
             </p>
             <p>
-              <span className="font-medium">Event type:</span> {details.eventType}
+              <span className="font-medium">Event type:</span>{" "}
+              {details.eventType}
             </p>
             <p>
               <span className="font-medium">Guests:</span> {slot.guest_count}
@@ -135,7 +147,11 @@ export default function BookingWizardPage() {
             <Button variant="outline" onClick={() => setStep("details")}>
               Back
             </Button>
-            <Button onClick={handleConfirm} disabled={isLoading} className="flex-1">
+            <Button
+              onClick={handleConfirm}
+              disabled={isLoading}
+              className="flex-1"
+            >
               {isLoading ? "Confirming…" : "Confirm booking"}
             </Button>
           </CardFooter>
@@ -149,16 +165,29 @@ export default function BookingWizardPage() {
           </CardHeader>
           <CardContent className="space-y-2 text-sm">
             <p>
-              Your booking reference is <span className="font-mono font-medium">{result.bookingRef}</span>.
+              Your booking reference is{" "}
+              <span className="font-mono font-medium">{result.bookingRef}</span>
+              .
             </p>
             <p>Status: {result.status}</p>
             <p className="pt-2 text-base font-semibold">
               Total: LKR {result.pricing.totalAmount.toLocaleString()}
             </p>
           </CardContent>
-          <CardFooter>
-            <Button onClick={() => navigate("/")} className="w-full">
-              Back to dashboard
+
+          <CardFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate("/")}
+              className="flex-1"
+            >
+              Pay later
+            </Button>
+            <Button
+              onClick={() => navigate(`/payment/${result.bookingId}`)}
+              className="flex-1"
+            >
+              Pay now
             </Button>
           </CardFooter>
         </Card>

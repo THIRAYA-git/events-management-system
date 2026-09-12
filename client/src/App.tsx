@@ -4,6 +4,9 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import LoginPage from "@/pages/auth/LoginPage";
 import BookingWizardPage from "@/pages/customer/BookingWizardPage";
+import PaymentCheckoutPage from "@/pages/customer/PaymentCheckoutPage";
+import PaymentSuccessPage from "@/pages/customer/PaymentSuccessPage";
+import PaymentCancelledPage from "@/pages/customer/PaymentCancelledPage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -32,6 +35,15 @@ function App() {
             }
           >
             <Route path="/book" element={<BookingWizardPage />} />
+            <Route
+              path="/payment/:bookingId"
+              element={<PaymentCheckoutPage />}
+            />
+            <Route path="/payment/success" element={<PaymentSuccessPage />} />
+            <Route
+              path="/payment/cancelled"
+              element={<PaymentCancelledPage />}
+            />
           </Route>
 
           <Route
