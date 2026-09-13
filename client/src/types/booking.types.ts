@@ -69,3 +69,56 @@ export interface SlotSelection {
   end_time: string;
   guest_count: number;
 }
+
+export type BookingStatus = "pending" | "confirmed" | "cancelled" | "completed";
+
+export interface AdminBooking {
+  booking_id: number;
+  booking_ref: string;
+  event_date: string;
+  event_start_time: string;
+  event_end_time: string;
+  event_type: string;
+  guest_count: number;
+  status: BookingStatus;
+  total_amount: string;
+  special_requests: string | null;
+  created_at: string;
+  customer_id: number;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string | null;
+  hall_booking_id: number;
+  hall_id: number;
+  hall_name: string;
+}
+
+export interface ListBookingsParams {
+  status?: BookingStatus;
+  hall_id?: number;
+  date_from?: string;
+  date_to?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export interface ListBookingsResponse {
+  success: boolean;
+  data: AdminBooking[];
+  meta: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
+}
+
+export interface UpdateBookingStatusPayload {
+  status: BookingStatus;
+  cancel_reason?: string;
+}
+
+export interface UpdateBookingStatusResponse {
+  success: boolean;
+  message: string;
+  data: AdminBooking;
+}

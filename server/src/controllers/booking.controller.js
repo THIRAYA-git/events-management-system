@@ -4,6 +4,8 @@
 const {
   createBooking,
   getBookingById,
+  listBookings,
+  updateBookingStatus,
 } = require('../services/booking.service');
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -86,6 +88,81 @@ const getBookingHandler = async (req, res, next) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings?status=&hall_id=&date_from=&date_to=&limit=&offset=
+//  Staff/admin only — paginated, filterable list of all bookings.
+// ─────────────────────────────────────────────────────────────────────────────
+const listBookingsHandler = async (req, res, next) => {
+  try {
+    const {
+      status,
+      hall_id,
+      date_from,
+      date_to,
+      limit  = 20,
+      offset = 0,
+    } = req.query;
+
+    const result = await listBookings({
+      status:   status || null,
+      hallId:   hall_id ? Number(hall_id) : null,
+      dateFrom: date_from || null,
+      dateTo:   date_to || null,
+      limit:    Number(limit),
+      offset:   Number(offset),
+    });
+
+    return res.status(200).json({
+      success: true,
+      data:    result.bookings,
+      meta: {
+        total:  result.total,
+        limit:  result.limit,
+        offset: result.offset,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PATCH /api/bookings/:bookingId/status
+//  Body: { status: 'confirmed' | 'cancelled' | 'completed', cancel_reason? }
+// ─────────────────────────────────────────────────────────────────────────────
+const VALID_STATUSES = ['pending', 'confirmed', 'cancelled', 'completed'];
+
+const updateBookingStatusHandler = async (req, res, next) => {
+  try {
+    const { bookingId } = req.params;
+    const { status, cancel_reason } = req.body;
+
+    if (!VALID_STATUSES.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: `status must be one of: ${VALID_STATUSES.join(', ')}`,
+      });
+    }
+
+    const updated = await updateBookingStatus(bookingId, {
+      status,
+      staffId:      req.user.id,
+      cancelReason: cancel_reason || null,
+    });
+
+    return res.status(200).json({
+      success: true,
+      message: `Booking ${status} successfully`,
+      data:    updated,
+    });
+  } catch (err) {
+    if (err.message?.includes('not found')) {
+      return res.status(404).json({ success: false, message: err.message });
+    }
+    next(err);
+  }
+};
+
 // ── Only treat known business-rule errors as 4xx ──────────────────────────────
 const SERVICE_ERROR_PATTERNS = [
   'required', 'not found', 'inactive', 'exceeds', 'no longer available',
@@ -105,4 +182,6 @@ const isConflictError = (err) =>
 module.exports = {
   createBookingHandler,
   getBookingHandler,
+  listBookingsHandler,
+  updateBookingStatusHandler,
 };

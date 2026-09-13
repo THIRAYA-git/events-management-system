@@ -16,6 +16,8 @@ const {
 const {
   createBookingHandler,
   getBookingHandler,
+  listBookingsHandler,
+  updateBookingStatusHandler,
 } = require("../controllers/booking.controller");
 const {
   listOrganizersForBookingHandler,
@@ -177,6 +179,26 @@ router.delete(
   validateDeleteTimeline,
   validate,
   deleteTimelineHandler
+);
+
+router.get(
+  "/",
+  restrictTo("admin", "manager", "front_desk"),
+  listBookingsHandler
+);
+
+router.get(
+  "/:bookingId",
+  restrictTo("admin", "manager", "front_desk", "customer"),
+  validateGetBooking,
+  validate,
+  getBookingHandler
+);
+
+router.patch(
+  "/:bookingId/status",
+  restrictTo("admin", "manager", "front_desk"),
+  updateBookingStatusHandler
 );
 
 module.exports = router;

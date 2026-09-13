@@ -34,6 +34,12 @@
 //  ever needs hardening, the standard fix is a periodic cleanup job
 //  that cancels 'pending' bookings older than N minutes with no
 //  matching hall_bookings row.
+//
+//  listBookings / updateBookingStatus (added for admin management):
+//  updateBookingStatus updates bookings + hall_bookings together in a
+//  single data-modifying CTE — one statement, one HTTP round trip to
+//  Neon, so it's atomic at the Postgres level without needing an
+//  application-managed transaction.
 // ─────────────────────────────────────────────────────────────────────────────
 const { query } = require('../config/db');
 const { calculateBookingTotal } = require('./pricing.service');
@@ -44,20 +50,6 @@ const ACTIVE_STATUSES = ['pending', 'confirmed'];
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  createBooking
-//  Single entry point for "customer wants to book a hall."
-//
-//  Params:
-//    userId        - the customer placing the booking (req.user.id /
-//                     req.user.user_id — confirm against your actual
-//                     auth.middleware.js, see note in controller)
-//    hallId        - which hall (1 or 2)
-//    eventDate     - 'YYYY-MM-DD'
-//    startTime/endTime - 'HH:MM' or 'HH:MM:SS'
-//    eventType     - must match a row in event_pricing
-//    guestCount    - integer
-//    roomCount, extraAddons, discountAmount, taxAmount - pricing inputs,
-//                     see pricing.service.js
-//    specialRequests - optional free text
 // ─────────────────────────────────────────────────────────────────────────────
 const createBooking = async ({
   userId,
@@ -80,9 +72,6 @@ const createBooking = async ({
   if (!eventType) throw new Error('eventType is required.');
   if (!guestCount || guestCount < 1) throw new Error('guestCount must be at least 1.');
 
-  // ── 1. Price the booking first. ────────────────────────────────────
-  // Validates eventType against event_pricing and throws a clear error
-  // if unknown/inactive — fail fast before touching any table.
   const pricing = await calculateBookingTotal({
     eventType,
     roomCount,
@@ -91,7 +80,6 @@ const createBooking = async ({
     taxAmount,
   });
 
-  // ── 2. Confirm hall exists, is active, fetch capacity. ─────────────
   const hallResult = await query(
     `SELECT hall_id, hall_name, capacity
        FROM halls
@@ -109,11 +97,6 @@ const createBooking = async ({
     );
   }
 
-  // ── 3. Application-level pre-checks (fast, friendly error messages). ──
-  // These are NOT the source of truth — they exist so a normal booking
-  // attempt gets a clear 4xx instead of a raw Postgres constraint error.
-  // The DB constraints hit in step 5 are what actually guarantee
-  // correctness under concurrent requests.
   const conflictResult = await query(
     `SELECT hall_booking_id
        FROM hall_bookings
@@ -148,12 +131,6 @@ const createBooking = async ({
     );
   }
 
-  // ── 4. Insert the booking row FIRST — forced by the FK: ─────────────
-  // hall_bookings.booking_id is NOT NULL UNIQUE REFERENCES bookings, so
-  // a bookings row must exist before hall_bookings can reference it.
-  //
-  // booking_ref is intentionally omitted — it has a DB-level DEFAULT
-  // (AP-YYYYMMDD-NNNN via nextval) defined in ems_database_schema.sql.
   const bookingResult = await query(
     `INSERT INTO bookings
        (user_id, event_date, event_start_time, event_end_time, event_type,
@@ -170,12 +147,6 @@ const createBooking = async ({
   );
   const booking = bookingResult.rows[0];
 
-  // ── 5. Insert hall_bookings. THIS is where conflict/capacity are ───
-  //      actually, atomically enforced by the DB:
-  //        - hall_bookings_no_overlap (EXCLUDE USING gist) on overlap
-  //        - trg_hall_bookings_capacity_cap (trigger) on >1200 combined
-  //      If either fires, catch it below and clean up the now-orphaned
-  //      bookings row from step 4.
   try {
     const hallBookingResult = await query(
       `INSERT INTO hall_bookings
@@ -197,12 +168,6 @@ const createBooking = async ({
       pricing,
     };
   } catch (err) {
-    // hall_bookings insert failed — most likely a concurrent request
-    // won the race past the application-level checks in step 3, and the
-    // DB exclusion constraint or capacity trigger caught it for real.
-    // Without a transaction, the bookings row from step 4 is now
-    // orphaned: delete it explicitly so it doesn't sit as a phantom
-    // 'pending' booking with no hall assigned.
     try {
       await query(`DELETE FROM bookings WHERE booking_id = $1`, [booking.booking_id]);
     } catch (cleanupErr) {
@@ -223,8 +188,6 @@ const createBooking = async ({
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  getBookingById
-//  Fetch a single booking with its hall assignment + pricing, for
-//  confirmation screens / receipts.
 // ─────────────────────────────────────────────────────────────────────────────
 const getBookingById = async (bookingId) => {
   const result = await query(
@@ -248,8 +211,104 @@ const getBookingById = async (bookingId) => {
   return result.rows[0];
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  listBookings
+//  Staff/admin view — filterable, paginated list joining bookings +
+//  hall_bookings + halls + users. Two separate query() calls (list +
+//  count) since this is read-only; no atomicity concern here.
+//
+//  NOTE: users.full_name is the real column (confirmed via
+//  information_schema) — aliased here to customer_name so the frontend
+//  gets a stable field name regardless of what the users table itself
+//  calls it.
+// ─────────────────────────────────────────────────────────────────────────────
+const listBookings = async ({ status, hallId, dateFrom, dateTo, limit = 20, offset = 0 }) => {
+  const rowsResult = await query(
+    `
+    SELECT
+      b.booking_id, b.booking_ref, b.event_date, b.event_start_time,
+      b.event_end_time, b.event_type, b.guest_count, b.status,
+      b.total_amount, b.special_requests, b.created_at,
+      u.user_id AS customer_id, u.full_name AS customer_name,
+      u.email   AS customer_email, u.phone AS customer_phone,
+      hb.hall_booking_id, h.hall_id, h.hall_name
+    FROM bookings b
+    JOIN users u          ON u.user_id = b.user_id
+    JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+    JOIN halls h          ON h.hall_id = hb.hall_id
+    WHERE ($1::booking_status IS NULL OR b.status = $1::booking_status)
+      AND ($2::integer IS NULL OR h.hall_id = $2::integer)
+      AND ($3::date IS NULL OR b.event_date >= $3::date)
+      AND ($4::date IS NULL OR b.event_date <= $4::date)
+    ORDER BY b.event_date DESC, b.created_at DESC
+    LIMIT $5::integer OFFSET $6::integer
+    `,
+    [status || null, hallId || null, dateFrom || null, dateTo || null, limit, offset]
+  );
+
+  const countResult = await query(
+    `
+    SELECT COUNT(*)::integer AS total
+    FROM bookings b
+    JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+    WHERE ($1::booking_status IS NULL OR b.status = $1::booking_status)
+      AND ($2::integer IS NULL OR hb.hall_id = $2::integer)
+      AND ($3::date IS NULL OR b.event_date >= $3::date)
+      AND ($4::date IS NULL OR b.event_date <= $4::date)
+    `,
+    [status || null, hallId || null, dateFrom || null, dateTo || null]
+  );
+
+  return {
+    bookings: rowsResult.rows,
+    total:    countResult.rows[0].total,
+    limit,
+    offset,
+  };
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  updateBookingStatus
+//  Single statement, single query() call — updates bookings and
+//  hall_bookings together via a data-modifying CTE.
+// ─────────────────────────────────────────────────────────────────────────────
+const updateBookingStatus = async (bookingId, { status, staffId, cancelReason }) => {
+  const result = await query(
+    `
+    WITH updated_booking AS (
+      UPDATE bookings
+      SET
+        status        = $1::booking_status,
+        confirmed_by  = CASE WHEN $1 = 'confirmed' THEN $2::integer ELSE confirmed_by END,
+        confirmed_at  = CASE WHEN $1 = 'confirmed' THEN NOW() ELSE confirmed_at END,
+        cancelled_at  = CASE WHEN $1 = 'cancelled' THEN NOW() ELSE cancelled_at END,
+        cancel_reason = CASE WHEN $1 = 'cancelled' THEN $3::text ELSE cancel_reason END,
+        updated_at    = NOW()
+      WHERE booking_id = $4::integer
+      RETURNING *
+    )
+    UPDATE hall_bookings hb
+    SET
+      status     = $1::booking_status,
+      updated_at = NOW()
+    FROM updated_booking ub
+    WHERE hb.booking_id = ub.booking_id
+    RETURNING ub.*, hb.hall_id, hb.hall_booking_id
+    `,
+    [status, staffId || null, cancelReason || null, bookingId]
+  );
+
+  if (result.rows.length === 0) {
+    throw new Error(`Booking ID ${bookingId} not found.`);
+  }
+
+  return result.rows[0];
+};
+
 module.exports = {
   createBooking,
   getBookingById,
+  listBookings,
+  updateBookingStatus,
   VENUE_COMBINED_CAPACITY,
 };

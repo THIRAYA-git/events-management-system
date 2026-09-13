@@ -6,12 +6,26 @@ import type {
   CreateBookingPayload,
   BookingResult,
   SlotSelection,
+  AdminBooking,
+  ListBookingsParams,
+  BookingStatus,
 } from "@/types/booking.types";
 
 interface ApiEnvelope<T> {
   success: boolean;
   data: T;
   message?: string;
+}
+
+// listBookings' response has a `meta` block alongside `data`, unlike the
+// other endpoints here — extending ApiEnvelope so callers can still read
+// pagination info without breaking the shared envelope shape.
+interface PaginatedApiEnvelope<T> extends ApiEnvelope<T> {
+  meta: {
+    total: number;
+    limit: number;
+    offset: number;
+  };
 }
 
 export const fetchAvailableHalls = async (slot: SlotSelection) => {
@@ -44,5 +58,23 @@ export const calculatePrice = async (payload: {
 
 export const createBooking = async (payload: CreateBookingPayload) => {
   const { data } = await api.post<ApiEnvelope<BookingResult>>("/bookings", payload);
+  return data.data;
+};
+
+// ── Admin booking management ──────────────────────────────────────────
+
+export const listBookings = async (params: ListBookingsParams = {}) => {
+  const { data } = await api.get<PaginatedApiEnvelope<AdminBooking[]>>("/bookings", { params });
+  return { bookings: data.data, meta: data.meta };
+};
+
+export const updateBookingStatus = async (
+  bookingId: number,
+  payload: { status: BookingStatus; cancel_reason?: string }
+) => {
+  const { data } = await api.patch<ApiEnvelope<AdminBooking>>(
+    `/bookings/${bookingId}/status`,
+    payload
+  );
   return data.data;
 };
