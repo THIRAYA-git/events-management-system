@@ -122,3 +122,13 @@ export interface UpdateBookingStatusResponse {
   message: string;
   data: AdminBooking;
 }
+
+export interface ListBookingsParams {
+  status?: BookingStatus;
+  hall_id?: number;
+  date_from?: string;
+  date_to?: string;
+  customer_id?: number; // ← add this
+  limit?: number;
+  offset?: number;
+}
