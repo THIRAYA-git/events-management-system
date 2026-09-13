@@ -8,6 +8,14 @@ import PaymentCheckoutPage from "@/pages/customer/PaymentCheckoutPage";
 import PaymentSuccessPage from "@/pages/customer/PaymentSuccessPage";
 import PaymentCancelledPage from "@/pages/customer/PaymentCancelledPage";
 import EventTimelinePage from "@/pages/booking/EventTimelinePage";
+import AdminLayout from "@/layouts/AdminLayout";
+import { AdminDashboardHome } from "@/pages/admin/AdminDashboardHome";
+import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
+import { AdminCustomersPage } from "@/pages/admin/AdminCustomersPage";
+import { AdminOrganizersSponsorsPage } from "@/pages/admin/AdminOrganizersSponsorsPage";
+import { AdminCateringPage } from "@/pages/admin/AdminCateringPage";
+import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
+import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -59,6 +67,34 @@ function App() {
             path="*"
             element={<div className="p-8">Page not found.</div>}
           />
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["front_desk", "manager", "admin"]}
+              />
+            }
+          >
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={["front_desk", "manager", "admin"]}
+                />
+              }
+            >
+              <Route path="/admin" element={<AdminLayout />}>
+                <Route index element={<AdminDashboardHome />} />
+                <Route path="bookings" element={<AdminBookingsPage />} />
+                <Route path="customers" element={<AdminCustomersPage />} />
+                <Route
+                  path="organizers-sponsors"
+                  element={<AdminOrganizersSponsorsPage />}
+                />
+                <Route path="catering" element={<AdminCateringPage />} />
+                <Route path="analytics" element={<AdminAnalyticsPage />} />
+                <Route path="settings" element={<AdminSettingsPage />} />
+              </Route>
+            </Route>
+          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>
