@@ -1,4 +1,3 @@
-
 const { query } = require("../config/db");
 
 // ── Find user by email (used in login + register) ─────────────
@@ -24,7 +23,13 @@ const findUserById = async (user_id) => {
 };
 
 // ── Create new user ───────────────────────────────────────────
-const createUser = async (full_name, email, password_hash, role = "customer", phone = null) => {
+const createUser = async (
+  full_name,
+  email,
+  password_hash,
+  role = "customer",
+  phone = null
+) => {
   const { rows } = await query(
     `INSERT INTO users (full_name, email, password_hash, role, phone)
      VALUES ($1, $2, $3, $4, $5)
@@ -60,20 +65,18 @@ const incrementLoginAttempts = async (user_id) => {
 };
 
 // ── Save refresh token on the user row ────────────────────────
-//  Requires:  ALTER TABLE users ADD COLUMN IF NOT EXISTS refresh_token TEXT;
 const saveRefreshToken = async (user_id, token) => {
-  await query(
-    "UPDATE users SET refresh_token = $1 WHERE user_id = $2",
-    [token, user_id]
-  );
+  await query("UPDATE users SET refresh_token = $1 WHERE user_id = $2", [
+    token,
+    user_id,
+  ]);
 };
 
 // ── Clear refresh token (logout) ──────────────────────────────
 const clearRefreshToken = async (user_id) => {
-  await query(
-    "UPDATE users SET refresh_token = NULL WHERE user_id = $1",
-    [user_id]
-  );
+  await query("UPDATE users SET refresh_token = NULL WHERE user_id = $1", [
+    user_id,
+  ]);
 };
 
 // ── Find user by refresh token ────────────────────────────────
@@ -87,10 +90,9 @@ const findUserByRefreshToken = async (token) => {
 
 // ── Password reset — uses your password_reset_tokens table ────
 const createPasswordResetToken = async (user_id, token, expires_at) => {
-  await query(
-    "DELETE FROM password_reset_tokens WHERE user_id = $1",
-    [user_id]
-  );
+  await query("DELETE FROM password_reset_tokens WHERE user_id = $1", [
+    user_id,
+  ]);
   await query(
     `INSERT INTO password_reset_tokens (user_id, token, expires_at)
      VALUES ($1, $2, $3)`,
@@ -131,20 +133,34 @@ const updatePassword = async (user_id, password_hash) => {
   );
 };
 
-// ── Admin: list all users ─────────────────────────────────────
+// ── Admin: list all users, with booking_count for pagination ──
 const findAllUsers = async ({ role, page = 1, limit = 20 } = {}) => {
   const offset = (page - 1) * limit;
-  const params = [];
-  let sql = `SELECT user_id, full_name, email, phone, role,
-                    profile_image, is_active, is_verified,
-                    last_login, created_at
-             FROM users`;
-  if (role) { sql += " WHERE role = $1"; params.push(role); }
-  sql += ` ORDER BY created_at DESC
-           LIMIT $${params.length + 1} OFFSET $${params.length + 2}`;
-  params.push(limit, offset);
-  const { rows } = await query(sql, params);
+  const { rows } = await query(
+    `SELECT u.user_id, u.full_name, u.email, u.phone, u.role,
+            u.profile_image, u.is_active, u.is_verified,
+            u.last_login, u.created_at,
+            COUNT(b.booking_id)::integer AS booking_count
+     FROM users u
+     LEFT JOIN bookings b ON b.user_id = u.user_id
+     WHERE ($1::text IS NULL OR u.role::text = $1::text)
+     GROUP BY u.user_id
+     ORDER BY u.created_at DESC
+     LIMIT $2 OFFSET $3`,
+    [role || null, limit, offset]
+  );
   return rows;
+};
+
+// ── Admin: total user count for pagination (same filter as findAllUsers) ──
+const countUsers = async ({ role } = {}) => {
+  const { rows } = await query(
+    `SELECT COUNT(*)::integer AS total
+     FROM users
+     WHERE ($1::text IS NULL OR role::text = $1::text)`,
+    [role || null]
+  );
+  return rows[0].total;
 };
 
 // ── Admin: update user role ───────────────────────────────────
@@ -179,6 +195,7 @@ module.exports = {
   markResetTokenUsed,
   updatePassword,
   findAllUsers,
+  countUsers,
   updateUserRole,
   deactivateUser,
 };

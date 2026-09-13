@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────
 const {
   findAllUsers,
+  countUsers,
   findUserById,
   updateUserRole,
   deactivateUser,
@@ -15,8 +16,17 @@ const VALID_ROLES = ["customer", "front_desk", "manager", "admin", "organizer", 
 const listUsers = async (req, res) => {
   try {
     const { role, page = 1, limit = 20 } = req.query;
-    const users = await findAllUsers({ role, page: +page, limit: +limit });
-    return res.json({ users, page: +page });
+    const [users, total] = await Promise.all([
+      findAllUsers({ role, page: +page, limit: +limit }),
+      countUsers({ role }),
+    ]);
+    return res.json({
+      users,
+      page: +page,
+      limit: +limit,
+      total,
+      totalPages: Math.max(1, Math.ceil(total / +limit)),
+    });
   } catch (error) {
     console.error("[listUsers]", error);
     return res.status(500).json({ error: error.message });

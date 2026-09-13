@@ -99,17 +99,19 @@ const listBookingsHandler = async (req, res, next) => {
       hall_id,
       date_from,
       date_to,
+      customer_id,
       limit  = 20,
       offset = 0,
     } = req.query;
 
     const result = await listBookings({
-      status:   status || null,
-      hallId:   hall_id ? Number(hall_id) : null,
-      dateFrom: date_from || null,
-      dateTo:   date_to || null,
-      limit:    Number(limit),
-      offset:   Number(offset),
+      status:     status || null,
+      hallId:     hall_id ? Number(hall_id) : null,
+      dateFrom:   date_from || null,
+      dateTo:     date_to || null,
+      customerId: customer_id ? Number(customer_id) : null,
+      limit:      Number(limit),
+      offset:     Number(offset),
     });
 
     return res.status(200).json({

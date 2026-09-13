@@ -222,7 +222,7 @@ const getBookingById = async (bookingId) => {
 //  gets a stable field name regardless of what the users table itself
 //  calls it.
 // ─────────────────────────────────────────────────────────────────────────────
-const listBookings = async ({ status, hallId, dateFrom, dateTo, limit = 20, offset = 0 }) => {
+const listBookings = async ({ status, hallId, dateFrom, dateTo, customerId, limit = 20, offset = 0 }) => {
   const rowsResult = await query(
     `
     SELECT
@@ -240,10 +240,11 @@ const listBookings = async ({ status, hallId, dateFrom, dateTo, limit = 20, offs
       AND ($2::integer IS NULL OR h.hall_id = $2::integer)
       AND ($3::date IS NULL OR b.event_date >= $3::date)
       AND ($4::date IS NULL OR b.event_date <= $4::date)
+      AND ($7::integer IS NULL OR u.user_id = $7::integer)
     ORDER BY b.event_date DESC, b.created_at DESC
     LIMIT $5::integer OFFSET $6::integer
     `,
-    [status || null, hallId || null, dateFrom || null, dateTo || null, limit, offset]
+    [status || null, hallId || null, dateFrom || null, dateTo || null, limit, offset, customerId || null]
   );
 
   const countResult = await query(
@@ -255,8 +256,9 @@ const listBookings = async ({ status, hallId, dateFrom, dateTo, limit = 20, offs
       AND ($2::integer IS NULL OR hb.hall_id = $2::integer)
       AND ($3::date IS NULL OR b.event_date >= $3::date)
       AND ($4::date IS NULL OR b.event_date <= $4::date)
+      AND ($5::integer IS NULL OR b.user_id = $5::integer)
     `,
-    [status || null, hallId || null, dateFrom || null, dateTo || null]
+    [status || null, hallId || null, dateFrom || null, dateTo || null, customerId || null]
   );
 
   return {
