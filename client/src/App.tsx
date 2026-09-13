@@ -7,6 +7,7 @@ import BookingWizardPage from "@/pages/customer/BookingWizardPage";
 import PaymentCheckoutPage from "@/pages/customer/PaymentCheckoutPage";
 import PaymentSuccessPage from "@/pages/customer/PaymentSuccessPage";
 import PaymentCancelledPage from "@/pages/customer/PaymentCancelledPage";
+import EventTimelinePage from "@/pages/booking/EventTimelinePage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -43,6 +44,10 @@ function App() {
             <Route
               path="/payment/cancelled"
               element={<PaymentCancelledPage />}
+            />
+            <Route
+              path="/bookings/:bookingId/timeline"
+              element={<EventTimelinePage />}
             />
           </Route>
 

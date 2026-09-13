@@ -1,31 +1,47 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  src/routes/booking.routes.js
 // ─────────────────────────────────────────────────────────────────────────────
-const express = require('express');
+const express = require("express");
 
-const { authenticate, authorize, restrictTo } = require('../middleware/auth.middleware');
-const { validate }                 = require('../middleware/validate');
+const {
+  authenticate,
+  authorize,
+  restrictTo,
+} = require("../middleware/auth.middleware");
+const { validate } = require("../middleware/validate");
 const {
   validateCreateBooking,
   validateGetBooking,
-} = require('../validators/booking.validator');
+} = require("../validators/booking.validator");
 const {
   createBookingHandler,
   getBookingHandler,
-} = require('../controllers/booking.controller');
+} = require("../controllers/booking.controller");
 const {
   listOrganizersForBookingHandler,
   assignOrganizerHandler,
-} = require('../controllers/organizer.controller');
+} = require("../controllers/organizer.controller");
 const {
   listSponsorRequestsForBookingHandler,
   createSponsorRequestHandler,
   withdrawSponsorRequestHandler,
-} = require('../controllers/sponsor.controller');
+} = require("../controllers/sponsor.controller");
 const {
   createCateringOrderHandler,
   listCateringOrdersForBookingHandler,
-} = require('../controllers/catering.controller');
+} = require("../controllers/catering.controller");
+const {
+  listTimelineHandler,
+  createTimelineHandler,
+  updateTimelineHandler,
+  deleteTimelineHandler,
+} = require('../controllers/timeline.controller');
+const {
+  validateListTimeline,
+  validateCreateTimeline,
+  validateUpdateTimeline,
+  validateDeleteTimeline,
+} = require('../validators/timeline.validator');
 
 const router = express.Router();
 
@@ -37,8 +53,8 @@ router.use(authenticate);
 //  POST /api/bookings
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
-  '/',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/",
+  restrictTo("admin", "manager", "front_desk", "customer"),
   validateCreateBooking,
   validate,
   createBookingHandler
@@ -49,8 +65,8 @@ router.post(
 //  GET /api/bookings/:bookingId
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
-  '/:bookingId',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/:bookingId",
+  restrictTo("admin", "manager", "front_desk", "customer"),
   validateGetBooking,
   validate,
   getBookingHandler
@@ -60,8 +76,8 @@ router.get(
 //  GET /api/bookings/:bookingId/organizers — organizers assigned to a booking
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
-  '/:bookingId/organizers',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/:bookingId/organizers",
+  restrictTo("admin", "manager", "front_desk", "customer"),
   listOrganizersForBookingHandler
 );
 
@@ -69,8 +85,8 @@ router.get(
 //  POST /api/bookings/:bookingId/organizers — staff assigns an organizer
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
-  '/:bookingId/organizers',
-  authorize('organizer:manage'),
+  "/:bookingId/organizers",
+  authorize("organizer:manage"),
   assignOrganizerHandler
 );
 
@@ -78,8 +94,8 @@ router.post(
 //  GET /api/bookings/:bookingId/sponsors — sponsor requests on a booking
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
-  '/:bookingId/sponsors',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/:bookingId/sponsors",
+  restrictTo("admin", "manager", "front_desk", "customer"),
   listSponsorRequestsForBookingHandler
 );
 
@@ -87,8 +103,8 @@ router.get(
 //  POST /api/bookings/:bookingId/sponsors — customer proposes a sponsor
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
-  '/:bookingId/sponsors',
-  authorize('sponsor_request:create'),
+  "/:bookingId/sponsors",
+  authorize("sponsor_request:create"),
   createSponsorRequestHandler
 );
 
@@ -96,8 +112,8 @@ router.post(
 //  PATCH /api/bookings/:bookingId/sponsors/:requestId/withdraw — customer withdraws
 // ─────────────────────────────────────────────────────────────────────────────
 router.patch(
-  '/:bookingId/sponsors/:requestId/withdraw',
-  authorize('sponsor_request:withdraw'),
+  "/:bookingId/sponsors/:requestId/withdraw",
+  authorize("sponsor_request:withdraw"),
   withdrawSponsorRequestHandler
 );
 
@@ -105,8 +121,8 @@ router.patch(
 //  GET /api/bookings/:bookingId/catering-orders — catering orders on a booking
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
-  '/:bookingId/catering-orders',
-  authorize('catering:read'),
+  "/:bookingId/catering-orders",
+  authorize("catering:read"),
   listCateringOrdersForBookingHandler
 );
 
@@ -114,9 +130,53 @@ router.get(
 //  POST /api/bookings/:bookingId/catering-orders — customer places a catering order
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
-  '/:bookingId/catering-orders',
-  authorize('catering:create'),
+  "/:bookingId/catering-orders",
+  authorize("catering:create"),
   createCateringOrderHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings/:bookingId/timeline — list activities for a booking
+// ─────────────────────────────────────────────────────────────────────────────
+router.get(
+  '/:bookingId/timeline',
+  authorize('timeline:read'),
+  validateListTimeline,
+  validate,
+  listTimelineHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  POST /api/bookings/:bookingId/timeline — add an activity
+// ─────────────────────────────────────────────────────────────────────────────
+router.post(
+  '/:bookingId/timeline',
+  authorize('timeline:manage'),
+  validateCreateTimeline,
+  validate,
+  createTimelineHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  PATCH /api/bookings/:bookingId/timeline/:timelineId — edit an activity
+// ─────────────────────────────────────────────────────────────────────────────
+router.patch(
+  '/:bookingId/timeline/:timelineId',
+  authorize('timeline:manage'),
+  validateUpdateTimeline,
+  validate,
+  updateTimelineHandler
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  DELETE /api/bookings/:bookingId/timeline/:timelineId — remove an activity
+// ─────────────────────────────────────────────────────────────────────────────
+router.delete(
+  '/:bookingId/timeline/:timelineId',
+  authorize('timeline:manage'),
+  validateDeleteTimeline,
+  validate,
+  deleteTimelineHandler
 );
 
 module.exports = router;
