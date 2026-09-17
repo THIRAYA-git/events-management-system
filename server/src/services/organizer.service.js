@@ -60,11 +60,11 @@ const getOrganizersForBooking = async (bookingId) => {
   );
   return result.rows;
 };
-
-/**
- * Assign (staff-only) an organizer to a booking
- */
-const assignOrganizerToBooking = async (bookingId, organizerId, { roleInEvent, agreedFee, notes } = {}) => {
+const assignOrganizerToBooking = async (
+  bookingId,
+  organizerId,
+  { roleInEvent, agreedFee, notes } = {}
+) => {
   const bookingCheck = await db.query(
     `SELECT booking_id FROM bookings WHERE booking_id = $1`,
     [bookingId]
@@ -85,14 +85,30 @@ const assignOrganizerToBooking = async (bookingId, organizerId, { roleInEvent, a
     throw err;
   }
 
-  const result = await db.query(
-    `INSERT INTO booking_organizers (booking_id, organizer_id, role_in_event, agreed_fee, status, notes, assigned_at)
-     VALUES ($1, $2, $3, $4, 'assigned', $5, NOW())
-     RETURNING id, booking_id, organizer_id, role_in_event, agreed_fee, status, notes, assigned_at`,
-    [bookingId, organizerId, roleInEvent || null, agreedFee || null, notes || null]
-  );
-
-  return result.rows[0];
+  try {
+    const result = await db.query(
+      `INSERT INTO booking_organizers (booking_id, organizer_id, role_in_event, agreed_fee, status, notes, assigned_at)
+       VALUES ($1, $2, $3, $4, 'assigned', $5, NOW())
+       RETURNING id, booking_id, organizer_id, role_in_event, agreed_fee, status, notes, assigned_at`,
+      [
+        bookingId,
+        organizerId,
+        roleInEvent || null,
+        agreedFee || null,
+        notes || null,
+      ]
+    );
+    return result.rows[0];
+  } catch (err) {
+    if (err.code === "23505") {
+      const conflictErr = new Error(
+        "This organizer is already assigned to this booking."
+      );
+      conflictErr.statusCode = 409;
+      throw conflictErr;
+    }
+    throw err;
+  }
 };
 
 module.exports = {

@@ -41,24 +41,68 @@ const assertCanAccessOrder = async (order, requestingUser) => {
 // Customers must own the booking; staff/restaurant can create on a
 // customer's behalf (e.g. phone-in orders).
 const createCateringOrder = async (bookingId, data, requestingUser) => {
-  if (requestingUser.role === "customer") {
-    const ownerId = await getBookingOwnerId(bookingId);
-    if (ownerId === null) {
-      const err = new Error("Booking not found");
+  const { menu_items, guest_count, special_notes = null, delivery_time = null } = data;
+
+  if (!bookingId || !Array.isArray(menu_items) || menu_items.length === 0) {
+    const err = new Error("booking_id and at least one menu item are required.");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  // Ownership check: customer may only order for their own booking
+  const ownerId = await getBookingOwnerId(bookingId);
+  if (ownerId === null) {
+    const err = new Error("Booking not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  if (requestingUser.role === "customer" && ownerId !== requestingUser.id) {
+    const err = new Error("You do not own this booking");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  // Fetch and validate each menu item; snapshot real name/price server-side
+  // rather than trusting client-supplied unit_price.
+  const itemIds = menu_items.map((i) => i.item_id);
+  const menuResult = await db.query(
+    `SELECT item_id, item_name, price, is_available
+     FROM menu_items
+     WHERE item_id = ANY($1::int[])`,
+    [itemIds]
+  );
+  const menuMap = new Map(menuResult.rows.map((r) => [r.item_id, r]));
+
+  const snapshotItems = menu_items.map(({ item_id, quantity, discount = 0 }) => {
+    const menuItem = menuMap.get(item_id);
+    if (!menuItem) {
+      const err = new Error(`Menu item ${item_id} not found.`);
       err.statusCode = 404;
       throw err;
     }
-    if (ownerId !== requestingUser.id) {
-      const err = new Error("You do not own this booking");
-      err.statusCode = 403;
+    if (!menuItem.is_available) {
+      const err = new Error(`"${menuItem.item_name}" is currently unavailable.`);
+      err.statusCode = 409;
       throw err;
     }
-  }
+    if (!quantity || quantity <= 0) {
+      const err = new Error(`Invalid quantity for "${menuItem.item_name}".`);
+      err.statusCode = 400;
+      throw err;
+    }
+    const unit_price = Number(menuItem.price);
+    const subtotal = unit_price * quantity - discount;
+    return {
+      item_id: menuItem.item_id,
+      item_name: menuItem.item_name,
+      quantity,
+      unit_price,
+      discount,
+      subtotal,
+    };
+  });
 
-  const { menu_items, guest_count, special_notes = null, delivery_time = null } = data;
-
-  const itemsWithSubtotals = computeMenuItemsWithSubtotals(menu_items);
-  const totalCost = computeTotalCost(itemsWithSubtotals);
+  const totalCost = snapshotItems.reduce((sum, line) => sum + line.subtotal, 0);
 
   const result = await db.query(
     `INSERT INTO catering_orders
@@ -66,7 +110,7 @@ const createCateringOrder = async (bookingId, data, requestingUser) => {
      VALUES ($1, $2, $3, $4, 'pending', $5, $6)
      RETURNING order_id, booking_id, menu_items, total_cost, guest_count, status,
                special_notes, delivery_time, confirmed_at, delivered_at, created_at, updated_at`,
-    [bookingId, JSON.stringify(itemsWithSubtotals), totalCost, guest_count, special_notes, delivery_time]
+    [bookingId, JSON.stringify(snapshotItems), totalCost, guest_count, special_notes, delivery_time]
   );
 
   return result.rows[0];

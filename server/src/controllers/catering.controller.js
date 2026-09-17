@@ -2,11 +2,13 @@ const cateringService = require("../services/catering.service");
 
 const createCateringOrderHandler = async (req, res) => {
   try {
-    const { bookingId } = req.params;
-    const order = await cateringService.createCateringOrder(bookingId, req.body, req.user);
-    res.status(201).json({ message: "Catering order created", cateringOrder: order });
+    const { booking_id } = req.body;
+    const order = await cateringService.createCateringOrder(booking_id, req.body, req.user);
+    res.status(201).json({ message: "Catering order placed successfully", order });
   } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || "Failed to create catering order" });
+    res.status(err.statusCode || 500).json({
+      message: err.message || "Failed to place catering order",
+    });
   }
 };
 
@@ -46,4 +48,6 @@ module.exports = {
   listCateringOrdersForBookingHandler,
   getCateringOrderHandler,
   updateCateringOrderStatusHandler,
+  createCateringOrderHandler,
+
 };

@@ -2,6 +2,7 @@ import { useEffect, useState, useCallback } from "react";
 import { listBookings, updateBookingStatus } from "@/lib/booking.api";
 import type { AdminBooking, BookingStatus } from "@/types/booking.types";
 import { Loader2, CheckCircle2, XCircle, X } from "lucide-react";
+import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
 const HALLS = [
@@ -280,36 +281,47 @@ export function AdminBookingsPage() {
                     </span>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    {b.status === "pending" && (
-                      <div className="flex justify-end gap-2">
-                        <button
-                          onClick={() => handleConfirm(b)}
-                          disabled={actionLoadingId === b.booking_id}
-                          className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50"
-                        >
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          Confirm
-                        </button>
+                    <div className="flex justify-end items-center gap-2">
+                      {b.status === "pending" && (
+                        <>
+                          <button
+                            onClick={() => handleConfirm(b)}
+                            disabled={actionLoadingId === b.booking_id}
+                            className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50"
+                          >
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            Confirm
+                          </button>
+                          <button
+                            onClick={() => openCancelModal(b)}
+                            disabled={actionLoadingId === b.booking_id}
+                            className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                          >
+                            <XCircle className="w-3.5 h-3.5" />
+                            Reject
+                          </button>
+                        </>
+                      )}
+                      {b.status === "confirmed" && (
                         <button
                           onClick={() => openCancelModal(b)}
                           disabled={actionLoadingId === b.booking_id}
                           className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
                         >
                           <XCircle className="w-3.5 h-3.5" />
-                          Reject
+                          Cancel
                         </button>
-                      </div>
-                    )}
-                    {b.status === "confirmed" && (
-                      <button
-                        onClick={() => openCancelModal(b)}
-                        disabled={actionLoadingId === b.booking_id}
-                        className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50 ml-auto"
-                      >
-                        <XCircle className="w-3.5 h-3.5" />
-                        Cancel
-                      </button>
-                    )}
+                      )}
+
+                      <AssignOrganizerDialog
+                        bookingId={b.booking_id}
+                        trigger={
+                          <button className="flex items-center gap-1 rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100">
+                            Organizer
+                          </button>
+                        }
+                      />
+                    </div>
                   </td>
                 </tr>
               ))}
