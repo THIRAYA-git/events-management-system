@@ -12,7 +12,9 @@ import {
 import { DateTimeStep } from "@/components/booking/DateTimeStep";
 import { HallSelectionStep } from "@/components/booking/HallSelectionStep";
 import { EventDetailsStep } from "@/components/booking/EventDetailsStep";
+import { CateringStep } from "@/components/booking/CateringStep";
 import { fetchAvailableHalls, createBooking } from "@/lib/booking.api";
+import { createCateringOrder } from "@/lib/catering.api";
 import type {
   SlotSelection,
   AvailableHallsResponse,
@@ -20,8 +22,9 @@ import type {
   PriceCalculation,
   BookingResult,
 } from "@/types/booking.types";
+import type { CateringSelectionItem } from "@/types/catering.types";
 
-type Step = "datetime" | "halls" | "details" | "review" | "success";
+type Step = "datetime" | "halls" | "details" | "catering" | "review" | "success";
 
 export default function BookingWizardPage() {
   const navigate = useNavigate();
@@ -38,6 +41,7 @@ export default function BookingWizardPage() {
     specialRequests: string;
     pricing: PriceCalculation;
   } | null>(null);
+  const [cateringSelection, setCateringSelection] = useState<CateringSelectionItem[]>([]);
   const [result, setResult] = useState<BookingResult | null>(null);
 
   const handleSlotSubmit = async (s: SlotSelection) => {
@@ -71,6 +75,23 @@ export default function BookingWizardPage() {
         special_requests: details.specialRequests || undefined,
       });
       setResult(booking);
+
+      // Catering is a separate order tied to the now-confirmed booking.
+      // If this fails, the booking itself still stands — just warn.
+      if (cateringSelection.length > 0) {
+        try {
+          await createCateringOrder(booking.bookingId, {
+            menu_items: cateringSelection,
+            guest_count: slot.guest_count,
+          });
+        } catch (cateringErr: any) {
+          toast.error(
+            cateringErr?.response?.data?.message ||
+              "Booking confirmed, but catering order failed. You can add catering later."
+          );
+        }
+      }
+
       setStep("success");
     } catch (err: any) {
       const msg =
@@ -107,9 +128,19 @@ export default function BookingWizardPage() {
         <EventDetailsStep
           onSubmit={(d) => {
             setDetails(d);
-            setStep("review");
+            setStep("catering");
           }}
           onBack={() => setStep("halls")}
+        />
+      )}
+
+      {step === "catering" && (
+        <CateringStep
+          onSubmit={(selection) => {
+            setCateringSelection(selection);
+            setStep("review");
+          }}
+          onBack={() => setStep("details")}
         />
       )}
 
@@ -136,7 +167,15 @@ export default function BookingWizardPage() {
             </p>
             {details.roomCount > 0 && (
               <p>
-                <span className="font-medium">Rooms:</span> {details.roomCount}
+                <span className="font-medium">Rooms:</span>{" "}
+                {details.roomCount}
+              </p>
+            )}
+            {cateringSelection.length > 0 && (
+              <p>
+                <span className="font-medium">Catering:</span>{" "}
+                {cateringSelection.length} item
+                {cateringSelection.length > 1 ? "s" : ""} selected
               </p>
             )}
             <p className="pt-2 text-base font-semibold">
@@ -144,7 +183,7 @@ export default function BookingWizardPage() {
             </p>
           </CardContent>
           <CardFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setStep("details")}>
+            <Button variant="outline" onClick={() => setStep("catering")}>
               Back
             </Button>
             <Button
@@ -166,7 +205,9 @@ export default function BookingWizardPage() {
           <CardContent className="space-y-2 text-sm">
             <p>
               Your booking reference is{" "}
-              <span className="font-mono font-medium">{result.bookingRef}</span>
+              <span className="font-mono font-medium">
+                {result.bookingRef}
+              </span>
               .
             </p>
             <p>Status: {result.status}</p>
