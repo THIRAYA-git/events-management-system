@@ -138,6 +138,51 @@ const listCateringOrdersForBooking = async (bookingId, requestingUser) => {
   return result.rows;
 };
 
+// Admin/manager/front_desk/restaurant view across every booking — used by
+// the admin Catering Orders table, not scoped to a single customer.
+const listAllCateringOrders = async ({ status, limit = 20, offset = 0 } = {}) => {
+  const conditions = ["1=1"];
+  const params = [];
+
+  if (status) {
+    params.push(status);
+    conditions.push(`co.status = $${params.length}`);
+  }
+
+  const where = conditions.join(" AND ");
+
+  params.push(limit);
+  const limitParam = `$${params.length}`;
+  params.push(offset);
+  const offsetParam = `$${params.length}`;
+
+  const result = await db.query(
+    `SELECT co.order_id, co.booking_id, co.menu_items, co.total_cost, co.guest_count, co.status,
+            co.special_notes, co.delivery_time, co.confirmed_at, co.delivered_at,
+            co.created_at, co.updated_at,
+            b.booking_ref, b.event_type, u.full_name AS customer_name
+     FROM catering_orders co
+     JOIN bookings b ON b.booking_id = co.booking_id
+     JOIN users u ON u.user_id = b.user_id
+     WHERE ${where}
+     ORDER BY co.created_at DESC
+     LIMIT ${limitParam} OFFSET ${offsetParam}`,
+    params
+  );
+
+  const countResult = await db.query(
+    `SELECT COUNT(*)::int AS count FROM catering_orders co WHERE ${where}`,
+    params.slice(0, params.length - 2)
+  );
+
+  return {
+    orders: result.rows,
+    total: countResult.rows[0].count,
+    limit,
+    offset,
+  };
+};
+
 const getCateringOrderById = async (orderId, requestingUser) => {
   const result = await db.query(
     `SELECT order_id, booking_id, menu_items, total_cost, guest_count, status,
@@ -193,6 +238,7 @@ module.exports = {
   getBookingOwnerId,
   createCateringOrder,
   listCateringOrdersForBooking,
+  listAllCateringOrders,
   getCateringOrderById,
   updateCateringOrderStatus,
 };

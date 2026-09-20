@@ -120,6 +120,19 @@ const markResetTokenUsed = async (token) => {
   );
 };
 
+// ── Self-service: update own name/phone ────────────────────────
+const updateProfile = async (user_id, { full_name, phone }) => {
+  const { rows } = await query(
+    `UPDATE users
+     SET full_name = $1, phone = $2
+     WHERE user_id = $3
+     RETURNING user_id, full_name, email, phone, role,
+               profile_image, is_active, is_verified, last_login, created_at`,
+    [full_name, phone ?? null, user_id]
+  );
+  return rows[0] || null;
+};
+
 // ── Update password ───────────────────────────────────────────
 const updatePassword = async (user_id, password_hash) => {
   await query(
@@ -193,6 +206,7 @@ module.exports = {
   createPasswordResetToken,
   findUserByResetToken,
   markResetTokenUsed,
+  updateProfile,
   updatePassword,
   findAllUsers,
   countUsers,

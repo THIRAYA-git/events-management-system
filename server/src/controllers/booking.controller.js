@@ -7,6 +7,7 @@ const {
   listBookings,
   updateBookingStatus,
 } = require('../services/booking.service');
+const db = require('../config/db');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/bookings
@@ -165,6 +166,53 @@ const updateBookingStatusHandler = async (req, res, next) => {
   }
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings/mine?status=&limit=&offset=
+//  Customer's own booking history — reuses listBookings, forcing
+//  customerId to the requesting user so a customer can never pass
+//  someone else's customer_id in via query params.
+// ─────────────────────────────────────────────────────────────────────────────
+const listMyBookingsHandler = async (req, res, next) => {
+  try {
+    const { status, limit = 20, offset = 0 } = req.query;
+
+    const result = await listBookings({
+      status:     status || null,
+      customerId: req.user.id,
+      limit:      Number(limit),
+      offset:     Number(offset),
+    });
+
+    // Flag which of these bookings already have feedback, so the client
+    // never shows "Leave Feedback" as clickable for one already reviewed.
+    const bookingIds = result.bookings.map((b) => b.booking_id);
+    let reviewedIds = new Set();
+    if (bookingIds.length > 0) {
+      const feedbackResult = await db.query(
+        `SELECT booking_id FROM feedback WHERE booking_id = ANY($1::int[])`,
+        [bookingIds]
+      );
+      reviewedIds = new Set(feedbackResult.rows.map((r) => r.booking_id));
+    }
+    const bookingsWithFeedbackFlag = result.bookings.map((b) => ({
+      ...b,
+      has_feedback: reviewedIds.has(b.booking_id),
+    }));
+
+    return res.status(200).json({
+      success: true,
+      data:    bookingsWithFeedbackFlag,
+      meta: {
+        total:  result.total,
+        limit:  result.limit,
+        offset: result.offset,
+      },
+    });
+  } catch (err) {
+    next(err);
+  }
+};
+
 // ── Only treat known business-rule errors as 4xx ──────────────────────────────
 const SERVICE_ERROR_PATTERNS = [
   'required', 'not found', 'inactive', 'exceeds', 'no longer available',
@@ -185,5 +233,6 @@ module.exports = {
   createBookingHandler,
   getBookingHandler,
   listBookingsHandler,
+  listMyBookingsHandler,
   updateBookingStatusHandler,
 };

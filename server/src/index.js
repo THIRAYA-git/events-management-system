@@ -18,6 +18,7 @@ const sponsorRoutes = require("./routes/sponsor.routes");
 const menuRoutes     = require("./routes/menu.routes");
 const cateringRoutes = require("./routes/catering.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
+const feedbackRoutes = require("./routes/feedback.routes");
 
 
 const app  = express();
@@ -52,6 +53,7 @@ app.use("/api/sponsors", sponsorRoutes);
 app.use("/api/menu-items", menuRoutes);
 app.use("/api/catering-orders", cateringRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/feedback", feedbackRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");

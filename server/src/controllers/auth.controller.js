@@ -24,6 +24,7 @@ const {
   createPasswordResetToken,
   findUserByResetToken,
   markResetTokenUsed,
+  updateProfile,
   updatePassword,
 } = require("../models/user.model");
 
@@ -298,12 +299,70 @@ const resetPassword = async (req, res) => {
   }
 };
 
+// ── PATCH /api/auth/me ──────────────────────────────────────────
+// Self-service profile update (name/phone only — not email or role).
+const updateOwnProfile = async (req, res) => {
+  try {
+    const { full_name, phone } = req.body;
+    if (!full_name || !full_name.trim()) {
+      return res.status(400).json({ message: "full_name is required." });
+    }
+
+    const user = await updateProfile(req.user.id, { full_name: full_name.trim(), phone });
+    return res.json({ message: "Profile updated successfully", user });
+  } catch (error) {
+    console.error("[updateOwnProfile]", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
+// ── PATCH /api/auth/me/password ─────────────────────────────────
+// Self-service password change while logged in — distinct from the
+// forgot/reset-password flow, which is for a locked-out user.
+const changeOwnPassword = async (req, res) => {
+  try {
+    const { current_password, new_password } = req.body;
+    if (!current_password || !new_password) {
+      return res
+        .status(400)
+        .json({ message: "current_password and new_password are required." });
+    }
+    if (new_password.length < 8) {
+      return res.status(400).json({ message: "New password must be at least 8 characters." });
+    }
+
+    // Re-fetch with password_hash included (findUserById omits it by design)
+    const { rows } = await query(`SELECT password_hash FROM users WHERE user_id = $1`, [
+      req.user.id,
+    ]);
+    const currentHash = rows[0]?.password_hash;
+    if (!currentHash) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const valid = await comparePassword(current_password, currentHash);
+    if (!valid) {
+      return res.status(401).json({ message: "Current password is incorrect." });
+    }
+
+    const newHash = await hashPassword(new_password);
+    await updatePassword(req.user.id, newHash);
+
+    return res.json({ message: "Password changed successfully. Please log in again." });
+  } catch (error) {
+    console.error("[changeOwnPassword]", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 module.exports = {
   register,
   login,
   refresh,
   logout,
   me,
+  updateOwnProfile,
+  changeOwnPassword,
   forgotPassword,
   resetPassword,
 };

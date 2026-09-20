@@ -10,6 +10,8 @@ const {
   refresh,
   logout,
   me,
+  updateOwnProfile,
+  changeOwnPassword,
   forgotPassword,
   resetPassword,
 } = require("../controllers/auth.controller");
@@ -24,5 +26,7 @@ router.post("/reset-password",  resetPassword);
 
 // Protected
 router.get("/me", authenticate, me);
+router.patch("/me", authenticate, updateOwnProfile);
+router.patch("/me/password", authenticate, changeOwnPassword);
 
 module.exports = router;

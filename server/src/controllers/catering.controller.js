@@ -22,6 +22,21 @@ const listCateringOrdersForBookingHandler = async (req, res) => {
   }
 };
 
+// GET /api/catering-orders — admin/manager/front_desk/restaurant table view
+const listCateringOrdersHandler = async (req, res) => {
+  try {
+    const { status, limit, offset } = req.query;
+    const result = await cateringService.listAllCateringOrders({
+      status,
+      limit: limit ? Number(limit) : undefined,
+      offset: offset ? Number(offset) : undefined,
+    });
+    res.status(200).json(result);
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || "Failed to fetch catering orders" });
+  }
+};
+
 const getCateringOrderHandler = async (req, res) => {
   try {
     const { orderId } = req.params;
@@ -46,8 +61,7 @@ const updateCateringOrderStatusHandler = async (req, res) => {
 module.exports = {
   createCateringOrderHandler,
   listCateringOrdersForBookingHandler,
+  listCateringOrdersHandler,
   getCateringOrderHandler,
   updateCateringOrderStatusHandler,
-  createCateringOrderHandler,
-
 };

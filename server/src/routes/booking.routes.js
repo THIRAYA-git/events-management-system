@@ -17,6 +17,7 @@ const {
   createBookingHandler,
   getBookingHandler,
   listBookingsHandler,
+  listMyBookingsHandler,
   updateBookingStatusHandler,
 } = require("../controllers/booking.controller");
 const {
@@ -37,13 +38,13 @@ const {
   createTimelineHandler,
   updateTimelineHandler,
   deleteTimelineHandler,
-} = require('../controllers/timeline.controller');
+} = require("../controllers/timeline.controller");
 const {
   validateListTimeline,
   validateCreateTimeline,
   validateUpdateTimeline,
   validateDeleteTimeline,
-} = require('../validators/timeline.validator');
+} = require("../validators/timeline.validator");
 
 const router = express.Router();
 
@@ -61,6 +62,13 @@ router.post(
   validate,
   createBookingHandler
 );
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/bookings/mine — the logged-in customer's own booking history.
+//  Must be registered before "/:bookingId" or Express would try to parse
+//  "mine" as a bookingId.
+// ─────────────────────────────────────────────────────────────────────────────
+router.get("/mine", restrictTo("customer"), listMyBookingsHandler);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  READ — fetch a single booking with hall + pricing details
@@ -141,8 +149,8 @@ router.post(
 //  GET /api/bookings/:bookingId/timeline — list activities for a booking
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
-  '/:bookingId/timeline',
-  authorize('timeline:read'),
+  "/:bookingId/timeline",
+  authorize("timeline:read"),
   validateListTimeline,
   validate,
   listTimelineHandler
@@ -152,8 +160,8 @@ router.get(
 //  POST /api/bookings/:bookingId/timeline — add an activity
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
-  '/:bookingId/timeline',
-  authorize('timeline:manage'),
+  "/:bookingId/timeline",
+  authorize("timeline:manage"),
   validateCreateTimeline,
   validate,
   createTimelineHandler
@@ -163,8 +171,8 @@ router.post(
 //  PATCH /api/bookings/:bookingId/timeline/:timelineId — edit an activity
 // ─────────────────────────────────────────────────────────────────────────────
 router.patch(
-  '/:bookingId/timeline/:timelineId',
-  authorize('timeline:manage'),
+  "/:bookingId/timeline/:timelineId",
+  authorize("timeline:manage"),
   validateUpdateTimeline,
   validate,
   updateTimelineHandler
@@ -174,8 +182,8 @@ router.patch(
 //  DELETE /api/bookings/:bookingId/timeline/:timelineId — remove an activity
 // ─────────────────────────────────────────────────────────────────────────────
 router.delete(
-  '/:bookingId/timeline/:timelineId',
-  authorize('timeline:manage'),
+  "/:bookingId/timeline/:timelineId",
+  authorize("timeline:manage"),
   validateDeleteTimeline,
   validate,
   deleteTimelineHandler
