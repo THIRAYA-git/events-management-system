@@ -39,4 +39,15 @@ export interface CateringOrder {
   delivered_at: string | null;
   created_at: string;
   updated_at: string;
+  // Only present on the admin GET /catering-orders list response
+  booking_ref?: string;
+  event_type?: string;
+  customer_name?: string;
+}
+
+export interface CateringOrderListResponse {
+  orders: CateringOrder[];
+  total: number;
+  limit: number;
+  offset: number;
 }

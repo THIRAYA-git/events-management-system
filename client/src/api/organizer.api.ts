@@ -8,7 +8,7 @@ export const getAllOrganizers = async (params?: {
   specialty?: string;
   isAvailable?: boolean;
 }): Promise<Organizer[]> => {
-  const { data } = await api.get("/api/organizers", { params });
+  const { data } = await api.get("/organizers", { params });
   return data.organizers;
 };
 
@@ -16,7 +16,7 @@ export const getOrganizersForBooking = async (
   bookingId: number
 ): Promise<BookingOrganizerAssignment[]> => {
   const { data } = await api.get(
-    `/api/bookings/${bookingId}/organizers`
+    `/bookings/${bookingId}/organizers`
   );
   return data.organizers;
 };
@@ -26,7 +26,7 @@ export const assignOrganizerToBooking = async (
   payload: AssignOrganizerPayload
 ): Promise<BookingOrganizerAssignment> => {
   const { data } = await api.post(
-    `/api/bookings/${bookingId}/organizers`,
+    `/bookings/${bookingId}/organizers`,
     payload
   );
   return data.assignment;

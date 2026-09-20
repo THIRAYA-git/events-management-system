@@ -1,0 +1,110 @@
+import { useState } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut, UserCircle } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+
+const NAV_LINK_CLASS = ({ isActive }: { isActive: boolean }) =>
+  `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+    isActive
+      ? "bg-gray-100 text-gray-900"
+      : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+  }`;
+
+const CustomerNavbar = () => {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const isStaff =
+    user?.role === "admin" || user?.role === "manager" || user?.role === "front_desk";
+
+  const handleLogout = async () => {
+    await logout();
+    navigate("/login");
+  };
+
+  const links = [
+    { to: "/", label: "Home" },
+    { to: "/book", label: "Book a Hall" },
+    ...(user?.role === "customer" ? [{ to: "/my-bookings", label: "My Bookings" }] : []),
+    ...(isStaff ? [{ to: "/admin", label: "Admin Dashboard" }] : []),
+  ];
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-gray-200 bg-white">
+      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-6">
+        <span className="text-lg font-semibold text-gray-900">Aazath Plaza</span>
+
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-1 md:flex">
+          {links.map((link) => (
+            <NavLink key={link.to} to={link.to} end={link.to === "/"} className={NAV_LINK_CLASS}>
+              {link.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="hidden items-center gap-3 md:flex">
+          <div className="flex items-center gap-2 text-sm text-gray-700">
+            <UserCircle className="h-5 w-5 text-gray-400" />
+            <span className="font-medium">{user?.name ?? user?.email}</span>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-red-600"
+            aria-label="Log out"
+          >
+            <LogOut className="h-4 w-4" />
+          </button>
+        </div>
+
+        {/* Mobile menu toggle */}
+        <button
+          onClick={() => setMobileOpen((open) => !open)}
+          className="rounded-md p-2 hover:bg-gray-100 md:hidden"
+          aria-label={mobileOpen ? "Close menu" : "Open menu"}
+        >
+          {mobileOpen ? (
+            <X className="h-5 w-5 text-gray-600" />
+          ) : (
+            <Menu className="h-5 w-5 text-gray-600" />
+          )}
+        </button>
+      </div>
+
+      {/* Mobile nav panel */}
+      {mobileOpen && (
+        <nav className="border-t border-gray-200 bg-white px-4 py-3 md:hidden">
+          <div className="flex flex-col gap-1">
+            {links.map((link) => (
+              <NavLink
+                key={link.to}
+                to={link.to}
+                end={link.to === "/"}
+                className={NAV_LINK_CLASS}
+                onClick={() => setMobileOpen(false)}
+              >
+                {link.label}
+              </NavLink>
+            ))}
+          </div>
+          <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
+            <div className="flex items-center gap-2 text-sm text-gray-700">
+              <UserCircle className="h-5 w-5 text-gray-400" />
+              <span className="font-medium">{user?.name ?? user?.email}</span>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-red-600"
+              aria-label="Log out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </nav>
+      )}
+    </header>
+  );
+};
+
+export default CustomerNavbar;

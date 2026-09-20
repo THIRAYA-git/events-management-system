@@ -3,6 +3,7 @@ import type {
   MenuItem,
   CateringOrder,
   CateringSelectionItem,
+  CateringOrderListResponse,
 } from "@/types/catering.types";
 
 export const listMenuItems = async (): Promise<MenuItem[]> => {
@@ -24,4 +25,20 @@ export const createCateringOrder = async (
     ...payload,
   });
   return data.order;
+};
+
+// Admin/manager/front_desk/restaurant table view across all bookings
+export const listAllCateringOrders = async (
+  params: { status?: string; limit?: number; offset?: number } = {}
+): Promise<CateringOrderListResponse> => {
+  const { data } = await api.get("/catering-orders", { params });
+  return data;
+};
+
+export const updateCateringOrderStatus = async (
+  orderId: number,
+  status: string
+): Promise<CateringOrder> => {
+  const { data } = await api.patch(`/catering-orders/${orderId}/status`, { status });
+  return data.cateringOrder;
 };

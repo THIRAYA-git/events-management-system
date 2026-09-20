@@ -8,6 +8,8 @@ import PaymentCheckoutPage from "@/pages/customer/PaymentCheckoutPage";
 import PaymentSuccessPage from "@/pages/customer/PaymentSuccessPage";
 import PaymentCancelledPage from "@/pages/customer/PaymentCancelledPage";
 import EventTimelinePage from "@/pages/booking/EventTimelinePage";
+import MyBookingsPage from "@/pages/customer/MyBookingsPage";
+import CustomerLayout from "@/layouts/CustomerLayout";
 import AdminLayout from "@/layouts/AdminLayout";
 import { AdminDashboardHome } from "@/pages/admin/AdminDashboardHome";
 import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
@@ -30,33 +32,40 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
 
-          {/* Any logged-in user */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/" element={<Dashboard />} />
-          </Route>
+          <Route element={<CustomerLayout />}>
+            {/* Any logged-in user */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/" element={<Dashboard />} />
+            </Route>
 
-          {/* Only roles allowed to create bookings */}
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRoles={["customer", "admin", "manager", "front_desk"]}
+            {/* Only roles allowed to create bookings */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={["customer", "admin", "manager", "front_desk"]}
+                />
+              }
+            >
+              <Route path="/book" element={<BookingWizardPage />} />
+              <Route
+                path="/payment/:bookingId"
+                element={<PaymentCheckoutPage />}
               />
-            }
-          >
-            <Route path="/book" element={<BookingWizardPage />} />
-            <Route
-              path="/payment/:bookingId"
-              element={<PaymentCheckoutPage />}
-            />
-            <Route path="/payment/success" element={<PaymentSuccessPage />} />
-            <Route
-              path="/payment/cancelled"
-              element={<PaymentCancelledPage />}
-            />
-            <Route
-              path="/bookings/:bookingId/timeline"
-              element={<EventTimelinePage />}
-            />
+              <Route path="/payment/success" element={<PaymentSuccessPage />} />
+              <Route
+                path="/payment/cancelled"
+                element={<PaymentCancelledPage />}
+              />
+              <Route
+                path="/bookings/:bookingId/timeline"
+                element={<EventTimelinePage />}
+              />
+            </Route>
+
+            {/* Customer only — booking history + feedback */}
+            <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
+              <Route path="/my-bookings" element={<MyBookingsPage />} />
+            </Route>
           </Route>
 
           <Route

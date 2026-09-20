@@ -1,6 +1,17 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+  type ReactNode,
+} from "react";
 import { api, setAccessToken } from "@/lib/api";
-import type { AuthUser, LoginPayload, RegisterPayload, AuthResponse } from "@/types/auth.types";
+import type {
+  AuthUser,
+  LoginPayload,
+  RegisterPayload,
+  AuthResponse,
+} from "@/types/auth.types";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -9,6 +20,7 @@ interface AuthContextValue {
   login: (payload: LoginPayload) => Promise<void>;
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => Promise<void>;
+  refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -22,9 +34,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const restoreSession = async () => {
       try {
-        const { data } = await api.post<{ accessToken: string }>("/auth/refresh");
+        const { data } = await api.post<{ accessToken: string }>(
+          "/auth/refresh"
+        );
         setAccessToken(data.accessToken);
-        const meRes = await api.get<{ user: AuthUser; permissions: string[] }>("/auth/me");
+        const meRes = await api.get<{ user: AuthUser; permissions: string[] }>(
+          "/auth/me"
+        );
         setUser(meRes.data.user);
         setPermissions(meRes.data.permissions);
       } catch {
@@ -61,8 +77,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Re-fetches /auth/me — call after a profile update so the navbar and
+  // any other consumer of `user` picks up the change without a full reload.
+  const refreshUser = async () => {
+    const { data } = await api.get<{ user: AuthUser; permissions: string[] }>(
+      "/auth/me"
+    );
+    setUser(data.user);
+    setPermissions(data.permissions);
+  };
+
   return (
-    <AuthContext.Provider value={{ user, permissions, isLoading, login, register, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        permissions,
+        isLoading,
+        login,
+        register,
+        logout,
+        refreshUser,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

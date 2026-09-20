@@ -91,6 +91,8 @@ export interface AdminBooking {
   hall_booking_id: number;
   hall_id: number;
   hall_name: string;
+  // Only present on the customer-facing GET /bookings/mine response
+  has_feedback?: boolean;
 }
 
 export interface ListBookingsParams {
