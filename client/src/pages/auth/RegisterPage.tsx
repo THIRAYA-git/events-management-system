@@ -60,7 +60,7 @@ export default function RegisterPage() {
         full_name: fullName,
         email,
         password,
-        phone: phone || undefined,
+        phone,
         role,
       });
       navigate("/", { replace: true });
@@ -106,12 +106,13 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">Phone (optional)</Label>
+              <Label htmlFor="phone">Phone</Label>
               <Input
                 id="phone"
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                required
                 autoComplete="tel"
               />
             </div>
