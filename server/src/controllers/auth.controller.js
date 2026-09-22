@@ -65,8 +65,8 @@ const register = async (req, res) => {
     const { full_name, email, password, phone, role } = req.body;
 
     // Input validation
-    if (!full_name || !email || !password) {
-      return res.status(400).json({ message: "full_name, email and password are required." });
+    if (!full_name || !email || !password || !phone) {
+      return res.status(400).json({ message: "full_name, email, password and phone are required." });
     }
     if (password.length < 8) {
       return res.status(400).json({ message: "Password must be at least 8 characters." });

@@ -10,6 +10,7 @@ const {
 const db = require('../config/db');
 const { findUserById } = require('../models/user.model');
 const { sendBookingConfirmationEmail } = require('../services/email.service');
+const { sendBookingConfirmationSms } = require('../services/sms.service');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/bookings
@@ -55,8 +56,9 @@ const createBookingHandler = async (req, res, next) => {
     // Email failures must never block the booking response — the booking
     // itself already succeeded by this point. Same fire-and-log pattern
     // as email.service.js uses internally.
+    let user = null;
     try {
-      const user = await findUserById(userId);
+      user = await findUserById(userId);
       if (user?.email) {
         await sendBookingConfirmationEmail(user.email, {
           customerName: user.full_name,
@@ -72,6 +74,21 @@ const createBookingHandler = async (req, res, next) => {
       }
     } catch (emailErr) {
       console.error('[createBookingHandler] Failed to send confirmation email:', emailErr.message);
+    }
+
+    // Isolated from the email try/catch above on purpose — Twilio being
+    // down (or the trial-account recipient-verification restriction)
+    // must never affect email delivery or the booking response either.
+    try {
+      if (user?.phone) {
+        await sendBookingConfirmationSms(user.phone, {
+          bookingRef: result.bookingRef,
+          hallName:   result.hallName,
+          eventDate:  event_date,
+        });
+      }
+    } catch (smsErr) {
+      console.error('[createBookingHandler] Failed to send confirmation SMS:', smsErr.message);
     }
 
     return res.status(201).json({
