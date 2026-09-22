@@ -8,6 +8,8 @@ const {
   updateBookingStatus,
 } = require('../services/booking.service');
 const db = require('../config/db');
+const { findUserById } = require('../models/user.model');
+const { sendBookingConfirmationEmail } = require('../services/email.service');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/bookings
@@ -49,6 +51,28 @@ const createBookingHandler = async (req, res, next) => {
       taxAmount:       tax_amount,
       specialRequests: special_requests,
     });
+
+    // Email failures must never block the booking response — the booking
+    // itself already succeeded by this point. Same fire-and-log pattern
+    // as email.service.js uses internally.
+    try {
+      const user = await findUserById(userId);
+      if (user?.email) {
+        await sendBookingConfirmationEmail(user.email, {
+          customerName: user.full_name,
+          bookingRef:   result.bookingRef,
+          hallName:     result.hallName,
+          eventDate:    event_date,
+          startTime:    start_time,
+          endTime:      end_time,
+          eventType:    result.eventType,
+          guestCount:   result.guestCount,
+          totalAmount:  result.pricing.totalAmount,
+        });
+      }
+    } catch (emailErr) {
+      console.error('[createBookingHandler] Failed to send confirmation email:', emailErr.message);
+    }
 
     return res.status(201).json({
       success: true,

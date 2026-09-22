@@ -6,6 +6,7 @@ const { authenticate, authorize } = require('../middleware/auth.middleware');
 const { getBookingById } = require('../services/booking.service');
 const { findUserById } = require('../models/user.model');
 const { query } = require('../config/db');
+const { generateInvoicePdf } = require('../services/pdf.service');
 
 // ─────────────────────────────────────────────────────────────
 //  POST /api/payments/initiate
@@ -110,16 +111,27 @@ router.post('/notify', async (req, res) => {
            gateway_response = $3::jsonb,
            updated_at = NOW()
        WHERE payhere_order_id = $4
-       RETURNING booking_id`,
+       RETURNING payment_id, booking_id`,
       [paymentStatus, payment_id, JSON.stringify(req.body), order_id]
     );
 
     const bookingId = result.rows[0]?.booking_id;
+    const paymentRowId = result.rows[0]?.payment_id;
 
     if (bookingId && paymentStatus === 'completed') {
       await query(
         `UPDATE bookings SET status = 'confirmed', confirmed_at = NOW() WHERE booking_id = $1`,
         [bookingId]
+      );
+
+      // Invoice numbers are only ever assigned once a payment actually
+      // completes — generated here rather than at insert time, since a
+      // pending/failed payment should never have one.
+      await query(
+        `UPDATE payments
+         SET invoice_number = 'INV-' || to_char(NOW(), 'YYYYMMDD') || '-' || payment_id
+         WHERE payment_id = $1`,
+        [paymentRowId]
       );
     }
 
@@ -137,6 +149,20 @@ router.get('/:bookingId', authenticate, authorize('payment:read_own'), async (re
   const { bookingId } = req.params;
 
   try {
+    let booking;
+    try {
+      booking = await getBookingById(bookingId);
+    } catch {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    // authorize('payment:read_own') only checks role, not ownership of
+    // this specific booking — without this check, any customer could
+    // read any other customer's payment status by guessing bookingIds.
+    if (req.user.role === 'customer' && booking.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'You do not have access to this payment' });
+    }
+
     const result = await query(
       `SELECT payment_id, booking_id, amount, payment_method, status, currency,
               transaction_id, payhere_order_id, invoice_number, paid_at, created_at
@@ -153,6 +179,55 @@ router.get('/:bookingId', authenticate, authorize('payment:read_own'), async (re
   } catch (err) {
     console.error('Payment status fetch error:', err);
     res.status(500).json({ error: 'Failed to retrieve payment status' });
+  }
+});
+
+// ─────────────────────────────────────────────────────────────
+//  GET /api/payments/:bookingId/invoice — download a PDF invoice
+//  for a completed payment. Generated on the fly, not stored.
+// ─────────────────────────────────────────────────────────────
+router.get('/:bookingId/invoice', authenticate, authorize('payment:read_own'), async (req, res) => {
+  const { bookingId } = req.params;
+
+  try {
+    let booking;
+    try {
+      booking = await getBookingById(bookingId);
+    } catch {
+      return res.status(404).json({ error: 'Booking not found' });
+    }
+
+    if (req.user.role === 'customer' && booking.user_id !== req.user.id) {
+      return res.status(403).json({ error: 'You do not have access to this invoice' });
+    }
+
+    const paymentResult = await query(
+      `SELECT payment_id, invoice_number, amount, payment_method, currency,
+              transaction_id, paid_at
+       FROM payments
+       WHERE booking_id = $1 AND status = 'completed'
+       ORDER BY created_at DESC LIMIT 1`,
+      [bookingId]
+    );
+
+    if (paymentResult.rows.length === 0) {
+      return res.status(404).json({ error: 'No completed payment found for this booking' });
+    }
+    const payment = paymentResult.rows[0];
+
+    const customer = await findUserById(booking.user_id);
+
+    const pdfBuffer = await generateInvoicePdf({ booking, payment, customer });
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="invoice-${payment.invoice_number || booking.booking_ref}.pdf"`
+    );
+    res.send(pdfBuffer);
+  } catch (err) {
+    console.error('Invoice generation error:', err);
+    res.status(500).json({ error: 'Failed to generate invoice' });
   }
 });
 

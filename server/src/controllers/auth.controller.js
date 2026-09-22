@@ -11,6 +11,7 @@ const {
   generateRefreshToken,
   verifyRefreshToken,
 } = require("../services/auth.service");
+const { sendPasswordResetEmail } = require("../services/email.service");
 
 const {
   findUserByEmail,
@@ -258,9 +259,8 @@ const forgotPassword = async (req, res) => {
       const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       await createPasswordResetToken(user.user_id, token, expires);
 
-      // TODO: plug in nodemailer / SendGrid here to email the link
       const resetLink = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
-      console.log(`[forgotPassword] Reset link for ${email}: ${resetLink}`);
+      await sendPasswordResetEmail(email, resetLink);
     }
 
     // Always return 200 — never reveal whether email exists
