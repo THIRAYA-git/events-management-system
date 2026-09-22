@@ -3,6 +3,9 @@ import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import LoginPage from "@/pages/auth/LoginPage";
+import RegisterPage from "@/pages/auth/RegisterPage";
+import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
+import ResetPasswordPage from "@/pages/auth/ResetPasswordPage";
 import BookingWizardPage from "@/pages/customer/BookingWizardPage";
 import PaymentCheckoutPage from "@/pages/customer/PaymentCheckoutPage";
 import PaymentSuccessPage from "@/pages/customer/PaymentSuccessPage";
@@ -31,6 +34,9 @@ function App() {
         <Toaster richColors position="top-right" />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<CustomerLayout />}>
             {/* Any logged-in user */}

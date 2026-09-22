@@ -9,7 +9,8 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
-import { initiatePayment, fetchPaymentStatus } from "@/lib/payment.api";
+import { initiatePayment, fetchPaymentStatus, downloadInvoice } from "@/lib/payment.api";
+import type { PaymentRecord } from "@/types/payment.types";
 
 type Stage =
   | "loading"
@@ -41,6 +42,7 @@ export default function PaymentCheckoutPage() {
   const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [isDownloading, setIsDownloading] = useState(false);
   const startedRef = useRef(false);
 
   useEffect(() => {
@@ -97,6 +99,23 @@ export default function PaymentCheckoutPage() {
     run();
   }, [bookingId]);
 
+  const handleDownloadInvoice = async () => {
+    if (!bookingId) return;
+    setIsDownloading(true);
+    try {
+      const numericBookingId = parseInt(bookingId, 10);
+      // Fetch a fresh record for the invoice_number — the one from the
+      // earlier poll wasn't kept in state, and this call is cheap.
+      const record = await fetchPaymentStatus(numericBookingId).catch(() => null);
+      await downloadInvoice(
+        numericBookingId,
+        `invoice-${record?.invoice_number ?? bookingId}.pdf`
+      );
+    } finally {
+      setIsDownloading(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-md px-4 py-16 text-center">
       <Card>
@@ -119,12 +138,24 @@ export default function PaymentCheckoutPage() {
             "You closed the payment window before completing checkout."}
           {stage === "error" && errorMsg}
         </CardContent>
-        <CardFooter className="flex justify-center gap-2">
+        <CardFooter className="flex flex-col gap-2">
           {(stage === "failed" || stage === "error") && (
             <Button onClick={() => window.location.reload()}>Try again</Button>
           )}
           {stage === "success" && (
-            <Button onClick={() => navigate("/")}>Back to dashboard</Button>
+            <>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={handleDownloadInvoice}
+                disabled={isDownloading}
+              >
+                {isDownloading ? "Preparing invoice…" : "Download Invoice"}
+              </Button>
+              <Button className="w-full" onClick={() => navigate("/")}>
+                Back to dashboard
+              </Button>
+            </>
           )}
         </CardFooter>
       </Card>
