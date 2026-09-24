@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 //  server/src/controllers/user.controller.js
-//  NEW FILE — admin user management endpoints
+//  Admin user management endpoints
 // ─────────────────────────────────────────────────────────────
 const {
   findAllUsers,
@@ -12,10 +12,14 @@ const {
 
 const VALID_ROLES = ["customer", "front_desk", "manager", "admin", "organizer", "sponsor", "restaurant"];
 
+// Front desk may only see customer accounts (never staff, partners or admins)
+const isFrontDesk = (req) => req.user.role === "front_desk";
+
 // ── GET /api/users ────────────────────────────────────────────
 const listUsers = async (req, res) => {
   try {
-    const { role, page = 1, limit = 20 } = req.query;
+    const { page = 1, limit = 20 } = req.query;
+    const role = isFrontDesk(req) ? "customer" : req.query.role;
     const [users, total] = await Promise.all([
       findAllUsers({ role, page: +page, limit: +limit }),
       countUsers({ role }),
@@ -37,7 +41,10 @@ const listUsers = async (req, res) => {
 const getUser = async (req, res) => {
   try {
     const user = await findUserById(req.params.id);
-    if (!user) return res.status(404).json({ message: "User not found." });
+    // 404 (not 403) so front desk can't probe which non-customer ids exist
+    if (!user || (isFrontDesk(req) && user.role !== "customer")) {
+      return res.status(404).json({ message: "User not found." });
+    }
     return res.json({ user });
   } catch (error) {
     console.error("[getUser]", error);

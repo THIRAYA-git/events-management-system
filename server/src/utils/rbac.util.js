@@ -72,7 +72,7 @@ const PERMISSIONS = {
   "report:export": ["admin"],
 
   // ── User management ───────────────────────────────────────
-  "user:read": ["admin", "manager"],
+  "user:read": ["admin", "manager", "front_desk"],
   "user:manage": ["admin"],
 
   // ── Notifications ─────────────────────────────────────────

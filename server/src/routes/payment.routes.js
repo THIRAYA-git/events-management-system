@@ -8,6 +8,19 @@ const { findUserById } = require('../models/user.model');
 const { query } = require('../config/db');
 const { generateInvoicePdf } = require('../services/pdf.service');
 
+// Marks a completed payment as needing a manual refund. Uses the existing
+// gateway_response jsonb column, so no schema change is required.
+async function flagForRefund(paymentId, reason) {
+  await query(
+    `UPDATE payments
+     SET gateway_response = COALESCE(gateway_response, '{}'::jsonb)
+                            || jsonb_build_object('needs_refund', true, 'refund_reason', $2::text),
+         updated_at = NOW()
+     WHERE payment_id = $1`,
+    [paymentId, reason]
+  );
+}
+
 // ─────────────────────────────────────────────────────────────
 //  POST /api/payments/initiate
 // ─────────────────────────────────────────────────────────────
@@ -32,6 +45,26 @@ router.post('/initiate', authenticate, authorize('payment:create'), async (req, 
 
     if (booking.status !== 'pending') {
       return res.status(400).json({ error: `Booking is '${booking.status}', not payable` });
+    }
+
+    // Layer 1: another customer may have paid for and confirmed this date since
+    // this booking was created (pending bookings are allowed to share a date).
+    // Refuse before taking money that could not be honoured.
+    const conflict = await query(
+      `SELECT 1
+       FROM bookings mine
+       JOIN bookings other
+         ON other.event_date = mine.event_date
+        AND other.status = 'confirmed'
+        AND other.booking_id <> mine.booking_id
+       WHERE mine.booking_id = $1
+       LIMIT 1`,
+      [booking.booking_id]
+    );
+    if (conflict.rows.length > 0) {
+      return res.status(409).json({
+        error: 'This date has just been booked by another customer. Please choose a different date.',
+      });
     }
 
     const user = await findUserById(req.user.id);
@@ -78,9 +111,6 @@ router.post('/initiate', authenticate, authorize('payment:create'), async (req, 
   }
 });
 
-
-
-
 // ─────────────────────────────────────────────────────────────
 //  POST /api/payments/notify  — PayHere webhook, no auth
 // ─────────────────────────────────────────────────────────────
@@ -92,8 +122,6 @@ router.post('/notify', async (req, res) => {
       console.warn('Invalid PayHere signature for order:', req.body.order_id);
       return res.status(400).send('Invalid signature');
     }
-  
-    
 
     const { order_id, status_code, payment_id } = req.body;
 
@@ -103,6 +131,8 @@ router.post('/notify', async (req, res) => {
       status_code === '-1' ? 'failed' :  // no 'cancelled' enum value — closest fit
       status_code === '-2' ? 'failed' : 'failed';
 
+    // The payment is always recorded first: money received must never be lost,
+    // even if the booking can no longer be confirmed.
     const result = await query(
       `UPDATE payments
        SET status = $1::payment_status,
@@ -119,20 +149,51 @@ router.post('/notify', async (req, res) => {
     const paymentRowId = result.rows[0]?.payment_id;
 
     if (bookingId && paymentStatus === 'completed') {
-      await query(
-        `UPDATE bookings SET status = 'confirmed', confirmed_at = NOW() WHERE booking_id = $1`,
-        [bookingId]
-      );
+      try {
+        // Only a pending booking can be confirmed. A PayHere retry for an
+        // already-confirmed booking matches 0 rows and is harmless.
+        const confirmed = await query(
+          `UPDATE bookings
+           SET status = 'confirmed', confirmed_at = NOW()
+           WHERE booking_id = $1 AND status = 'pending'
+           RETURNING booking_id`,
+          [bookingId]
+        );
 
-      // Invoice numbers are only ever assigned once a payment actually
-      // completes — generated here rather than at insert time, since a
-      // pending/failed payment should never have one.
-      await query(
-        `UPDATE payments
-         SET invoice_number = 'INV-' || to_char(NOW(), 'YYYYMMDD') || '-' || payment_id
-         WHERE payment_id = $1`,
-        [paymentRowId]
-      );
+        if (confirmed.rows.length === 0) {
+          const current = await query(`SELECT status FROM bookings WHERE booking_id = $1`, [bookingId]);
+          const currentStatus = current.rows[0]?.status;
+          if (currentStatus !== 'confirmed') {
+            // e.g. booking was cancelled while the customer was paying
+            console.warn(`Payment ${paymentRowId} completed but booking ${bookingId} is '${currentStatus}'`);
+            await flagForRefund(paymentRowId, `booking_${currentStatus || 'missing'}`);
+          }
+        }
+
+        // Invoice numbers are only ever assigned once a payment actually
+        // completes, and only once — a PayHere retry must not renumber it.
+        await query(
+          `UPDATE payments
+           SET invoice_number = COALESCE(
+                 invoice_number,
+                 'INV-' || to_char(NOW(), 'YYYYMMDD') || '-' || payment_id
+               )
+           WHERE payment_id = $1`,
+          [paymentRowId]
+        );
+      } catch (confirmErr) {
+        // Layer 2: 23505 = idx_no_double_booking. Someone else's payment
+        // confirmed this date first. Keep the payment, flag it for refund,
+        // and still answer 200 so PayHere stops retrying.
+        if (confirmErr.code === '23505') {
+          console.warn(
+            `Date conflict confirming booking ${bookingId} (payment ${paymentRowId}) — flagged for refund`
+          );
+          await flagForRefund(paymentRowId, 'date_conflict');
+        } else {
+          throw confirmErr;
+        }
+      }
     }
 
     res.status(200).send('OK');
