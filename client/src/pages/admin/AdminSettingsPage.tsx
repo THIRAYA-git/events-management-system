@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, changePassword } from "@/api/profile.api";
+import AvatarUploader from "@/components/common/AvatarUploader";
 
 export function AdminSettingsPage() {
   const { user, refreshUser, logout } = useAuth();
 
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.profile_image ?? null);
   const [fullName, setFullName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [profileSaving, setProfileSaving] = useState(false);
@@ -17,6 +19,11 @@ export function AdminSettingsPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [passwordSaving, setPasswordSaving] = useState(false);
   const [passwordError, setPasswordError] = useState<string | null>(null);
+
+  const handleAvatarUploaded = async (url: string) => {
+    setAvatarUrl(url); // show immediately, independent of /auth/me
+    await refreshUser();
+  };
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -67,6 +74,14 @@ export function AdminSettingsPage() {
           className="rounded-lg border border-gray-200 bg-white p-5"
         >
           <h2 className="text-base font-medium text-gray-800">Profile</h2>
+
+          <div className="mt-4">
+            <AvatarUploader
+              currentUrl={avatarUrl}
+              name={user?.name}
+              onUploaded={handleAvatarUploaded}
+            />
+          </div>
 
           <div className="mt-4 space-y-4">
             <div>

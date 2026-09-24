@@ -17,13 +17,24 @@ interface AuthContextValue {
   user: AuthUser | null;
   permissions: string[];
   isLoading: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<AuthUser>;
+  register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
+
+// /auth/login returns { id, name } but /auth/me returns the raw DB row
+// { user_id, full_name }. Normalise every path to the AuthUser shape so the
+// UI never loses `name` / `id` after a reload or refreshUser().
+type RawUser = Partial<AuthUser> & { user_id?: number; full_name?: string };
+
+const normalizeUser = (raw: RawUser): AuthUser => ({
+  ...(raw as AuthUser),
+  id: raw.id ?? (raw.user_id as number),
+  name: raw.name ?? (raw.full_name as string),
+});
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
@@ -38,10 +49,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           "/auth/refresh"
         );
         setAccessToken(data.accessToken);
-        const meRes = await api.get<{ user: AuthUser; permissions: string[] }>(
+        const meRes = await api.get<{ user: RawUser; permissions: string[] }>(
           "/auth/me"
         );
-        setUser(meRes.data.user);
+        setUser(normalizeUser(meRes.data.user));
         setPermissions(meRes.data.permissions);
       } catch {
         setAccessToken(null);
@@ -55,16 +66,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const login = async (payload: LoginPayload) => {
     const { data } = await api.post<AuthResponse>("/auth/login", payload);
+    const nextUser = normalizeUser(data.user);
     setAccessToken(data.accessToken);
-    setUser(data.user);
+    setUser(nextUser);
     setPermissions(data.permissions);
+    return nextUser; // lets the login page redirect by role immediately
   };
 
   const register = async (payload: RegisterPayload) => {
     const { data } = await api.post<AuthResponse>("/auth/register", payload);
+    const nextUser = normalizeUser(data.user);
     setAccessToken(data.accessToken);
-    setUser(data.user);
+    setUser(nextUser);
     setPermissions(data.permissions);
+    return nextUser;
   };
 
   const logout = async () => {
@@ -80,10 +95,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Re-fetches /auth/me — call after a profile update so the navbar and
   // any other consumer of `user` picks up the change without a full reload.
   const refreshUser = async () => {
-    const { data } = await api.get<{ user: AuthUser; permissions: string[] }>(
+    const { data } = await api.get<{ user: RawUser; permissions: string[] }>(
       "/auth/me"
     );
-    setUser(data.user);
+    setUser(normalizeUser(data.user));
     setPermissions(data.permissions);
   };
 

@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import { Menu, X, LogOut, UserCircle } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Menu, X, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
+import UserAvatar from "@/components/common/UserAvatar";
+import { getSettingsPath, isStaffRole } from "@/utils/navigation";
 
 const NAV_LINK_CLASS = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
@@ -15,8 +17,8 @@ const CustomerNavbar = () => {
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const isStaff =
-    user?.role === "admin" || user?.role === "manager" || user?.role === "front_desk";
+  const isStaff = isStaffRole(user?.role);
+  const settingsPath = getSettingsPath(user?.role);
 
   const handleLogout = async () => {
     await logout();
@@ -45,10 +47,14 @@ const CustomerNavbar = () => {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <div className="flex items-center gap-2 text-sm text-gray-700">
-            <UserCircle className="h-5 w-5 text-gray-400" />
+          <Link
+            to={settingsPath}
+            className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-gray-700 hover:bg-gray-50"
+            title="Account settings"
+          >
+            <UserAvatar src={user?.profile_image} name={user?.name} size={32} />
             <span className="font-medium">{user?.name ?? user?.email}</span>
-          </div>
+          </Link>
           <button
             onClick={handleLogout}
             className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-red-600"
@@ -89,10 +95,14 @@ const CustomerNavbar = () => {
             ))}
           </div>
           <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-3">
-            <div className="flex items-center gap-2 text-sm text-gray-700">
-              <UserCircle className="h-5 w-5 text-gray-400" />
+            <Link
+              to={settingsPath}
+              onClick={() => setMobileOpen(false)}
+              className="flex items-center gap-2 text-sm text-gray-700"
+            >
+              <UserAvatar src={user?.profile_image} name={user?.name} size={28} />
               <span className="font-medium">{user?.name ?? user?.email}</span>
-            </div>
+            </Link>
             <button
               onClick={handleLogout}
               className="flex items-center gap-1 rounded-md px-2 py-1.5 text-sm text-gray-500 hover:bg-gray-100 hover:text-red-600"

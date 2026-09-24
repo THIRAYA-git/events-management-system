@@ -1,7 +1,8 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/context/AuthContext";
+import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import { getHomePath, isPartnerRole } from "@/utils/navigation";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
@@ -14,6 +15,7 @@ import EventTimelinePage from "@/pages/booking/EventTimelinePage";
 import MyBookingsPage from "@/pages/customer/MyBookingsPage";
 import CustomerLayout from "@/layouts/CustomerLayout";
 import AdminLayout from "@/layouts/AdminLayout";
+import PartnerLayout from "@/layouts/PartnerLayout";
 import { AdminDashboardHome } from "@/pages/admin/AdminDashboardHome";
 import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminCustomersPage } from "@/pages/admin/AdminCustomersPage";
@@ -21,10 +23,21 @@ import { AdminOrganizersSponsorsPage } from "@/pages/admin/AdminOrganizersSponso
 import { AdminCateringPage } from "@/pages/admin/AdminCateringPage";
 import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
+import { AccountSettingsPage } from "@/pages/AccountSettingsPage";
+import PlaceholderPage from "@/pages/PlaceholderPage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
   return <div className="p-8">Dashboard placeholder</div>;
+}
+
+// "/" is the customer home; partners have their own layout, so send them there
+function Home() {
+  const { user } = useAuth();
+  if (isPartnerRole(user?.role)) {
+    return <Navigate to={getHomePath(user?.role)} replace />;
+  }
+  return <Dashboard />;
 }
 
 function App() {
@@ -41,7 +54,7 @@ function App() {
           <Route element={<CustomerLayout />}>
             {/* Any logged-in user */}
             <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Dashboard />} />
+              <Route path="/" element={<Home />} />
             </Route>
 
             {/* Only roles allowed to create bookings */}
@@ -68,9 +81,89 @@ function App() {
               />
             </Route>
 
-            {/* Customer only — booking history + feedback */}
+            {/* Customer only — booking history + account settings */}
             <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
               <Route path="/my-bookings" element={<MyBookingsPage />} />
+              <Route path="/settings" element={<AccountSettingsPage />} />
+            </Route>
+          </Route>
+
+          {/* Staff: front desk, manager, admin — each guard is its own top-level group */}
+          <Route
+            element={
+              <ProtectedRoute
+                allowedRoles={["front_desk", "manager", "admin"]}
+              />
+            }
+          >
+            <Route path="/admin" element={<AdminLayout />}>
+              <Route index element={<AdminDashboardHome />} />
+              <Route path="bookings" element={<AdminBookingsPage />} />
+              <Route path="customers" element={<AdminCustomersPage />} />
+              <Route
+                path="organizers-sponsors"
+                element={<AdminOrganizersSponsorsPage />}
+              />
+              <Route path="catering" element={<AdminCateringPage />} />
+              <Route path="analytics" element={<AdminAnalyticsPage />} />
+              <Route path="settings" element={<AdminSettingsPage />} />
+            </Route>
+          </Route>
+
+          {/* Organizer */}
+          <Route element={<ProtectedRoute allowedRoles={["organizer"]} />}>
+            <Route path="/organizer" element={<PartnerLayout />}>
+              <Route
+                index
+                element={<PlaceholderPage title="Organizer Dashboard" />}
+              />
+              <Route
+                path="requests"
+                element={<PlaceholderPage title="Event Requests" />}
+              />
+              <Route
+                path="portfolio"
+                element={<PlaceholderPage title="My Portfolio" />}
+              />
+              <Route path="settings" element={<AccountSettingsPage />} />
+            </Route>
+          </Route>
+
+          {/* Sponsor */}
+          <Route element={<ProtectedRoute allowedRoles={["sponsor"]} />}>
+            <Route path="/sponsor" element={<PartnerLayout />}>
+              <Route
+                index
+                element={<PlaceholderPage title="Sponsor Dashboard" />}
+              />
+              <Route
+                path="events"
+                element={<PlaceholderPage title="Browse Events" />}
+              />
+              <Route
+                path="sponsorships"
+                element={<PlaceholderPage title="My Sponsorships" />}
+              />
+              <Route path="settings" element={<AccountSettingsPage />} />
+            </Route>
+          </Route>
+
+          {/* Restaurant partner */}
+          <Route element={<ProtectedRoute allowedRoles={["restaurant"]} />}>
+            <Route path="/restaurant" element={<PartnerLayout />}>
+              <Route
+                index
+                element={<PlaceholderPage title="Restaurant Dashboard" />}
+              />
+              <Route
+                path="menu"
+                element={<PlaceholderPage title="Menu Items" />}
+              />
+              <Route
+                path="orders"
+                element={<PlaceholderPage title="Catering Orders" />}
+              />
+              <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
           </Route>
 
@@ -82,34 +175,6 @@ function App() {
             path="*"
             element={<div className="p-8">Page not found.</div>}
           />
-          <Route
-            element={
-              <ProtectedRoute
-                allowedRoles={["front_desk", "manager", "admin"]}
-              />
-            }
-          >
-            <Route
-              element={
-                <ProtectedRoute
-                  allowedRoles={["front_desk", "manager", "admin"]}
-                />
-              }
-            >
-              <Route path="/admin" element={<AdminLayout />}>
-                <Route index element={<AdminDashboardHome />} />
-                <Route path="bookings" element={<AdminBookingsPage />} />
-                <Route path="customers" element={<AdminCustomersPage />} />
-                <Route
-                  path="organizers-sponsors"
-                  element={<AdminOrganizersSponsorsPage />}
-                />
-                <Route path="catering" element={<AdminCateringPage />} />
-                <Route path="analytics" element={<AdminAnalyticsPage />} />
-                <Route path="settings" element={<AdminSettingsPage />} />
-              </Route>
-            </Route>
-          </Route>
         </Routes>
       </AuthProvider>
     </BrowserRouter>

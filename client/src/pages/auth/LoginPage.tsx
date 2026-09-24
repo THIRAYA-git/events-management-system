@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
+import { getHomePath } from "@/utils/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -22,14 +23,16 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const from = (location.state as { from?: string })?.from || "/";
+  // Where ProtectedRoute sent the user from, if anywhere
+  const from = (location.state as { from?: string })?.from;
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      await login({ email, password });
-      navigate(from, { replace: true });
+      const loggedInUser = await login({ email, password });
+      // Honour a deep link the user was redirected from; otherwise go to the role's home
+      navigate(from || getHomePath(loggedInUser.role), { replace: true });
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
@@ -80,7 +83,7 @@ export default function LoginPage() {
           </CardContent>
           <CardFooter className="flex flex-col gap-3">
             <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Signing in…" : "Sign in"}
+              {isSubmitting ? "Signing in..." : "Sign in"}
             </Button>
             <p className="text-sm text-muted-foreground">
               Don&apos;t have an account?{" "}

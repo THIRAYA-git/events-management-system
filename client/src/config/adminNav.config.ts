@@ -59,6 +59,6 @@ export const adminNavItems: AdminNavItem[] = [
     label: "Settings",
     path: "/admin/settings",
     icon: Settings,
-    roles: ["admin"],
+    roles: ["front_desk", "manager", "admin"],
   },
 ];
