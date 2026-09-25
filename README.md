@@ -18,7 +18,7 @@ A full-stack events management system built with React, TypeScript, and Node.js.
 - JWT Authentication
 - Cloudinary (Media)
 - Nodemailer (Email)
-- Twilio (SMS)
+- Text.LK (SMS)
 - PDFKit (Reports)
 
 ## Getting Started
