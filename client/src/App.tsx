@@ -25,6 +25,7 @@ import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { AccountSettingsPage } from "@/pages/AccountSettingsPage";
 import PlaceholderPage from "@/pages/PlaceholderPage";
+import MenuItemsPage from "@/pages/restaurant/MenuItemsPage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -155,10 +156,7 @@ function App() {
                 index
                 element={<PlaceholderPage title="Restaurant Dashboard" />}
               />
-              <Route
-                path="menu"
-                element={<PlaceholderPage title="Menu Items" />}
-              />
+              <Route path="menu" element={<MenuItemsPage />} />
               <Route
                 path="orders"
                 element={<PlaceholderPage title="Catering Orders" />}
