@@ -28,6 +28,8 @@ import PlaceholderPage from "@/pages/PlaceholderPage";
 import MenuItemsPage from "@/pages/restaurant/MenuItemsPage";
 import RestaurantDashboardPage from "@/pages/restaurant/RestaurantDashboardPage";
 import RestaurantCateringOrdersPage from "@/pages/restaurant/RestaurantCateringOrdersPage";
+import MySponsorshipsPage from "@/pages/sponsor/MySponsorshipsPage";
+import SponsorDashboardPage from "@/pages/sponsor/SponsorDashboardPage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -135,18 +137,12 @@ function App() {
           {/* Sponsor */}
           <Route element={<ProtectedRoute allowedRoles={["sponsor"]} />}>
             <Route path="/sponsor" element={<PartnerLayout />}>
-              <Route
-                index
-                element={<PlaceholderPage title="Sponsor Dashboard" />}
-              />
+              <Route index element={<SponsorDashboardPage />} />
               <Route
                 path="events"
                 element={<PlaceholderPage title="Browse Events" />}
               />
-              <Route
-                path="sponsorships"
-                element={<PlaceholderPage title="My Sponsorships" />}
-              />
+              <Route path="sponsorships" element={<MySponsorshipsPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
           </Route>

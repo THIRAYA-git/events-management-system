@@ -10,3 +10,19 @@ export interface Sponsor {
   description: string | null;
   status: "active" | "inactive" | string;
 }
+
+export interface SponsorRequest {
+  id: number;
+  booking_id: number;
+  sponsor_id: number;
+  proposed_amount: number | null;
+  message: string | null;
+  status: "pending" | "accepted" | "rejected" | "withdrawn";
+  responded_by: number | null;
+  responded_at: string | null;
+  requested_at: string;
+  booking_ref: string;
+  event_type: string;
+  event_date: string;
+  customer_name: string;
+}
