@@ -26,6 +26,8 @@ import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { AccountSettingsPage } from "@/pages/AccountSettingsPage";
 import PlaceholderPage from "@/pages/PlaceholderPage";
 import MenuItemsPage from "@/pages/restaurant/MenuItemsPage";
+import RestaurantDashboardPage from "@/pages/restaurant/RestaurantDashboardPage";
+import RestaurantCateringOrdersPage from "@/pages/restaurant/RestaurantCateringOrdersPage";
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -152,15 +154,9 @@ function App() {
           {/* Restaurant partner */}
           <Route element={<ProtectedRoute allowedRoles={["restaurant"]} />}>
             <Route path="/restaurant" element={<PartnerLayout />}>
-              <Route
-                index
-                element={<PlaceholderPage title="Restaurant Dashboard" />}
-              />
+              <Route index element={<RestaurantDashboardPage />} />
               <Route path="menu" element={<MenuItemsPage />} />
-              <Route
-                path="orders"
-                element={<PlaceholderPage title="Catering Orders" />}
-              />
+              <Route path="orders" element={<RestaurantCateringOrdersPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
           </Route>
