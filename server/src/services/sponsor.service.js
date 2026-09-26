@@ -39,7 +39,10 @@ const getSponsorById = async (sponsorId) => {
 };
 
 const getBookingOwnerId = async (bookingId) => {
-  const result = await db.query(`SELECT user_id FROM bookings WHERE booking_id = $1`, [bookingId]);
+  const result = await db.query(
+    `SELECT user_id FROM bookings WHERE booking_id = $1`,
+    [bookingId]
+  );
   return result.rows.length ? result.rows[0].user_id : null;
 };
 
@@ -70,7 +73,12 @@ const getSponsorRequestsForSponsorUser = async (sponsorUserId) => {
   return result.rows;
 };
 
-const createSponsorRequest = async (bookingId, sponsorId, requestingUserId, { proposedAmount, message } = {}) => {
+const createSponsorRequest = async (
+  bookingId,
+  sponsorId,
+  requestingUserId,
+  { proposedAmount, message } = {}
+) => {
   const bookingResult = await db.query(
     `SELECT booking_id, user_id FROM bookings WHERE booking_id = $1`,
     [bookingId]
@@ -86,7 +94,10 @@ const createSponsorRequest = async (bookingId, sponsorId, requestingUserId, { pr
     throw err;
   }
 
-  const sponsorResult = await db.query(`SELECT sponsor_id FROM sponsors WHERE sponsor_id = $1`, [sponsorId]);
+  const sponsorResult = await db.query(
+    `SELECT sponsor_id FROM sponsors WHERE sponsor_id = $1`,
+    [sponsorId]
+  );
   if (sponsorResult.rows.length === 0) {
     const err = new Error("Sponsor not found");
     err.statusCode = 404;
@@ -103,7 +114,9 @@ const createSponsorRequest = async (bookingId, sponsorId, requestingUserId, { pr
     return result.rows[0];
   } catch (err) {
     if (err.code === "23505") {
-      const conflictErr = new Error("A sponsor request already exists for this booking and sponsor");
+      const conflictErr = new Error(
+        "A sponsor request already exists for this booking and sponsor"
+      );
       conflictErr.statusCode = 409;
       throw conflictErr;
     }
@@ -111,7 +124,12 @@ const createSponsorRequest = async (bookingId, sponsorId, requestingUserId, { pr
   }
 };
 
-const respondToSponsorRequest = async (requestId, action, respondingUserId, respondingRole) => {
+const respondToSponsorRequest = async (
+  requestId,
+  action,
+  respondingUserId,
+  respondingRole
+) => {
   if (!["accepted", "rejected"].includes(action)) {
     const err = new Error("action must be 'accepted' or 'rejected'");
     err.statusCode = 400;
@@ -133,7 +151,9 @@ const respondToSponsorRequest = async (requestId, action, respondingUserId, resp
   const request = requestResult.rows[0];
 
   const isStaff = ["admin", "manager"].includes(respondingRole);
-  const isOwningSponsor = respondingRole === "sponsor" && request.sponsor_user_id === respondingUserId;
+  const isOwningSponsor =
+    respondingRole === "sponsor" &&
+    request.sponsor_user_id === respondingUserId;
 
   if (!isStaff && !isOwningSponsor) {
     const err = new Error("You are not authorized to respond to this request");
@@ -142,7 +162,9 @@ const respondToSponsorRequest = async (requestId, action, respondingUserId, resp
   }
 
   if (request.status !== "pending") {
-    const err = new Error(`Cannot respond to a request that is already '${request.status}'`);
+    const err = new Error(
+      `Cannot respond to a request that is already '${request.status}'`
+    );
     err.statusCode = 409;
     throw err;
   }
@@ -179,7 +201,9 @@ const withdrawSponsorRequest = async (requestId, requestingUserId) => {
   }
 
   if (request.status !== "pending") {
-    const err = new Error(`Cannot withdraw a request that is already '${request.status}'`);
+    const err = new Error(
+      `Cannot withdraw a request that is already '${request.status}'`
+    );
     err.statusCode = 409;
     throw err;
   }
@@ -192,6 +216,35 @@ const withdrawSponsorRequest = async (requestId, requestingUserId) => {
   return result.rows[0];
 };
 
+const updateSponsorLogo = async (userId, logoUrl) => {
+  const result = await db.query(
+    `UPDATE sponsors
+     SET logo_url = $1, updated_at = NOW()
+     WHERE user_id = $2
+     RETURNING sponsor_id, user_id, company_name, industry, website_url, logo_url,
+               budget_range, preferred_events, description, status, created_at, updated_at`,
+    [logoUrl, userId]
+  );
+  if (result.rows.length === 0) {
+    const err = new Error("Sponsor profile not found for this user");
+    err.statusCode = 404;
+    throw err;
+  }
+  return result.rows[0];
+};
+
+const getSponsorByUserId = async (userId) => {
+  const result = await db.query(
+    `SELECT sponsor_id, user_id, company_name, industry, website_url, logo_url,
+            budget_range, preferred_events, description, status, created_at, updated_at
+     FROM sponsors
+     WHERE user_id = $1`,
+    [userId]
+  );
+  return result.rows[0] || null;
+};
+
+
 module.exports = {
   getAllSponsors,
   getSponsorById,
@@ -201,4 +254,7 @@ module.exports = {
   createSponsorRequest,
   respondToSponsorRequest,
   withdrawSponsorRequest,
+  updateSponsorLogo,
+  getSponsorByUserId,
+  updateSponsorLogo,
 };

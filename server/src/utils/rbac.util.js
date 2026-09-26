@@ -58,6 +58,7 @@ const PERMISSIONS = {
   // ── Sponsors ──────────────────────────────────────────────
   "sponsor:read": ["admin", "manager", "sponsor", "customer"],
   "sponsor:manage": ["admin", "manager"],
+  "sponsor:update_own": ["sponsor"],
 
   // ── Event timelines ───────────────────────────────────────
   "timeline:read": ["admin", "manager", "front_desk", "customer", "organizer"],

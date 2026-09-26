@@ -20,6 +20,10 @@ const {
   releaseHall,
 } = require('../controllers/hall.controller');
 
+const { singleImage } = require('../middleware/upload.middleware');
+const { validateUploadHallPhoto } = require('../validators/hall.validator'); 
+const { uploadHallPhoto } = require('../controllers/hall.controller'); 
+
 const router = express.Router();
 
 // All hall routes require a valid token
@@ -81,6 +85,16 @@ router.delete(
   validateReleaseHall,
   validate,
   releaseHall
+);
+
+// PATCH /api/halls/:hallId/photo
+router.patch(
+  '/:hallId/photo',
+  restrictTo('admin', 'manager'),
+  singleImage('photo'),
+  validateUploadHallPhoto,
+  validate,
+  uploadHallPhoto
 );
 
 module.exports = router;
