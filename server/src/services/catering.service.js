@@ -25,10 +25,33 @@ const computeMenuItemsWithSubtotals = (menuItems) =>
 const computeTotalCost = (menuItemsWithSubtotals) =>
   menuItemsWithSubtotals.reduce((sum, line) => sum + line.subtotal, 0);
 
+const orderBelongsToRestaurant = async (order, restaurantId) => {
+  const result = await db.query(
+    `SELECT 1
+     FROM jsonb_array_elements($1::jsonb) AS line
+     JOIN menu_items mi ON mi.item_id = (line->>'item_id')::int
+     WHERE mi.restaurant_id = $2
+     LIMIT 1`,
+    [JSON.stringify(order.menu_items), restaurantId]
+  );
+  return result.rows.length > 0;
+};
+
 const assertCanAccessOrder = async (order, requestingUser) => {
-  if (["admin", "manager", "front_desk", "restaurant"].includes(requestingUser.role)) {
+  if (["admin", "manager", "front_desk"].includes(requestingUser.role)) {
     return;
   }
+
+  if (requestingUser.role === "restaurant") {
+    const owns = await orderBelongsToRestaurant(order, requestingUser.id);
+    if (!owns) {
+      const err = new Error("You do not have permission to access this catering order");
+      err.statusCode = 403;
+      throw err;
+    }
+    return;
+  }
+
   // customer: only their own order, via booking ownership
   const ownerId = await getBookingOwnerId(order.booking_id);
   if (ownerId !== requestingUser.id) {
@@ -140,13 +163,25 @@ const listCateringOrdersForBooking = async (bookingId, requestingUser) => {
 
 // Admin/manager/front_desk/restaurant view across every booking — used by
 // the admin Catering Orders table, not scoped to a single customer.
-const listAllCateringOrders = async ({ status, limit = 20, offset = 0 } = {}) => {
+const listAllCateringOrders = async ({ status, limit = 20, offset = 0, restaurantId } = {}) => {
   const conditions = ["1=1"];
   const params = [];
 
   if (status) {
     params.push(status);
     conditions.push(`co.status = $${params.length}`);
+  }
+
+  if (restaurantId) {
+    params.push(restaurantId);
+    conditions.push(`
+      EXISTS (
+        SELECT 1
+        FROM jsonb_array_elements(co.menu_items) AS line
+        JOIN menu_items mi ON mi.item_id = (line->>'item_id')::int
+        WHERE mi.restaurant_id = $${params.length}
+      )
+    `);
   }
 
   const where = conditions.join(" AND ");
@@ -175,12 +210,7 @@ const listAllCateringOrders = async ({ status, limit = 20, offset = 0 } = {}) =>
     params.slice(0, params.length - 2)
   );
 
-  return {
-    orders: result.rows,
-    total: countResult.rows[0].count,
-    limit,
-    offset,
-  };
+  return { orders: result.rows, total: countResult.rows[0].count, limit, offset };
 };
 
 const getCateringOrderById = async (orderId, requestingUser) => {

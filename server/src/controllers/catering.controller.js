@@ -26,10 +26,12 @@ const listCateringOrdersForBookingHandler = async (req, res) => {
 const listCateringOrdersHandler = async (req, res) => {
   try {
     const { status, limit, offset } = req.query;
+    const restaurantId = req.user.role === "restaurant" ? req.user.id : undefined;
     const result = await cateringService.listAllCateringOrders({
       status,
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined,
+      restaurantId,
     });
     res.status(200).json(result);
   } catch (err) {
