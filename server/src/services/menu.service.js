@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { uploadImageBuffer, deleteImage, publicIdFromUrl } = require("./upload.service");
 
 const listMenuItems = async ({ availableOnly = true } = {}) => {
   const query = availableOnly
@@ -127,10 +128,46 @@ const deleteMenuItem = async (itemId) => {
   return result.rows[0];
 };
 
+// ... listMenuItems, getMenuItemById, createMenuItem, assertOwnsMenuItem, updateMenuItem unchanged ...
+
+const uploadMenuItemImage = async (itemId, fileBuffer, requestingUser) => {
+  const item = await assertOwnsMenuItem(itemId, requestingUser);
+  const oldUrl = item.image_url;
+
+  const image = await uploadImageBuffer(fileBuffer, "menu");
+
+  let updated;
+  try {
+    const result = await db.query(
+      `UPDATE menu_items
+       SET image_url = $1
+       WHERE item_id = $2
+       RETURNING item_id, item_name, category, description, price, unit,
+                 image_url, is_vegetarian, is_available, restaurant_id, created_at`,
+      [image.url, itemId]
+    );
+    updated = result.rows[0];
+  } catch (dbErr) {
+    await deleteImage(image.public_id).catch(() => {}); // don't orphan the new upload
+    throw dbErr;
+  }
+
+  const oldId = publicIdFromUrl(oldUrl);
+  if (oldId) {
+    deleteImage(oldId).catch((e) =>
+      console.error("Old menu item image cleanup failed:", e.message)
+    );
+  }
+
+  return updated;
+};
+
 module.exports = {
   listMenuItems,
   getMenuItemById,
   createMenuItem,
+  assertOwnsMenuItem,
   updateMenuItem,
+  uploadMenuItemImage,
   deleteMenuItem,
 };

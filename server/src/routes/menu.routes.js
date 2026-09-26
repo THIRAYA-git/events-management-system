@@ -1,11 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const { authenticate, authorize } = require("../middleware/auth.middleware");
+const { singleImage } = require("../middleware/upload.middleware");
 const {
   listMenuItemsHandler,
   getMenuItemHandler,
   createMenuItemHandler,
   updateMenuItemHandler,
+  uploadMenuItemImageHandler,
   deleteMenuItemHandler,
 } = require("../controllers/menu.controller");
 
@@ -24,6 +26,12 @@ router.post("/", authorize("menu:create"), createMenuItemHandler);
 router.patch("/:itemId", authorize("menu:update"), updateMenuItemHandler);
 
 // DELETE /api/menu-items/:itemId          -> admin-only removal
+router.delete("/:itemId", authorize("menu:delete"), deleteMenuItemHandler);
+
+// POST /api/menu-items/:itemId/image  -> restaurant partner (own items) or admin uploads/replaces the item photo
+router.post("/:itemId/image", authorize("menu:update"), singleImage("image"), uploadMenuItemImageHandler);
+
+router.patch("/:itemId", authorize("menu:update"), updateMenuItemHandler);
 router.delete("/:itemId", authorize("menu:delete"), deleteMenuItemHandler);
 
 module.exports = router;

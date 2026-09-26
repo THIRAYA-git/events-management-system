@@ -50,10 +50,22 @@ const deleteMenuItemHandler = async (req, res) => {
   }
 };
 
+const uploadMenuItemImageHandler = async (req, res) => {
+  try {
+    const { itemId } = req.params;
+    if (!req.file) return res.status(400).json({ message: "No image file provided" });
+    const menuItem = await menuService.uploadMenuItemImage(itemId, req.file.buffer, req.user);
+    res.status(200).json({ message: "Menu item image updated", menuItem });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || "Failed to upload menu item image" });
+  }
+};
+
 module.exports = {
   listMenuItemsHandler,
   getMenuItemHandler,
   createMenuItemHandler,
   updateMenuItemHandler,
+  uploadMenuItemImageHandler,
   deleteMenuItemHandler,
 };
