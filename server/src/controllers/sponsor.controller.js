@@ -176,6 +176,21 @@ const uploadSponsorLogoHandler = async (req, res) => {
   }
 };
 
+const getMySponsorProfileHandler = async (req, res) => {
+  try {
+    const sponsor = await sponsorService.getSponsorByUserId(req.user.id);
+    if (!sponsor)
+      return res
+        .status(404)
+        .json({ message: "Sponsor profile not found for this user" });
+    res.status(200).json({ sponsor });
+  } catch (err) {
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to fetch sponsor profile" });
+  }
+};
+
 module.exports = {
   getAllSponsorsHandler,
   getSponsorByIdHandler,
@@ -186,4 +201,5 @@ module.exports = {
   getMySponsorRequestsHandler,
   uploadSponsorLogoHandler,
   uploadSponsorLogoHandler,
+  getMySponsorProfileHandler,
 };

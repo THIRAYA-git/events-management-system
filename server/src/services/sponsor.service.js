@@ -63,9 +63,12 @@ const getSponsorRequestsForBooking = async (bookingId) => {
 const getSponsorRequestsForSponsorUser = async (sponsorUserId) => {
   const result = await db.query(
     `SELECT bs.id, bs.booking_id, bs.sponsor_id, bs.proposed_amount, bs.message,
-            bs.status, bs.responded_by, bs.responded_at, bs.requested_at
+            bs.status, bs.responded_by, bs.responded_at, bs.requested_at,
+            b.booking_ref, b.event_type, b.event_date, u.full_name AS customer_name
      FROM booking_sponsors bs
      JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
+     JOIN bookings b ON b.booking_id = bs.booking_id
+     JOIN users u ON u.user_id = b.user_id
      WHERE s.user_id = $1
      ORDER BY bs.requested_at DESC`,
     [sponsorUserId]

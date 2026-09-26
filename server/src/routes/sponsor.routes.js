@@ -8,6 +8,7 @@ const {
   getMySponsorRequestsHandler,
   respondToSponsorRequestHandler,
   uploadSponsorLogoHandler,
+  getMySponsorProfileHandler,
 } = require("../controllers/sponsor.controller");
 
 router.use(authenticate);
@@ -17,6 +18,9 @@ router.get("/", authorize("sponsor:read"), getAllSponsorsHandler);
 
 // GET /api/sponsors/my-requests                  → sponsor's own incoming requests
 router.get("/my-requests", authorize("sponsor_request:read_own"), getMySponsorRequestsHandler);
+
+// GET /api/sponsors/me → sponsor's own profile
+router.get("/me", authorize("sponsor:read"), getMySponsorProfileHandler);
 
 // GET /api/sponsors/:sponsorId                   → single sponsor profile
 router.get("/:sponsorId", authorize("sponsor:read"), getSponsorByIdHandler);
