@@ -19,6 +19,7 @@ const {
   listBookingsHandler,
   listMyBookingsHandler,
   updateBookingStatusHandler,
+  listUpcomingConfirmedBookingsHandler
 } = require("../controllers/booking.controller");
 const {
   listOrganizersForBookingHandler,
@@ -69,6 +70,12 @@ router.post(
 //  "mine" as a bookingId.
 // ─────────────────────────────────────────────────────────────────────────────
 router.get("/mine", restrictTo("customer"), listMyBookingsHandler);
+
+router.get(
+  "/upcoming-public",
+  authorize("booking:read_upcoming"),
+  listUpcomingConfirmedBookingsHandler
+);
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  READ — fetch a single booking with hall + pricing details

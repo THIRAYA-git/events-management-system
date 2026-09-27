@@ -307,10 +307,31 @@ const updateBookingStatus = async (bookingId, { status, staffId, cancelReason })
   return result.rows[0];
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  getUpcomingConfirmedBookingsPublic
+//  Sponsor-facing "Browse Events" — no PII (no customer name/email/phone),
+//  confirmed bookings only, future dates only.
+// ─────────────────────────────────────────────────────────────────────────────
+const getUpcomingConfirmedBookingsPublic = async () => {
+  const result = await query(
+    `SELECT
+        b.booking_id, b.event_type, b.event_date, b.guest_count,
+        h.hall_id, h.hall_name
+     FROM bookings b
+     JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+     JOIN halls h          ON h.hall_id = hb.hall_id
+     WHERE b.status = 'confirmed'
+       AND b.event_date >= CURRENT_DATE
+     ORDER BY b.event_date ASC`
+  );
+  return result.rows;
+};
+
 module.exports = {
   createBooking,
   getBookingById,
   listBookings,
   updateBookingStatus,
+  getUpcomingConfirmedBookingsPublic,
   VENUE_COMBINED_CAPACITY,
 };

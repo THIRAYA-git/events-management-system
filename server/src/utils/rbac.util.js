@@ -13,6 +13,7 @@ const PERMISSIONS = {
   "booking:delete": ["admin", "manager"],
   "booking:approve": ["admin", "manager"],
   "booking:cancel": ["admin", "manager", "front_desk"],
+  "booking:read_upcoming": ["sponsor"],
 
   // ── Packages ──────────────────────────────────────────────
   "package:create": ["admin"],
@@ -54,6 +55,7 @@ const PERMISSIONS = {
   // ── Organizers ────────────────────────────────────────────
   "organizer:read": ["admin", "manager", "front_desk", "organizer"],
   "organizer:manage": ["admin", "manager"],
+  "organizer:update_own": ["organizer"],
 
   // ── Sponsors ──────────────────────────────────────────────
   "sponsor:read": ["admin", "manager", "sponsor", "customer"],
@@ -92,6 +94,8 @@ const PERMISSIONS = {
   "sponsor_request:respond": ["admin", "manager", "sponsor"],
   "sponsor_request:withdraw": ["customer"],
 };
+
+
 
 // Check if a role has a specific permission
 const can = (role, permission) =>

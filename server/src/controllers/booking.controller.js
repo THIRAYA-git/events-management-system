@@ -6,11 +6,12 @@ const {
   getBookingById,
   listBookings,
   updateBookingStatus,
-} = require('../services/booking.service');
-const db = require('../config/db');
-const { findUserById } = require('../models/user.model');
-const { sendBookingConfirmationEmail } = require('../services/email.service');
-const { sendBookingConfirmationSms } = require('../services/sms.service');
+  getUpcomingConfirmedBookingsPublic,
+} = require("../services/booking.service");
+const db = require("../config/db");
+const { findUserById } = require("../models/user.model");
+const { sendBookingConfirmationEmail } = require("../services/email.service");
+const { sendBookingConfirmationSms } = require("../services/sms.service");
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/bookings
@@ -31,25 +32,25 @@ const createBookingHandler = async (req, res, next) => {
       end_time,
       event_type,
       guest_count,
-      room_count       = 0,
-      extra_addons     = 0,
-      discount_amount  = 0,
-      tax_amount       = 0,
+      room_count = 0,
+      extra_addons = 0,
+      discount_amount = 0,
+      tax_amount = 0,
       special_requests = null,
     } = req.body;
 
     const result = await createBooking({
       userId,
-      hallId:          hall_id,
-      eventDate:       event_date,
-      startTime:       start_time,
-      endTime:         end_time,
-      eventType:       event_type,
-      guestCount:      guest_count,
-      roomCount:       room_count,
-      extraAddons:     extra_addons,
-      discountAmount:  discount_amount,
-      taxAmount:       tax_amount,
+      hallId: hall_id,
+      eventDate: event_date,
+      startTime: start_time,
+      endTime: end_time,
+      eventType: event_type,
+      guestCount: guest_count,
+      roomCount: room_count,
+      extraAddons: extra_addons,
+      discountAmount: discount_amount,
+      taxAmount: tax_amount,
       specialRequests: special_requests,
     });
 
@@ -62,18 +63,21 @@ const createBookingHandler = async (req, res, next) => {
       if (user?.email) {
         await sendBookingConfirmationEmail(user.email, {
           customerName: user.full_name,
-          bookingRef:   result.bookingRef,
-          hallName:     result.hallName,
-          eventDate:    event_date,
-          startTime:    start_time,
-          endTime:      end_time,
-          eventType:    result.eventType,
-          guestCount:   result.guestCount,
-          totalAmount:  result.pricing.totalAmount,
+          bookingRef: result.bookingRef,
+          hallName: result.hallName,
+          eventDate: event_date,
+          startTime: start_time,
+          endTime: end_time,
+          eventType: result.eventType,
+          guestCount: result.guestCount,
+          totalAmount: result.pricing.totalAmount,
         });
       }
     } catch (emailErr) {
-      console.error('[createBookingHandler] Failed to send confirmation email:', emailErr.message);
+      console.error(
+        "[createBookingHandler] Failed to send confirmation email:",
+        emailErr.message
+      );
     }
 
     // Isolated from the email try/catch above on purpose — Twilio being
@@ -83,17 +87,20 @@ const createBookingHandler = async (req, res, next) => {
       if (user?.phone) {
         await sendBookingConfirmationSms(user.phone, {
           bookingRef: result.bookingRef,
-          hallName:   result.hallName,
-          eventDate:  event_date,
+          hallName: result.hallName,
+          eventDate: event_date,
         });
       }
     } catch (smsErr) {
-      console.error('[createBookingHandler] Failed to send confirmation SMS:', smsErr.message);
+      console.error(
+        "[createBookingHandler] Failed to send confirmation SMS:",
+        smsErr.message
+      );
     }
 
     return res.status(201).json({
       success: true,
-      data:    result,
+      data: result,
     });
   } catch (err) {
     if (isServiceError(err)) {
@@ -114,13 +121,18 @@ const getBookingHandler = async (req, res, next) => {
 
     // Object-level check: customers may only view their own bookings.
     // Staff (admin/manager/front_desk) bypass this per their RBAC role.
-    if (req.user.role === 'customer' && result.user_id !== req.user.id) {
-      return res.status(403).json({ success: false, message: 'You do not have access to this booking' });
+    if (req.user.role === "customer" && result.user_id !== req.user.id) {
+      return res
+        .status(403)
+        .json({
+          success: false,
+          message: "You do not have access to this booking",
+        });
     }
 
     return res.status(200).json({
       success: true,
-      data:    result,
+      data: result,
     });
   } catch (err) {
     if (isServiceError(err)) {
@@ -142,26 +154,26 @@ const listBookingsHandler = async (req, res, next) => {
       date_from,
       date_to,
       customer_id,
-      limit  = 20,
+      limit = 20,
       offset = 0,
     } = req.query;
 
     const result = await listBookings({
-      status:     status || null,
-      hallId:     hall_id ? Number(hall_id) : null,
-      dateFrom:   date_from || null,
-      dateTo:     date_to || null,
+      status: status || null,
+      hallId: hall_id ? Number(hall_id) : null,
+      dateFrom: date_from || null,
+      dateTo: date_to || null,
       customerId: customer_id ? Number(customer_id) : null,
-      limit:      Number(limit),
-      offset:     Number(offset),
+      limit: Number(limit),
+      offset: Number(offset),
     });
 
     return res.status(200).json({
       success: true,
-      data:    result.bookings,
+      data: result.bookings,
       meta: {
-        total:  result.total,
-        limit:  result.limit,
+        total: result.total,
+        limit: result.limit,
         offset: result.offset,
       },
     });
@@ -174,7 +186,7 @@ const listBookingsHandler = async (req, res, next) => {
 //  PATCH /api/bookings/:bookingId/status
 //  Body: { status: 'confirmed' | 'cancelled' | 'completed', cancel_reason? }
 // ─────────────────────────────────────────────────────────────────────────────
-const VALID_STATUSES = ['pending', 'confirmed', 'cancelled', 'completed'];
+const VALID_STATUSES = ["pending", "confirmed", "cancelled", "completed"];
 
 const updateBookingStatusHandler = async (req, res, next) => {
   try {
@@ -184,23 +196,23 @@ const updateBookingStatusHandler = async (req, res, next) => {
     if (!VALID_STATUSES.includes(status)) {
       return res.status(400).json({
         success: false,
-        message: `status must be one of: ${VALID_STATUSES.join(', ')}`,
+        message: `status must be one of: ${VALID_STATUSES.join(", ")}`,
       });
     }
 
     const updated = await updateBookingStatus(bookingId, {
       status,
-      staffId:      req.user.id,
+      staffId: req.user.id,
       cancelReason: cancel_reason || null,
     });
 
     return res.status(200).json({
       success: true,
       message: `Booking ${status} successfully`,
-      data:    updated,
+      data: updated,
     });
   } catch (err) {
-    if (err.message?.includes('not found')) {
+    if (err.message?.includes("not found")) {
       return res.status(404).json({ success: false, message: err.message });
     }
     next(err);
@@ -218,10 +230,10 @@ const listMyBookingsHandler = async (req, res, next) => {
     const { status, limit = 20, offset = 0 } = req.query;
 
     const result = await listBookings({
-      status:     status || null,
+      status: status || null,
       customerId: req.user.id,
-      limit:      Number(limit),
-      offset:     Number(offset),
+      limit: Number(limit),
+      offset: Number(offset),
     });
 
     // Flag which of these bookings already have feedback, so the client
@@ -242,10 +254,10 @@ const listMyBookingsHandler = async (req, res, next) => {
 
     return res.status(200).json({
       success: true,
-      data:    bookingsWithFeedbackFlag,
+      data: bookingsWithFeedbackFlag,
       meta: {
-        total:  result.total,
-        limit:  result.limit,
+        total: result.total,
+        limit: result.limit,
         offset: result.offset,
       },
     });
@@ -256,19 +268,36 @@ const listMyBookingsHandler = async (req, res, next) => {
 
 // ── Only treat known business-rule errors as 4xx ──────────────────────────────
 const SERVICE_ERROR_PATTERNS = [
-  'required', 'not found', 'inactive', 'exceeds', 'no longer available',
-  'would exceed', 'unknown event_type', 'not currently available',
-  'must be between', 'must not be negative', 'cannot exceed',
-  'booked by another request',
+  "required",
+  "not found",
+  "inactive",
+  "exceeds",
+  "no longer available",
+  "would exceed",
+  "unknown event_type",
+  "not currently available",
+  "must be between",
+  "must not be negative",
+  "cannot exceed",
+  "booked by another request",
 ];
 const isServiceError = (err) =>
   SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));
 
 const isConflictError = (err) =>
-  err.message?.includes('no longer available') ||
-  err.message?.includes('exceeds') ||
-  err.message?.includes('would exceed') ||
-  err.message?.includes('booked by another request');
+  err.message?.includes("no longer available") ||
+  err.message?.includes("exceeds") ||
+  err.message?.includes("would exceed") ||
+  err.message?.includes("booked by another request");
+
+const listUpcomingConfirmedBookingsHandler = async (req, res, next) => {
+  try {
+    const result = await getUpcomingConfirmedBookingsPublic();
+    return res.status(200).json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
 
 module.exports = {
   createBookingHandler,
@@ -276,4 +305,5 @@ module.exports = {
   listBookingsHandler,
   listMyBookingsHandler,
   updateBookingStatusHandler,
+  listUpcomingConfirmedBookingsHandler,
 };

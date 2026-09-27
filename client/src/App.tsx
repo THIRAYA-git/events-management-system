@@ -24,12 +24,16 @@ import { AdminCateringPage } from "@/pages/admin/AdminCateringPage";
 import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { AccountSettingsPage } from "@/pages/AccountSettingsPage";
-import PlaceholderPage from "@/pages/PlaceholderPage";
 import MenuItemsPage from "@/pages/restaurant/MenuItemsPage";
 import RestaurantDashboardPage from "@/pages/restaurant/RestaurantDashboardPage";
 import RestaurantCateringOrdersPage from "@/pages/restaurant/RestaurantCateringOrdersPage";
 import MySponsorshipsPage from "@/pages/sponsor/MySponsorshipsPage";
 import SponsorDashboardPage from "@/pages/sponsor/SponsorDashboardPage";
+import OrganizerDashboardPage from "@/pages/organizer/OrganizerDashboardPage";
+import OrganizerEventRequestsPage from "@/pages/organizer/OrganizerEventRequestsPage";
+import OrganizerPortfolioPage from "@/pages/organizer/OrganizerPortfolioPage";
+import BrowseEventsPage from "@/pages/sponsor/BrowseEventsPage";
+
 
 // Placeholder — swap out as each role's real dashboard gets built
 function Dashboard() {
@@ -118,18 +122,9 @@ function App() {
           {/* Organizer */}
           <Route element={<ProtectedRoute allowedRoles={["organizer"]} />}>
             <Route path="/organizer" element={<PartnerLayout />}>
-              <Route
-                index
-                element={<PlaceholderPage title="Organizer Dashboard" />}
-              />
-              <Route
-                path="requests"
-                element={<PlaceholderPage title="Event Requests" />}
-              />
-              <Route
-                path="portfolio"
-                element={<PlaceholderPage title="My Portfolio" />}
-              />
+              <Route index element={<OrganizerDashboardPage />} />
+              <Route path="requests" element={<OrganizerEventRequestsPage />} />
+              <Route path="portfolio" element={<OrganizerPortfolioPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
           </Route>
@@ -138,10 +133,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["sponsor"]} />}>
             <Route path="/sponsor" element={<PartnerLayout />}>
               <Route index element={<SponsorDashboardPage />} />
-              <Route
-                path="events"
-                element={<PlaceholderPage title="Browse Events" />}
-              />
+             <Route path="events" element={<BrowseEventsPage />} />
               <Route path="sponsorships" element={<MySponsorshipsPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>

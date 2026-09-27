@@ -111,9 +111,85 @@ const assignOrganizerToBooking = async (
   }
 };
 
+const getOrganizerByUserId = async (userId) => {
+  const result = await db.query(
+    `SELECT organizer_id, user_id, business_name, specialty, experience_years,
+            portfolio_url, bio, service_areas, price_range, avg_rating,
+            total_reviews, is_verified, is_available, created_at, updated_at
+     FROM organizers
+     WHERE user_id = $1`,
+    [userId]
+  );
+  return result.rows[0] || null;
+};
+
+const getBookingsForOrganizerUser = async (organizerUserId) => {
+  const result = await db.query(
+    `SELECT bo.id, bo.booking_id, bo.organizer_id, bo.role_in_event,
+            bo.agreed_fee, bo.status, bo.notes, bo.assigned_at,
+            b.booking_ref, b.event_type, b.event_date, u.full_name AS customer_name
+     FROM booking_organizers bo
+     JOIN organizers o ON o.organizer_id = bo.organizer_id
+     JOIN bookings b ON b.booking_id = bo.booking_id
+     JOIN users u ON u.user_id = b.user_id
+     WHERE o.user_id = $1
+     ORDER BY bo.assigned_at DESC`,
+    [organizerUserId]
+  );
+  return result.rows;
+};
+
+const updateOrganizerProfile = async (userId, fields) => {
+  const allowed = [
+    "business_name",
+    "specialty",
+    "portfolio_url",
+    "bio",
+    "service_areas",
+    "price_range",
+    "is_available",
+  ];
+  const setClauses = [];
+  const params = [];
+
+  for (const key of allowed) {
+    if (fields[key] !== undefined) {
+      params.push(fields[key]);
+      setClauses.push(`${key} = $${params.length}`);
+    }
+  }
+
+  if (setClauses.length === 0) {
+    const err = new Error("No valid fields provided to update");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  params.push(userId);
+  const result = await db.query(
+    `UPDATE organizers
+     SET ${setClauses.join(", ")}, updated_at = NOW()
+     WHERE user_id = $${params.length}
+     RETURNING organizer_id, user_id, business_name, specialty, experience_years,
+               portfolio_url, bio, service_areas, price_range, avg_rating,
+               total_reviews, is_verified, is_available, created_at, updated_at`,
+    params
+  );
+
+  if (result.rows.length === 0) {
+    const err = new Error("Organizer profile not found for this user");
+    err.statusCode = 404;
+    throw err;
+  }
+  return result.rows[0];
+};
+
 module.exports = {
   getAllOrganizers,
   getOrganizerById,
   getOrganizersForBooking,
   assignOrganizerToBooking,
+  getOrganizerByUserId,
+  getBookingsForOrganizerUser,
+  updateOrganizerProfile,
 };

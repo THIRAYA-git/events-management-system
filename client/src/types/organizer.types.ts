@@ -35,3 +35,17 @@ export interface AssignOrganizerPayload {
   notes?: string;
 }
 
+export interface OrganizerAssignment {
+  id: number;
+  booking_id: number;
+  organizer_id: number;
+  role_in_event: string;
+  agreed_fee: string; // numeric column comes back as string from pg
+  status: string; // "assigned" | "confirmed" | "completed"
+  notes: string | null;
+  assigned_at: string;
+  booking_ref: string;
+  event_type: string;
+  event_date: string;
+  customer_name: string;
+}

@@ -2,6 +2,7 @@ import { api } from "@/lib/api";import type {
   Organizer,
   BookingOrganizerAssignment,
   AssignOrganizerPayload,
+  OrganizerAssignment,
 } from "@/types/organizer.types";
 
 export const getAllOrganizers = async (params?: {
@@ -30,4 +31,21 @@ export const assignOrganizerToBooking = async (
     payload
   );
   return data.assignment;
+};
+
+export const getMyOrganizerProfile = async (): Promise<Organizer> => {
+  const { data } = await api.get("/organizers/me");
+  return data.organizer;
+};
+
+export const getMyBookingAssignments = async (): Promise<OrganizerAssignment[]> => {
+  const { data } = await api.get("/organizers/my-assignments");
+  return data.assignments;
+};
+
+export const updateMyOrganizerProfile = async (
+  payload: Partial<Pick<Organizer, "business_name" | "specialty" | "portfolio_url" | "bio" | "service_areas" | "price_range" | "is_available">>
+): Promise<Organizer> => {
+  const { data } = await api.patch("/organizers/me", payload);
+  return data.organizer;
 };
