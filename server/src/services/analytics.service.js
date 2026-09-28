@@ -89,7 +89,7 @@ const getStatusBreakdown = async ({ dateFrom, dateTo }) => {
   return rows;
 };
 
-// ── Top 5 customers by confirmed/completed spend ───────────────
+// ── Top 5 customers by confirmed/completed spend ──────────────d─
 const getTopCustomers = async ({ dateFrom, dateTo, limit = 5 }) => {
   const { rows } = await query(
     `
@@ -115,13 +115,14 @@ const getTopCustomers = async ({ dateFrom, dateTo, limit = 5 }) => {
 
 // ── Combined dashboard payload — one call, five metrics ────────
 const getDashboardAnalytics = async ({ dateFrom, dateTo }) => {
-  const [revenueOverTime, revenueByEventType, hallUtilization, statusBreakdown, topCustomers] =
+  const [revenueOverTime, revenueByEventType, hallUtilization, statusBreakdown, topCustomers, roomAccommodationsByEventType] =
     await Promise.all([
       getRevenueOverTime({ dateFrom, dateTo }),
       getRevenueByEventType({ dateFrom, dateTo }),
       getHallUtilization({ dateFrom, dateTo }),
       getStatusBreakdown({ dateFrom, dateTo }),
       getTopCustomers({ dateFrom, dateTo, limit: 5 }),
+      getRoomAccommodationsByEventType({ dateFrom, dateTo }),
     ]);
 
   return {
@@ -130,11 +131,31 @@ const getDashboardAnalytics = async ({ dateFrom, dateTo }) => {
     hallUtilization,
     statusBreakdown,
     topCustomers,
-    // Accommodation module (FR-009) not yet implemented — no
-    // room_count column or rooms table exists in the schema yet.
-    // Frontend renders a placeholder card for this.
-    accommodationModuleImplemented: false,
+    roomAccommodationsByEventType,
+    accommodationModuleImplemented: true,
   };
+};
+
+
+// ── Room accommodations by event type ───────────────────────────
+const getRoomAccommodationsByEventType = async ({ dateFrom, dateTo }) => {
+  const { rows } = await query(
+    `
+    SELECT
+      event_type,
+      COALESCE(SUM(room_count), 0)::integer AS total_rooms,
+      COUNT(*) FILTER (WHERE room_count > 0)::integer AS bookings_with_rooms
+    FROM bookings
+    WHERE status = ANY($1)
+      AND ($2::date IS NULL OR event_date >= $2::date)
+      AND ($3::date IS NULL OR event_date <= $3::date)
+    GROUP BY event_type
+    HAVING COALESCE(SUM(room_count), 0) > 0
+    ORDER BY total_rooms DESC
+    `,
+    [REVENUE_STATUSES, dateFrom || null, dateTo || null]
+  );
+  return rows;
 };
 
 module.exports = {
@@ -143,5 +164,6 @@ module.exports = {
   getHallUtilization,
   getStatusBreakdown,
   getTopCustomers,
+  getRoomAccommodationsByEventType,
   getDashboardAnalytics,
 };

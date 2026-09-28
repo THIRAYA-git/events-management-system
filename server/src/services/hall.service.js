@@ -24,3 +24,16 @@ const updateHallImage = async (hallId, imageUrl) => {
 };
 
 module.exports = { getHallById, updateHallImage };
+
+const getAllActiveHalls = async () => {
+  const result = await db.query(
+    `SELECT hall_id, hall_name, floor_number, capacity, description,
+            base_price, image_url, amenities
+     FROM halls
+     WHERE is_active = true
+     ORDER BY hall_id ASC`
+  );
+  return result.rows;
+};
+
+module.exports = { getHallById, updateHallImage, getAllActiveHalls };

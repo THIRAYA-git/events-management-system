@@ -23,6 +23,8 @@ const {
 const { singleImage } = require('../middleware/upload.middleware');
 const { validateUploadHallPhoto } = require('../validators/hall.validator'); 
 const { uploadHallPhoto } = require('../controllers/hall.controller'); 
+const { listAllActiveHalls } = require('../controllers/hall.controller'); 
+
 
 const router = express.Router();
 
@@ -96,5 +98,8 @@ router.patch(
   validate,
   uploadHallPhoto
 );
+
+// GET /api/halls — plain listing of both halls for showcase/homepage use
+router.get('/', listAllActiveHalls);
 
 module.exports = router;

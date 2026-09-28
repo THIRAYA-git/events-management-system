@@ -5,6 +5,7 @@ const {
   createFeedbackHandler,
   listFeedbackHandler,
   respondToFeedbackHandler,
+  listPublicFeedbackHandler,
 } = require("../controllers/feedback.controller");
 
 router.use(authenticate);
@@ -16,6 +17,13 @@ router.post("/", authorize("feedback:create"), createFeedbackHandler);
 router.get("/", authorize("feedback:read"), listFeedbackHandler);
 
 // PATCH /api/feedback/:feedbackId/reply — staff adds an admin reply
-router.patch("/:feedbackId/reply", authorize("feedback:read"), respondToFeedbackHandler);
+router.patch(
+  "/:feedbackId/reply",
+  authorize("feedback:read"),
+  respondToFeedbackHandler
+);
+
+// GET /api/feedback/public — testimonials for the homepage, any logged-in role
+router.get("/public", listPublicFeedbackHandler);
 
 module.exports = router;

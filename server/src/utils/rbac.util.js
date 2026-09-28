@@ -50,7 +50,7 @@ const PERMISSIONS = {
     "restaurant",
   ],
   "catering:read": ["admin", "manager", "front_desk", "restaurant", "customer"],
-  "catering:update": ["admin", "manager", "restaurant"],
+  "catering:update": ["restaurant"],
 
   // ── Organizers ────────────────────────────────────────────
   "organizer:read": ["admin", "manager", "front_desk", "organizer"],
@@ -94,8 +94,6 @@ const PERMISSIONS = {
   "sponsor_request:respond": ["admin", "manager", "sponsor"],
   "sponsor_request:withdraw": ["customer"],
 };
-
-
 
 // Check if a role has a specific permission
 const can = (role, permission) =>

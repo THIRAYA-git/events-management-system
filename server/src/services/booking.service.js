@@ -41,12 +41,12 @@
 //  Neon, so it's atomic at the Postgres level without needing an
 //  application-managed transaction.
 // ─────────────────────────────────────────────────────────────────────────────
-const { query } = require('../config/db');
-const { calculateBookingTotal } = require('./pricing.service');
+const { query } = require("../config/db");
+const { calculateBookingTotal } = require("./pricing.service");
 
 const VENUE_COMBINED_CAPACITY = 1200;
 const BUFFER_MINUTES = 60;
-const ACTIVE_STATUSES = ['pending', 'confirmed'];
+const ACTIVE_STATUSES = ["pending", "confirmed"];
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  createBooking
@@ -59,18 +59,20 @@ const createBooking = async ({
   endTime,
   eventType,
   guestCount,
-  roomCount       = 0,
-  extraAddons     = 0,
-  discountAmount  = 0,
-  taxAmount       = 0,
+  roomCount = 0,
+  extraAddons = 0,
+  discountAmount = 0,
+  taxAmount = 0,
   specialRequests = null,
 }) => {
-  if (!userId)    throw new Error('userId is required.');
-  if (!hallId)    throw new Error('hallId is required.');
-  if (!eventDate) throw new Error('eventDate is required.');
-  if (!startTime || !endTime) throw new Error('startTime and endTime are required.');
-  if (!eventType) throw new Error('eventType is required.');
-  if (!guestCount || guestCount < 1) throw new Error('guestCount must be at least 1.');
+  if (!userId) throw new Error("userId is required.");
+  if (!hallId) throw new Error("hallId is required.");
+  if (!eventDate) throw new Error("eventDate is required.");
+  if (!startTime || !endTime)
+    throw new Error("startTime and endTime are required.");
+  if (!eventType) throw new Error("eventType is required.");
+  if (!guestCount || guestCount < 1)
+    throw new Error("guestCount must be at least 1.");
 
   const pricing = await calculateBookingTotal({
     eventType,
@@ -121,28 +123,37 @@ const createBooking = async ({
         AND hb.status     = ANY($2)`,
     [eventDate, ACTIVE_STATUSES]
   );
-  const existingGuests  = parseInt(combinedResult.rows[0].total_guests, 10);
+  const existingGuests = parseInt(combinedResult.rows[0].total_guests, 10);
   const projectedGuests = existingGuests + guestCount;
   if (projectedGuests > VENUE_COMBINED_CAPACITY) {
     throw new Error(
       `Combined guest count (${projectedGuests}) across both halls on ${eventDate} ` +
-      `would exceed the venue-wide cap of ${VENUE_COMBINED_CAPACITY} seats. ` +
-      `${existingGuests} seats already committed for this date.`
+        `would exceed the venue-wide cap of ${VENUE_COMBINED_CAPACITY} seats. ` +
+        `${existingGuests} seats already committed for this date.`
     );
   }
 
-  const bookingResult = await query(
+    const bookingResult = await query(
     `INSERT INTO bookings
        (user_id, event_date, event_start_time, event_end_time, event_type,
         guest_count, status, base_amount, addon_amount, discount_amount,
-        tax_amount, total_amount, special_requests)
-     VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, $9, $10, $11, $12)
+        tax_amount, total_amount, special_requests, room_count)
+     VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, $9, $10, $11, $12, $13)
      RETURNING booking_id, booking_ref, status, total_amount`,
     [
-      userId, eventDate, startTime, endTime, eventType,
-      guestCount, pricing.baseAmount, pricing.addonAmount,
-      pricing.discountAmount, pricing.taxAmount, pricing.totalAmount,
+      userId,
+      eventDate,
+      startTime,
+      endTime,
+      eventType,
+      guestCount,
+      pricing.baseAmount,
+      pricing.addonAmount,
+      pricing.discountAmount,
+      pricing.taxAmount,
+      pricing.totalAmount,
       specialRequests,
+      pricing.roomCount,
     ]
   );
   const booking = bookingResult.rows[0];
@@ -157,19 +168,21 @@ const createBooking = async ({
     );
 
     return {
-      bookingId:      booking.booking_id,
-      bookingRef:     booking.booking_ref,
-      hallBookingId:  hallBookingResult.rows[0].hall_booking_id,
+      bookingId: booking.booking_id,
+      bookingRef: booking.booking_ref,
+      hallBookingId: hallBookingResult.rows[0].hall_booking_id,
       hallId,
-      hallName:       hall.hall_name,
-      status:         booking.status,
-      eventType:      pricing.eventType,
+      hallName: hall.hall_name,
+      status: booking.status,
+      eventType: pricing.eventType,
       guestCount,
       pricing,
     };
   } catch (err) {
     try {
-      await query(`DELETE FROM bookings WHERE booking_id = $1`, [booking.booking_id]);
+      await query(`DELETE FROM bookings WHERE booking_id = $1`, [
+        booking.booking_id,
+      ]);
     } catch (cleanupErr) {
       console.error(
         `CRITICAL: orphaned bookings row ${booking.booking_id} could not be cleaned up after hall_bookings insert failed.`,
@@ -177,7 +190,10 @@ const createBooking = async ({
       );
     }
 
-    if (err.code === '23P01' || err.message?.includes('hall_bookings_no_overlap')) {
+    if (
+      err.code === "23P01" ||
+      err.message?.includes("hall_bookings_no_overlap")
+    ) {
       throw new Error(
         `${hall.hall_name} was booked by another request for this slot just now. Please choose a different time or hall.`
       );
@@ -195,7 +211,7 @@ const getBookingById = async (bookingId) => {
         b.booking_id, b.booking_ref, b.user_id, b.event_date,
         b.event_start_time, b.event_end_time, b.event_type, b.guest_count,
         b.status, b.base_amount, b.addon_amount, b.discount_amount,
-        b.tax_amount, b.total_amount, b.special_requests, b.created_at,
+        b.tax_amount, b.total_amount, b.special_requests, b.created_at, b.room_count,
         hb.hall_booking_id, hb.hall_id, h.hall_name, h.floor_number
      FROM bookings b
      LEFT JOIN hall_bookings hb ON hb.booking_id = b.booking_id
@@ -222,13 +238,21 @@ const getBookingById = async (bookingId) => {
 //  gets a stable field name regardless of what the users table itself
 //  calls it.
 // ─────────────────────────────────────────────────────────────────────────────
-const listBookings = async ({ status, hallId, dateFrom, dateTo, customerId, limit = 20, offset = 0 }) => {
+const listBookings = async ({
+  status,
+  hallId,
+  dateFrom,
+  dateTo,
+  customerId,
+  limit = 20,
+  offset = 0,
+}) => {
   const rowsResult = await query(
     `
     SELECT
       b.booking_id, b.booking_ref, b.event_date, b.event_start_time,
       b.event_end_time, b.event_type, b.guest_count, b.status,
-      b.total_amount, b.special_requests, b.created_at,
+      b.total_amount, b.special_requests, b.created_at, b.room_count,
       u.user_id AS customer_id, u.full_name AS customer_name,
       u.email   AS customer_email, u.phone AS customer_phone,
       hb.hall_booking_id, h.hall_id, h.hall_name
@@ -244,7 +268,15 @@ const listBookings = async ({ status, hallId, dateFrom, dateTo, customerId, limi
     ORDER BY b.event_date DESC, b.created_at DESC
     LIMIT $5::integer OFFSET $6::integer
     `,
-    [status || null, hallId || null, dateFrom || null, dateTo || null, limit, offset, customerId || null]
+    [
+      status || null,
+      hallId || null,
+      dateFrom || null,
+      dateTo || null,
+      limit,
+      offset,
+      customerId || null,
+    ]
   );
 
   const countResult = await query(
@@ -258,12 +290,18 @@ const listBookings = async ({ status, hallId, dateFrom, dateTo, customerId, limi
       AND ($4::date IS NULL OR b.event_date <= $4::date)
       AND ($5::integer IS NULL OR b.user_id = $5::integer)
     `,
-    [status || null, hallId || null, dateFrom || null, dateTo || null, customerId || null]
+    [
+      status || null,
+      hallId || null,
+      dateFrom || null,
+      dateTo || null,
+      customerId || null,
+    ]
   );
 
   return {
     bookings: rowsResult.rows,
-    total:    countResult.rows[0].total,
+    total: countResult.rows[0].total,
     limit,
     offset,
   };
@@ -274,7 +312,10 @@ const listBookings = async ({ status, hallId, dateFrom, dateTo, customerId, limi
 //  Single statement, single query() call — updates bookings and
 //  hall_bookings together via a data-modifying CTE.
 // ─────────────────────────────────────────────────────────────────────────────
-const updateBookingStatus = async (bookingId, { status, staffId, cancelReason }) => {
+const updateBookingStatus = async (
+  bookingId,
+  { status, staffId, cancelReason }
+) => {
   const result = await query(
     `
     WITH updated_booking AS (

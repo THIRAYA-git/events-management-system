@@ -229,6 +229,17 @@ const SERVICE_ERROR_PATTERNS = [
 const isServiceError = (err) =>
   SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));
 
+const { getAllActiveHalls } = require("../services/hall.service"); // add alongside existing hall.service import
+
+const listAllActiveHalls = async (req, res, next) => {
+  try {
+    const halls = await getAllActiveHalls();
+    return res.status(200).json({ success: true, data: halls });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   checkHallAvailability,
   listAvailableHalls,
@@ -236,4 +247,5 @@ module.exports = {
   assignHall,
   releaseHall,
   uploadHallPhoto,
+  listAllActiveHalls,
 };
