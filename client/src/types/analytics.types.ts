@@ -34,9 +34,16 @@ export interface DashboardAnalytics {
   statusBreakdown: StatusBreakdown[];
   topCustomers: TopCustomer[];
   accommodationModuleImplemented: boolean;
+  roomAccommodationsByEventType: RoomAccommodationByEventType[];
 }
 
 export interface DashboardAnalyticsParams {
   date_from?: string;
   date_to?: string;
+}
+
+export interface RoomAccommodationByEventType {
+  event_type: string;
+  total_rooms: number;
+  bookings_with_rooms: number;
 }

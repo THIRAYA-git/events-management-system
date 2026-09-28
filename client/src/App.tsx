@@ -33,20 +33,15 @@ import OrganizerDashboardPage from "@/pages/organizer/OrganizerDashboardPage";
 import OrganizerEventRequestsPage from "@/pages/organizer/OrganizerEventRequestsPage";
 import OrganizerPortfolioPage from "@/pages/organizer/OrganizerPortfolioPage";
 import BrowseEventsPage from "@/pages/sponsor/BrowseEventsPage";
+import HomePage from "@/pages/customer/HomePage";
+import AboutPage from "@/pages/customer/AboutPage";
 
-
-// Placeholder — swap out as each role's real dashboard gets built
-function Dashboard() {
-  return <div className="p-8">Dashboard placeholder</div>;
-}
-
-// "/" is the customer home; partners have their own layout, so send them there
 function Home() {
   const { user } = useAuth();
   if (isPartnerRole(user?.role)) {
     return <Navigate to={getHomePath(user?.role)} replace />;
   }
-  return <Dashboard />;
+  return <HomePage />;
 }
 
 function App() {
@@ -64,6 +59,7 @@ function App() {
             {/* Any logged-in user */}
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Home />} />
+              <Route path="/about" element={<AboutPage />} />
             </Route>
 
             {/* Only roles allowed to create bookings */}
@@ -133,7 +129,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["sponsor"]} />}>
             <Route path="/sponsor" element={<PartnerLayout />}>
               <Route index element={<SponsorDashboardPage />} />
-             <Route path="events" element={<BrowseEventsPage />} />
+              <Route path="events" element={<BrowseEventsPage />} />
               <Route path="sponsorships" element={<MySponsorshipsPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>

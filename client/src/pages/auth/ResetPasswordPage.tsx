@@ -2,17 +2,12 @@ import { useState, type FormEvent } from "react";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import AuthLayout from "@/components/auth/AuthLayout";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+  authInputClass,
+  authLabelClass,
+  authButtonClass,
+} from "@/components/auth/authStyles";
 
 export default function ResetPasswordPage() {
   const [searchParams] = useSearchParams();
@@ -47,67 +42,67 @@ export default function ResetPasswordPage() {
     }
   };
 
+  const backToSignIn = (
+    <Link to="/login" className="font-medium text-violet-700 hover:underline">
+      Back to sign in
+    </Link>
+  );
+
   if (!token) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-        <Card className="w-full max-w-sm">
-          <CardHeader>
-            <CardTitle>Invalid link</CardTitle>
-            <CardDescription>
-              This reset link is missing its token. Request a new one below.
-            </CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Link to="/forgot-password" className="text-sm underline w-full text-center">
-              Request a new reset link
-            </Link>
-          </CardFooter>
-        </Card>
-      </div>
+      <AuthLayout
+        title="Invalid link"
+        subtitle="This reset link is missing its token. Request a new one below."
+        footer={backToSignIn}
+      >
+        <Link to="/forgot-password" className={`${authButtonClass} block text-center`}>
+          Request a new reset link
+        </Link>
+      </AuthLayout>
     );
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Set a new password</CardTitle>
-          <CardDescription>Choose a new password for your account.</CardDescription>
-        </CardHeader>
-        <form onSubmit={handleSubmit}>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="new-password">New password</Label>
-              <Input
-                id="new-password"
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                minLength={8}
-                autoComplete="new-password"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="confirm-password">Confirm new password</Label>
-              <Input
-                id="confirm-password"
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={8}
-                autoComplete="new-password"
-              />
-            </div>
-          </CardContent>
-          <CardFooter>
-            <Button type="submit" className="w-full" disabled={isSubmitting}>
-              {isSubmitting ? "Resetting…" : "Reset Password"}
-            </Button>
-          </CardFooter>
-        </form>
-      </Card>
-    </div>
+    <AuthLayout
+      title="Set a new password"
+      subtitle="Choose a new password for your account."
+      footer={backToSignIn}
+    >
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label htmlFor="new-password" className={authLabelClass}>
+            New password
+          </label>
+          <input
+            id="new-password"
+            type="password"
+            value={newPassword}
+            onChange={(e) => setNewPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className={authInputClass}
+          />
+        </div>
+        <div>
+          <label htmlFor="confirm-password" className={authLabelClass}>
+            Confirm new password
+          </label>
+          <input
+            id="confirm-password"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            required
+            minLength={8}
+            autoComplete="new-password"
+            className={authInputClass}
+          />
+        </div>
+        <button type="submit" className={authButtonClass} disabled={isSubmitting}>
+          {isSubmitting ? "Resetting…" : "Reset Password"}
+        </button>
+      </form>
+    </AuthLayout>
   );
 }

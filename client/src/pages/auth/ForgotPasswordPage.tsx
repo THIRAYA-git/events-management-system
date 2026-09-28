@@ -1,17 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import AuthLayout from "@/components/auth/AuthLayout";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+  authInputClass,
+  authLabelClass,
+  authButtonClass,
+} from "@/components/auth/authStyles";
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState("");
@@ -34,49 +29,42 @@ export default function ForgotPasswordPage() {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-muted/40 px-4">
-      <Card className="w-full max-w-sm">
-        <CardHeader>
-          <CardTitle>Reset your password</CardTitle>
-          <CardDescription>
-            Enter your account email and we'll send you a reset link.
-          </CardDescription>
-        </CardHeader>
-
-        {submitted ? (
-          <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If that email is registered, a reset link has been sent. Check your inbox
-              (and spam folder) for a message from Aazath Plaza.
-            </p>
-          </CardContent>
-        ) : (
-          <form onSubmit={handleSubmit}>
-            <CardContent className="space-y-2">
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoComplete="email"
-              />
-            </CardContent>
-            <CardFooter>
-              <Button type="submit" className="w-full" disabled={isSubmitting}>
-                {isSubmitting ? "Sending…" : "Send Reset Link"}
-              </Button>
-            </CardFooter>
-          </form>
-        )}
-
-        <CardFooter className="justify-center pt-0">
-          <Link to="/login" className="text-sm underline text-muted-foreground">
-            Back to sign in
-          </Link>
-        </CardFooter>
-      </Card>
-    </div>
+    <AuthLayout
+      title="Reset your password"
+      subtitle="Enter your account email and we'll send you a reset link."
+      footer={
+        <Link to="/login" className="font-medium text-violet-700 hover:underline">
+          Back to sign in
+        </Link>
+      }
+    >
+      {submitted ? (
+        <div className="rounded-md border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900">
+          If that email is registered, a reset link has been sent. Check your inbox (and
+          spam folder) for a message from Aazath Plaza.
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div>
+            <label htmlFor="email" className={authLabelClass}>
+              Email
+            </label>
+            <input
+              id="email"
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+              autoComplete="email"
+              placeholder="you@example.com"
+              className={authInputClass}
+            />
+          </div>
+          <button type="submit" className={authButtonClass} disabled={isSubmitting}>
+            {isSubmitting ? "Sending…" : "Send Reset Link"}
+          </button>
+        </form>
+      )}
+    </AuthLayout>
   );
 }

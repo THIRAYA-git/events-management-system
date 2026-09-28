@@ -3,6 +3,7 @@ import { listBookings, updateBookingStatus } from "@/lib/booking.api";
 import type { AdminBooking, BookingStatus } from "@/types/booking.types";
 import { Loader2, CheckCircle2, XCircle, X } from "lucide-react";
 import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
+import { Link } from "react-router-dom";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
 const HALLS = [
@@ -130,10 +131,20 @@ export function AdminBookingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-800">Bookings</h1>
-      <p className="mt-1 text-sm text-gray-500">
-        Review, confirm, and manage hall booking requests.
-      </p>
+      <div className="flex items-start justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-gray-800">Bookings</h1>
+          <p className="mt-1 text-sm text-gray-500">
+            Review, confirm, and manage hall booking requests.
+          </p>
+        </div>
+        <Link
+          to="/book"
+          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+        >
+          Book a Hall
+        </Link>
+      </div>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
       <div className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">

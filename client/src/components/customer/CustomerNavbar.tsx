@@ -26,11 +26,12 @@ const CustomerNavbar = () => {
   };
 
   const links = [
-    { to: "/", label: "Home" },
-    { to: "/book", label: "Book a Hall" },
-    ...(user?.role === "customer" ? [{ to: "/my-bookings", label: "My Bookings" }] : []),
-    ...(isStaff ? [{ to: "/admin", label: "Admin Dashboard" }] : []),
-  ];
+  { to: "/", label: "Home" },
+  { to: "/about", label: "About" },
+  { to: "/book", label: "Book a Hall" },
+  ...(user?.role === "customer" ? [{ to: "/my-bookings", label: "My Bookings" }] : []),
+  ...(isStaff ? [{ to: "/admin", label: "Admin Dashboard" }] : []),
+];
 
   return (
     <header className="sticky top-0 z-30 border-b border-gray-200 bg-white">

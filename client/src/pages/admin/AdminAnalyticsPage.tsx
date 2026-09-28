@@ -1,8 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { getDashboardAnalytics } from "@/lib/analytics.api";
 import type { DashboardAnalytics } from "@/types/analytics.types";
-import { Loader2, TrendingUp, BedDouble } from "lucide-react";
-import {
+import { Loader2 } from "lucide-react";import {
   Chart as ChartJS,
   CategoryScale,
   LinearScale,
@@ -37,6 +36,8 @@ const STATUS_COLORS: Record<string, string> = {
 
 const HALL_COLORS = ["#3b82f6", "#8b5cf6"];
 const EVENT_TYPE_COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
+
+const CHART_HEIGHT = 220;
 
 const formatCurrency = (amount: string | number) =>
   `LKR ${Number(amount).toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
@@ -156,31 +157,63 @@ export function AdminAnalyticsPage() {
       {/* ── Charts Grid ─────────────────────────────────────────────── */}
       <div className="mt-4 grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Revenue Over Time */}
-        <div className="rounded-lg border border-gray-200 bg-white p-5 lg:col-span-2">
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
           <h3 className="text-sm font-medium text-gray-700 mb-4">Revenue Over Time</h3>
           {data.revenueOverTime.length === 0 ? (
             <p className="text-sm text-gray-400 py-10 text-center">No revenue data yet.</p>
           ) : (
-            <Line
-              data={{
-                labels: data.revenueOverTime.map((p) => formatMonth(p.month)),
-                datasets: [
-                  {
-                    label: "Revenue (LKR)",
-                    data: data.revenueOverTime.map((p) => Number(p.revenue)),
-                    borderColor: "#3b82f6",
-                    backgroundColor: "rgba(59, 130, 246, 0.1)",
-                    fill: true,
-                    tension: 0.3,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } },
-              }}
-            />
+            <div style={{ height: CHART_HEIGHT }}>
+              <Line
+                data={{
+                  labels: data.revenueOverTime.map((p) => formatMonth(p.month)),
+                  datasets: [
+                    {
+                      label: "Revenue (LKR)",
+                      data: data.revenueOverTime.map((p) => Number(p.revenue)),
+                      borderColor: "#3b82f6",
+                      backgroundColor: "rgba(59, 130, 246, 0.1)",
+                      fill: true,
+                      tension: 0.3,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                }}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Accommodation Placeholder / Room Accommodations */}
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <h3 className="text-sm font-medium text-gray-700 mb-4">Room Accommodations by Event Type</h3>
+          {data.roomAccommodationsByEventType.length === 0 ? (
+            <p className="text-sm text-gray-400 py-10 text-center">No room bookings recorded yet.</p>
+          ) : (
+            <div style={{ height: CHART_HEIGHT }}>
+              <Bar
+                data={{
+                  labels: data.roomAccommodationsByEventType.map((r) => r.event_type),
+                  datasets: [
+                    {
+                      label: "Rooms booked",
+                      data: data.roomAccommodationsByEventType.map((r) => r.total_rooms),
+                      backgroundColor: EVENT_TYPE_COLORS,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -190,23 +223,26 @@ export function AdminAnalyticsPage() {
           {data.revenueByEventType.length === 0 ? (
             <p className="text-sm text-gray-400 py-10 text-center">No data yet.</p>
           ) : (
-            <Bar
-              data={{
-                labels: data.revenueByEventType.map((e) => e.event_type),
-                datasets: [
-                  {
-                    label: "Revenue (LKR)",
-                    data: data.revenueByEventType.map((e) => Number(e.revenue)),
-                    backgroundColor: EVENT_TYPE_COLORS,
-                  },
-                ],
-              }}
-              options={{
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { y: { beginAtZero: true } },
-              }}
-            />
+            <div style={{ height: CHART_HEIGHT }}>
+              <Bar
+                data={{
+                  labels: data.revenueByEventType.map((e) => e.event_type),
+                  datasets: [
+                    {
+                      label: "Revenue (LKR)",
+                      data: data.revenueByEventType.map((e) => Number(e.revenue)),
+                      backgroundColor: EVENT_TYPE_COLORS,
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: { y: { beginAtZero: true } },
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -216,24 +252,27 @@ export function AdminAnalyticsPage() {
           {data.hallUtilization.length === 0 ? (
             <p className="text-sm text-gray-400 py-10 text-center">No bookings yet.</p>
           ) : (
-            <Bar
-              data={{
-                labels: data.hallUtilization.map((h) => h.hall_name),
-                datasets: [
-                  {
-                    label: "Bookings",
-                    data: data.hallUtilization.map((h) => h.booking_count),
-                    backgroundColor: HALL_COLORS,
-                  },
-                ],
-              }}
-              options={{
-                indexAxis: "y" as const,
-                responsive: true,
-                plugins: { legend: { display: false } },
-                scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
-              }}
-            />
+            <div style={{ height: CHART_HEIGHT }}>
+              <Bar
+                data={{
+                  labels: data.hallUtilization.map((h) => h.hall_name),
+                  datasets: [
+                    {
+                      label: "Bookings",
+                      data: data.hallUtilization.map((h) => h.booking_count),
+                      backgroundColor: HALL_COLORS,
+                    },
+                  ],
+                }}
+                options={{
+                  indexAxis: "y" as const,
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: { legend: { display: false } },
+                  scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                }}
+              />
+            </div>
           )}
         </div>
 
@@ -243,7 +282,7 @@ export function AdminAnalyticsPage() {
           {data.statusBreakdown.length === 0 ? (
             <p className="text-sm text-gray-400 py-10 text-center">No bookings yet.</p>
           ) : (
-            <div className="max-w-[280px] mx-auto">
+            <div style={{ height: CHART_HEIGHT }} className="mx-auto max-w-[280px]">
               <Doughnut
                 data={{
                   labels: data.statusBreakdown.map(
@@ -260,6 +299,7 @@ export function AdminAnalyticsPage() {
                 }}
                 options={{
                   responsive: true,
+                  maintainAspectRatio: false,
                   plugins: { legend: { position: "bottom" } },
                 }}
               />
@@ -298,16 +338,6 @@ export function AdminAnalyticsPage() {
               ))}
             </div>
           )}
-        </div>
-
-        {/* Accommodation Placeholder */}
-        <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-5 flex flex-col items-center justify-center text-center">
-          <BedDouble className="w-8 h-8 text-gray-300 mb-2" />
-          <h3 className="text-sm font-medium text-gray-600">Room Accommodations by Event Type</h3>
-          <p className="mt-1 text-xs text-gray-400 max-w-[240px]">
-            The accommodation booking module (5 rooms, LKR 5,000/day) hasn't been implemented
-            yet. This chart will populate once that feature is built.
-          </p>
         </div>
       </div>
     </div>

@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
-import { listAllCateringOrders, updateCateringOrderStatus } from "@/lib/catering.api";
+import { Loader2 } from "lucide-react";
+import { listAllCateringOrders } from "@/lib/catering.api";
 import type { CateringOrder } from "@/types/catering.types";
 
 const STATUS_OPTIONS = ["pending", "confirmed", "preparing", "delivered", "cancelled"];
@@ -14,23 +14,12 @@ const STATUS_BADGE: Record<string, string> = {
   cancelled: "bg-red-100 text-red-700",
 };
 
-// Mirrors ALLOWED_TRANSITIONS in catering.service.js
-const NEXT_STATUS: Record<string, string | null> = {
-  pending: "confirmed",
-  confirmed: "preparing",
-  preparing: "delivered",
-  delivered: null,
-  cancelled: null,
-};
-const CANCELLABLE_FROM = ["pending", "confirmed", "preparing"];
-
 export function AdminCateringPage() {
   const [orders, setOrders] = useState<CateringOrder[]>([]);
   const [total, setTotal] = useState(0);
   const [offset, setOffset] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [actionLoadingId, setActionLoadingId] = useState<number | null>(null);
   const [statusFilter, setStatusFilter] = useState("");
 
   const fetchOrders = useCallback(async () => {
@@ -56,24 +45,12 @@ export function AdminCateringPage() {
     fetchOrders();
   }, [fetchOrders]);
 
-  const handleAdvance = async (order: CateringOrder, newStatus: string) => {
-    setActionLoadingId(order.order_id);
-    try {
-      await updateCateringOrderStatus(order.order_id, newStatus);
-      await fetchOrders();
-    } catch (err) {
-      console.error(err);
-      setError("Failed to update order status.");
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
   return (
     <div>
       <h1 className="text-2xl font-semibold text-gray-800">Catering Orders</h1>
       <p className="mt-1 text-sm text-gray-500">
-        Track and progress food orders placed against customer bookings.
+        View food orders placed against customer bookings. Order status is managed by the
+        restaurant partner.
       </p>
 
       <div className="mt-6 flex items-center gap-3">
@@ -119,7 +96,6 @@ export function AdminCateringPage() {
                 <th className="px-4 py-3">Guests</th>
                 <th className="px-4 py-3">Total</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
@@ -149,30 +125,6 @@ export function AdminCateringPage() {
                     >
                       {order.status}
                     </span>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex gap-2">
-                      {NEXT_STATUS[order.status] && (
-                        <button
-                          disabled={actionLoadingId === order.order_id}
-                          onClick={() => handleAdvance(order, NEXT_STATUS[order.status]!)}
-                          className="inline-flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50"
-                        >
-                          <CheckCircle2 className="w-3 h-3" />
-                          Mark {NEXT_STATUS[order.status]}
-                        </button>
-                      )}
-                      {CANCELLABLE_FROM.includes(order.status) && (
-                        <button
-                          disabled={actionLoadingId === order.order_id}
-                          onClick={() => handleAdvance(order, "cancelled")}
-                          className="inline-flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
-                        >
-                          <XCircle className="w-3 h-3" />
-                          Cancel
-                        </button>
-                      )}
-                    </div>
                   </td>
                 </tr>
               ))}
@@ -207,3 +159,4 @@ export function AdminCateringPage() {
     </div>
   );
 }
+
