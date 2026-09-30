@@ -42,6 +42,15 @@ export function AdminBookingsPage() {
   const [cancelTarget, setCancelTarget] = useState<AdminBooking | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
+  // Bulk confirm / reject of pending bookings
+  const [bulk, setBulk] = useState<{
+    action: "confirm" | "reject";
+    items: AdminBooking[];
+  } | null>(null);
+  const [bulkReason, setBulkReason] = useState("");
+  const [bulkPreparing, setBulkPreparing] = useState(false);
+  const [bulkRunning, setBulkRunning] = useState(false);
+
   const fetchBookings = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -112,6 +121,61 @@ export function AdminBookingsPage() {
     }
   };
 
+  // Targets every pending booking matching the current hall/date filters
+  // (across all pages), not just the 10 rows currently visible.
+  const openBulk = async (action: "confirm" | "reject") => {
+    setBulkPreparing(true);
+    try {
+      const res = await listBookings({
+        status: "pending",
+        hall_id: hallFilter ? Number(hallFilter) : undefined,
+        date_from: dateFrom || undefined,
+        date_to: dateTo || undefined,
+        limit: 1000,
+        offset: 0,
+      });
+      if (res.bookings.length === 0) {
+        alert("There are no pending bookings to process.");
+        return;
+      }
+      setBulkReason("");
+      setBulk({ action, items: res.bookings });
+    } catch (err) {
+      alert("Failed to load pending bookings. Please try again.");
+      console.error(err);
+    } finally {
+      setBulkPreparing(false);
+    }
+  };
+
+  const runBulk = async () => {
+    if (!bulk) return;
+    setBulkRunning(true);
+    const failed: string[] = [];
+    // Sequential on purpose: avoids racing hall-availability constraints.
+    for (const b of bulk.items) {
+      try {
+        await updateBookingStatus(
+          b.booking_id,
+          bulk.action === "confirm"
+            ? { status: "confirmed" }
+            : { status: "cancelled", cancel_reason: bulkReason || undefined }
+        );
+      } catch (err) {
+        console.error(err);
+        failed.push(b.booking_ref);
+      }
+    }
+    setBulkRunning(false);
+    setBulk(null);
+    await fetchBookings();
+    if (failed.length > 0) {
+      alert(
+        `${bulk.items.length - failed.length} of ${bulk.items.length} processed. Failed: ${failed.join(", ")}`
+      );
+    }
+  };
+
   const formatCurrency = (amount: string) =>
     `LKR ${Number(amount).toLocaleString("en-LK", {
       minimumFractionDigits: 2,
@@ -138,12 +202,30 @@ export function AdminBookingsPage() {
             Review, confirm, and manage hall booking requests.
           </p>
         </div>
-        <Link
-          to="/book"
-          className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
-        >
-          Book a Hall
-        </Link>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={() => openBulk("confirm")}
+            disabled={bulkPreparing || (!!statusFilter && statusFilter !== "pending")}
+            className="flex items-center gap-1 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+          >
+            <CheckCircle2 className="w-4 h-4" />
+            Confirm All
+          </button>
+          <button
+            onClick={() => openBulk("reject")}
+            disabled={bulkPreparing || (!!statusFilter && statusFilter !== "pending")}
+            className="flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            <XCircle className="w-4 h-4" />
+            Reject All
+          </button>
+          <Link
+            to="/book"
+            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+          >
+            Book a Hall
+          </Link>
+        </div>
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
@@ -429,6 +511,63 @@ export function AdminBookingsPage() {
                 {cancelTarget.status === "pending"
                   ? "Rejection"
                   : "Cancellation"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Bulk Confirm/Reject Modal ───────────────────────────────── */}
+      {bulk && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
+            <h2 className="text-lg font-semibold text-gray-800">
+              {bulk.action === "confirm" ? "Confirm All" : "Reject All"}
+            </h2>
+            <p className="mt-2 text-sm text-gray-500">
+              This will {bulk.action === "confirm" ? "confirm" : "reject"}{" "}
+              <span className="font-medium text-gray-800">
+                {bulk.items.length} pending booking
+                {bulk.items.length === 1 ? "" : "s"}
+              </span>
+              {hallFilter || dateFrom || dateTo
+                ? " matching the current hall/date filters."
+                : "."}
+            </p>
+
+            {bulk.action === "reject" && (
+              <>
+                <label className="block text-xs font-medium text-gray-500 mt-4 mb-1">
+                  Reason (optional)
+                </label>
+                <textarea
+                  value={bulkReason}
+                  onChange={(e) => setBulkReason(e.target.value)}
+                  rows={3}
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                />
+              </>
+            )}
+
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                onClick={() => setBulk(null)}
+                disabled={bulkRunning}
+                className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+              >
+                Back
+              </button>
+              <button
+                onClick={runBulk}
+                disabled={bulkRunning}
+                className={`flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-medium text-white disabled:opacity-50 ${
+                  bulk.action === "confirm"
+                    ? "bg-green-600 hover:bg-green-700"
+                    : "bg-red-600 hover:bg-red-700"
+                }`}
+              >
+                {bulkRunning && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {bulk.action === "confirm" ? "Confirm All" : "Reject All"}
               </button>
             </div>
           </div>
