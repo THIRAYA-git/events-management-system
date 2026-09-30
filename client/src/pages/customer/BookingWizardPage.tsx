@@ -1,14 +1,14 @@
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { CheckCircle2 } from "lucide-react";
+import PageHero from "@/components/common/PageHero";
+import { StepCard } from "@/components/booking/StepCard";
+import { WizardSteps } from "@/components/booking/WizardSteps";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+  primaryBtnClass,
+  secondaryBtnClass,
+} from "@/components/booking/bookingStyles";
 import { DateTimeStep } from "@/components/booking/DateTimeStep";
 import { HallSelectionStep } from "@/components/booking/HallSelectionStep";
 import { EventDetailsStep } from "@/components/booking/EventDetailsStep";
@@ -18,6 +18,7 @@ import { createCateringOrder } from "@/lib/catering.api";
 import type {
   SlotSelection,
   AvailableHallsResponse,
+  BothHallsOption,
   Hall,
   PriceCalculation,
   BookingResult,
@@ -25,6 +26,23 @@ import type {
 import type { CateringSelectionItem } from "@/types/catering.types";
 
 type Step = "datetime" | "halls" | "details" | "catering" | "review" | "success";
+
+const STEP_INDEX: Record<Exclude<Step, "success">, number> = {
+  datetime: 0,
+  halls: 1,
+  details: 2,
+  catering: 3,
+  review: 4,
+};
+
+function SummaryRow({ label, value }: { label: string; value: ReactNode }) {
+  return (
+    <div className="flex justify-between gap-4 py-2.5">
+      <dt className="text-gray-500">{label}</dt>
+      <dd className="text-right font-medium text-gray-900">{value}</dd>
+    </div>
+  );
+}
 
 export default function BookingWizardPage() {
   const navigate = useNavigate();
@@ -35,8 +53,11 @@ export default function BookingWizardPage() {
   const [availability, setAvailability] =
     useState<AvailableHallsResponse | null>(null);
   const [selectedHall, setSelectedHall] = useState<Hall | null>(null);
+  // Set only when the customer picked the two-hall option (601–1200 guests).
+  const [secondHall, setSecondHall] = useState<Hall | null>(null);
   const [details, setDetails] = useState<{
     eventType: string;
+    customEventType?: string;
     roomCount: number;
     specialRequests: string;
     pricing: PriceCalculation;
@@ -66,10 +87,12 @@ export default function BookingWizardPage() {
     try {
       const booking = await createBooking({
         hall_id: selectedHall.hall_id,
+        use_both_halls: secondHall !== null,
         event_date: slot.event_date,
         start_time: slot.start_time,
         end_time: slot.end_time,
         event_type: details.eventType,
+        custom_event_type: details.customEventType,
         guest_count: slot.guest_count,
         room_count: details.roomCount,
         special_requests: details.specialRequests || undefined,
@@ -107,132 +130,165 @@ export default function BookingWizardPage() {
   };
 
   return (
-    <div className="mx-auto max-w-xl px-4 py-8">
-      {step === "datetime" && (
-        <DateTimeStep onSubmit={handleSlotSubmit} isLoading={isLoading} />
-      )}
+    <div>
+      <PageHero
+        compact
+        title="Book a Hall"
+        subtitle="Check availability, choose your hall, and confirm your event in a few simple steps."
+      />
 
-      {step === "halls" && availability && slot && (
-        <HallSelectionStep
-          availability={availability}
-          guestCount={slot.guest_count}
-          onSelect={(hall) => {
-            setSelectedHall(hall);
-            setStep("details");
-          }}
-          onBack={() => setStep("datetime")}
-        />
-      )}
+      <div className="mx-auto max-w-2xl px-4 py-8">
+        {step !== "success" && <WizardSteps current={STEP_INDEX[step]} />}
 
-      {step === "details" && (
-        <EventDetailsStep
-          onSubmit={(d) => {
-            setDetails(d);
-            setStep("catering");
-          }}
-          onBack={() => setStep("halls")}
-        />
-      )}
+        {step === "datetime" && (
+          <DateTimeStep onSubmit={handleSlotSubmit} isLoading={isLoading} />
+        )}
 
-      {step === "catering" && (
-        <CateringStep
-          onSubmit={(selection) => {
-            setCateringSelection(selection);
-            setStep("review");
-          }}
-          onBack={() => setStep("details")}
-        />
-      )}
+        {step === "halls" && availability && slot && (
+          <HallSelectionStep
+            availability={availability}
+            guestCount={slot.guest_count}
+            onSelect={(hall) => {
+              setSelectedHall(hall);
+              setSecondHall(null);
+              setStep("details");
+            }}
+            onSelectBoth={(option: BothHallsOption) => {
+              setSelectedHall(option.primary);
+              setSecondHall(option.secondary);
+              setStep("details");
+            }}
+            onBack={() => setStep("datetime")}
+          />
+        )}
 
-      {step === "review" && slot && selectedHall && details && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Review your booking</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              <span className="font-medium">Hall:</span>{" "}
-              {selectedHall.hall_name}
-            </p>
-            <p>
-              <span className="font-medium">Date:</span> {slot.event_date},{" "}
-              {slot.start_time}–{slot.end_time}
-            </p>
-            <p>
-              <span className="font-medium">Event type:</span>{" "}
-              {details.eventType}
-            </p>
-            <p>
-              <span className="font-medium">Guests:</span> {slot.guest_count}
-            </p>
-            {details.roomCount > 0 && (
-              <p>
-                <span className="font-medium">Rooms:</span>{" "}
-                {details.roomCount}
+        {step === "details" && (
+          <EventDetailsStep
+            onSubmit={(d) => {
+              setDetails(d);
+              setStep("catering");
+            }}
+            onBack={() => setStep("halls")}
+          />
+        )}
+
+        {step === "catering" && (
+          <CateringStep
+            onSubmit={(selection) => {
+              setCateringSelection(selection);
+              setStep("review");
+            }}
+            onBack={() => setStep("details")}
+            guestCount={slot?.guest_count}
+          />
+        )}
+
+        {step === "review" && slot && selectedHall && details && (
+          <StepCard
+            title="Review your booking"
+            subtitle="Check everything below before confirming."
+            footer={
+              <>
+                <button
+                  onClick={() => setStep("catering")}
+                  className={secondaryBtnClass}
+                >
+                  Back
+                </button>
+                <button
+                  onClick={handleConfirm}
+                  disabled={isLoading}
+                  className={`${primaryBtnClass} flex-1`}
+                >
+                  {isLoading ? "Confirming…" : "Confirm booking"}
+                </button>
+              </>
+            }
+          >
+            <dl className="-my-2 divide-y divide-gray-100 text-sm">
+              <SummaryRow
+                label="Hall"
+                value={
+                  secondHall
+                    ? `${selectedHall.hall_name} + ${secondHall.hall_name}`
+                    : selectedHall.hall_name
+                }
+              />
+              {secondHall && (
+                <SummaryRow
+                  label="Second hall"
+                  value={
+                    <span className="text-green-700">
+                      {secondHall.hall_name} — complimentary
+                    </span>
+                  }
+                />
+              )}
+              <SummaryRow
+                label="Date"
+                value={`${slot.event_date}, ${slot.start_time}–${slot.end_time}`}
+              />
+              <SummaryRow
+                label="Event type"
+                value={details.customEventType || details.eventType}
+              />
+              <SummaryRow label="Guests" value={slot.guest_count} />
+              {details.roomCount > 0 && (
+                <SummaryRow label="Rooms" value={details.roomCount} />
+              )}
+              {cateringSelection.length > 0 && (
+                <SummaryRow
+                  label="Catering"
+                  value={`${cateringSelection.length} item${
+                    cateringSelection.length > 1 ? "s" : ""
+                  } selected`}
+                />
+              )}
+            </dl>
+            <div className="flex justify-between rounded-lg border border-violet-100 bg-violet-50 px-4 py-3 text-base font-semibold text-violet-900">
+              <span>Total</span>
+              <span>LKR {details.pricing.totalAmount.toLocaleString()}</span>
+            </div>
+          </StepCard>
+        )}
+
+        {step === "success" && result && (
+          <StepCard
+            title="Booking confirmed"
+            footer={
+              <>
+                <button
+                  onClick={() => navigate("/")}
+                  className={`${secondaryBtnClass} flex-1`}
+                >
+                  Pay later
+                </button>
+                <button
+                  onClick={() => navigate(`/payment/${result.bookingId}`)}
+                  className={`${primaryBtnClass} flex-1`}
+                >
+                  Pay now
+                </button>
+              </>
+            }
+          >
+            <div className="flex flex-col items-center gap-2 text-center">
+              <CheckCircle2 className="h-12 w-12 text-green-500" />
+              <p className="text-sm text-gray-600">
+                Your booking reference is{" "}
+                <span className="font-mono font-semibold text-gray-900">
+                  {result.bookingRef}
+                </span>
               </p>
-            )}
-            {cateringSelection.length > 0 && (
-              <p>
-                <span className="font-medium">Catering:</span>{" "}
-                {cateringSelection.length} item
-                {cateringSelection.length > 1 ? "s" : ""} selected
-              </p>
-            )}
-            <p className="pt-2 text-base font-semibold">
-              Total: LKR {details.pricing.totalAmount.toLocaleString()}
-            </p>
-          </CardContent>
-          <CardFooter className="flex gap-2">
-            <Button variant="outline" onClick={() => setStep("catering")}>
-              Back
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={isLoading}
-              className="flex-1"
-            >
-              {isLoading ? "Confirming…" : "Confirm booking"}
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
-
-      {step === "success" && result && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Booking confirmed 🎉</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-2 text-sm">
-            <p>
-              Your booking reference is{" "}
-              <span className="font-mono font-medium">
-                {result.bookingRef}
-              </span>
-              .
-            </p>
-            <p>Status: {result.status}</p>
-            <p className="pt-2 text-base font-semibold">
-              Total: LKR {result.pricing.totalAmount.toLocaleString()}
-            </p>
-          </CardContent>
-
-          <CardFooter className="flex gap-2">
-            <Button
-              variant="outline"
-              onClick={() => navigate("/")}
-              className="flex-1"
-            >
-              Pay later
-            </Button>
-            <Button
-              onClick={() => navigate(`/payment/${result.bookingId}`)}
-              className="flex-1"
-            >
-              Pay now
-            </Button>
-          </CardFooter>
-        </Card>
-      )}
+              <p className="text-sm text-gray-500">Status: {result.status}</p>
+            </div>
+            <div className="flex justify-between rounded-lg border border-violet-100 bg-violet-50 px-4 py-3 text-base font-semibold text-violet-900">
+              <span>Total</span>
+              <span>LKR {result.pricing.totalAmount.toLocaleString()}</span>
+            </div>
+          </StepCard>
+        )}
+      </div>
     </div>
   );
 }

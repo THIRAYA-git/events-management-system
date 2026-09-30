@@ -29,6 +29,16 @@ const validateCreateBooking = [
     .isString().trim()
     .isLength({ max: 80 }).withMessage('event_type must not exceed 80 characters'),
 
+  body('custom_event_type')
+    .optional({ nullable: true })
+    .isString().trim()
+    .isLength({ max: 100 }).withMessage('custom_event_type must not exceed 100 characters'),
+
+  body('use_both_halls')
+    .optional()
+    .isBoolean().withMessage('use_both_halls must be true or false')
+    .toBoolean(),
+
   body('guest_count')
     .notEmpty().withMessage('guest_count is required')
     .isInt({ min: 1, max: 1200 }).withMessage('guest_count must be between 1 and 1200')

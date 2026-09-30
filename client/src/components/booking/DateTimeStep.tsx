@@ -1,10 +1,14 @@
 import { useState } from "react";
 import { format } from "date-fns";
 import { Calendar } from "@/components/ui/calendar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
+import { StepCard } from "@/components/booking/StepCard";
+import {
+  CALENDAR_THEME,
+  fieldInputClass,
+  fieldLabelClass,
+  primaryBtnClass,
+  errorTextClass,
+} from "@/components/booking/bookingStyles";
 import type { SlotSelection } from "@/types/booking.types";
 
 const OPEN_TIME = "08:00";
@@ -26,9 +30,12 @@ export function DateTimeStep({ onSubmit, isLoading }: DateTimeStepProps) {
     setError(null);
 
     if (!date) return setError("Please select an event date.");
-    if (startTime >= endTime) return setError("Start time must be before end time.");
+    if (startTime >= endTime)
+      return setError("Start time must be before end time.");
     if (startTime < OPEN_TIME || endTime > CLOSE_TIME) {
-      return setError(`Events must run between ${OPEN_TIME} and ${CLOSE_TIME}.`);
+      return setError(
+        `Events must run between ${OPEN_TIME} and ${CLOSE_TIME}.`
+      );
     }
     const guests = parseInt(guestCount, 10);
     if (!guests || guests < 1 || guests > 1200) {
@@ -44,60 +51,73 @@ export function DateTimeStep({ onSubmit, isLoading }: DateTimeStepProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>When is your event?</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
+    <StepCard
+      title="When is your event?"
+      subtitle="Pick a date and time, and we'll show you which halls are free."
+      footer={
+        <button
+          onClick={handleCheck}
+          disabled={isLoading}
+          className={`${primaryBtnClass} w-full`}
+        >
+          {isLoading ? "Checking availability…" : "Check availability"}
+        </button>
+      }
+    >
+      <div className={`flex justify-center ${CALENDAR_THEME}`}>
         <Calendar
           mode="single"
           selected={date}
           onSelect={setDate}
           disabled={{ before: new Date() }}
-          className="rounded-md border"
+          className="rounded-lg border border-gray-200"
         />
+      </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label htmlFor="start_time">Start time</Label>
-            <Input
-              id="start_time"
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="end_time">End time</Label>
-            <Input
-              id="end_time"
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
-          </div>
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="guest_count">Expected guest count</Label>
-          <Input
-            id="guest_count"
-            type="number"
-            min={1}
-            max={1200}
-            value={guestCount}
-            onChange={(e) => setGuestCount(e.target.value)}
-            placeholder="e.g. 250"
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="start_time" className={fieldLabelClass}>
+            Start time
+          </label>
+          <input
+            id="start_time"
+            type="time"
+            value={startTime}
+            onChange={(e) => setStartTime(e.target.value)}
+            className={fieldInputClass}
           />
         </div>
+        <div>
+          <label htmlFor="end_time" className={fieldLabelClass}>
+            End time
+          </label>
+          <input
+            id="end_time"
+            type="time"
+            value={endTime}
+            onChange={(e) => setEndTime(e.target.value)}
+            className={fieldInputClass}
+          />
+        </div>
+      </div>
 
-        {error && <p className="text-sm text-destructive">{error}</p>}
-      </CardContent>
-      <CardFooter>
-        <Button onClick={handleCheck} disabled={isLoading} className="w-full">
-          {isLoading ? "Checking availability…" : "Check availability"}
-        </Button>
-      </CardFooter>
-    </Card>
+      <div>
+        <label htmlFor="guest_count" className={fieldLabelClass}>
+          Expected guest count
+        </label>
+        <input
+          id="guest_count"
+          type="number"
+          min={1}
+          max={1200}
+          value={guestCount}
+          onChange={(e) => setGuestCount(e.target.value)}
+          placeholder="e.g. 250"
+          className={fieldInputClass}
+        />
+      </div>
+
+      {error && <p className={errorTextClass}>{error}</p>}
+    </StepCard>
   );
 }

@@ -8,6 +8,14 @@ export interface Hall {
   image_url?: string | null;
 }
 
+// Two-hall option (601–1200 guests): the second hall is complimentary.
+export interface BothHallsOption {
+  primary: Hall;
+  secondary: Hall;
+  combined_capacity: number;
+  second_hall_complimentary: boolean;
+}
+
 export interface AvailableHallsResponse {
   eventDate: string;
   startTime: string;
@@ -17,6 +25,7 @@ export interface AvailableHallsResponse {
   totalUnavailable: number;
   available: Hall[];
   unavailable: Hall[];
+  bothHalls?: BothHallsOption | null;
 }
 
 export interface EventPricingOption {
@@ -39,6 +48,8 @@ export interface PriceCalculation {
 
 export interface CreateBookingPayload {
   hall_id: number;
+  use_both_halls?: boolean;
+  custom_event_type?: string;
   event_date: string;
   start_time: string;
   end_time: string;
@@ -57,8 +68,10 @@ export interface BookingResult {
   hallBookingId: number;
   hallId: number;
   hallName: string;
+  secondHall?: { hallId: number; hallName: string } | null;
   status: string;
   eventType: string;
+  customEventType?: string | null;
   guestCount: number;
   pricing: PriceCalculation;
 }
@@ -91,6 +104,9 @@ export interface AdminBooking {
   hall_booking_id: number;
   hall_id: number;
   hall_name: string;
+  second_hall_name?: string | null;
+  custom_event_type?: string | null;
+  event_type_label?: string;
   // Only present on the customer-facing GET /bookings/mine response
   has_feedback?: boolean;
 }

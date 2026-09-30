@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { Download } from "lucide-react";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
+  PaymentStatusCard,
+  formatLkr,
+  formatPaidAt,
+  titleCase,
+} from "@/components/payment/PaymentStatusCard";
+import { primaryBtnClass, secondaryBtnClass } from "@/components/booking/bookingStyles";
 import { initiatePayment, fetchPaymentStatus, downloadInvoice } from "@/lib/payment.api";
 import type { PaymentRecord } from "@/types/payment.types";
 
@@ -42,6 +42,7 @@ export default function PaymentCheckoutPage() {
   const navigate = useNavigate();
   const [stage, setStage] = useState<Stage>("loading");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [payment, setPayment] = useState<PaymentRecord | null>(null);
   const [isDownloading, setIsDownloading] = useState(false);
   const startedRef = useRef(false);
 
@@ -60,13 +61,13 @@ export default function PaymentCheckoutPage() {
           setStage("confirming");
           const confirmed = await pollPaymentStatus(numericBookingId);
           if (confirmed) {
-            setStage("success");
+            setPayment(confirmed);
           } else {
             toast.info(
               "Payment received — confirming with the bank, this may take a minute."
             );
-            setStage("success");
           }
+          setStage("success");
         };
 
         window.payhere.onDismissed = () => {
@@ -104,61 +105,129 @@ export default function PaymentCheckoutPage() {
     setIsDownloading(true);
     try {
       const numericBookingId = parseInt(bookingId, 10);
-      // Fetch a fresh record for the invoice_number — the one from the
-      // earlier poll wasn't kept in state, and this call is cheap.
-      const record = await fetchPaymentStatus(numericBookingId).catch(() => null);
+      const record =
+        payment ?? (await fetchPaymentStatus(numericBookingId).catch(() => null));
       await downloadInvoice(
         numericBookingId,
         `invoice-${record?.invoice_number ?? bookingId}.pdf`
       );
+    } catch {
+      toast.error("Could not download the invoice. Please try again.");
     } finally {
       setIsDownloading(false);
     }
   };
 
+  if (stage === "loading") {
+    return (
+      <PaymentStatusCard
+        tone="loading"
+        title="Preparing checkout…"
+        message="Setting up your secure payment. This only takes a moment."
+      />
+    );
+  }
+
+  if (stage === "awaiting") {
+    return (
+      <PaymentStatusCard
+        tone="waiting"
+        title="Complete payment in the popup"
+        message="Finish your payment in the PayHere window. If you don't see it, check that your browser isn't blocking popups."
+      >
+        <button onClick={() => window.location.reload()} className={secondaryBtnClass}>
+          Reopen payment window
+        </button>
+      </PaymentStatusCard>
+    );
+  }
+
+  if (stage === "confirming") {
+    return (
+      <PaymentStatusCard
+        tone="loading"
+        title="Confirming your payment…"
+        message="Please don't close this page. We're waiting for the bank to confirm."
+      />
+    );
+  }
+
+  if (stage === "success") {
+    const confirmed = payment?.status === "completed";
+    return (
+      <PaymentStatusCard
+        tone="success"
+        title="Payment successful"
+        message={
+          confirmed
+            ? "Your booking is now confirmed. A receipt will be emailed to you."
+            : "Your payment was received and is being confirmed. Your booking status will update shortly."
+        }
+        highlight={
+          confirmed && payment
+            ? { label: "Amount paid", value: formatLkr(payment.amount, payment.currency) }
+            : undefined
+        }
+        rows={
+          confirmed && payment
+            ? [
+                { label: "Invoice number", value: payment.invoice_number ?? "—" },
+                { label: "Transaction ID", value: payment.transaction_id ?? "—" },
+                { label: "Payment method", value: titleCase(payment.payment_method) },
+                { label: "Paid on", value: formatPaidAt(payment.paid_at) },
+              ]
+            : undefined
+        }
+      >
+        {confirmed && (
+          <button
+            onClick={handleDownloadInvoice}
+            disabled={isDownloading}
+            className={`${primaryBtnClass} w-full gap-2`}
+          >
+            <Download className="h-4 w-4" />
+            {isDownloading ? "Preparing invoice…" : "Download invoice"}
+          </button>
+        )}
+        <button
+          onClick={() => navigate("/my-bookings")}
+          className={`${confirmed ? secondaryBtnClass : primaryBtnClass} w-full`}
+        >
+          View my bookings
+        </button>
+      </PaymentStatusCard>
+    );
+  }
+
+  if (stage === "failed") {
+    return (
+      <PaymentStatusCard
+        tone="cancelled"
+        title="Payment cancelled"
+        message="You closed the payment window before completing checkout. Your booking is still saved as pending."
+      >
+        <button onClick={() => window.location.reload()} className={`${primaryBtnClass} w-full`}>
+          Try again
+        </button>
+        <button onClick={() => navigate("/my-bookings")} className={`${secondaryBtnClass} w-full`}>
+          View my bookings
+        </button>
+      </PaymentStatusCard>
+    );
+  }
+
   return (
-    <div className="mx-auto max-w-md px-4 py-16 text-center">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {stage === "loading" && "Preparing checkout…"}
-            {stage === "awaiting" && "Complete payment in the popup"}
-            {stage === "confirming" && "Confirming your payment…"}
-            {stage === "success" && "Payment successful 🎉"}
-            {stage === "failed" && "Payment cancelled"}
-            {stage === "error" && "Something went wrong"}
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground">
-          {stage === "awaiting" &&
-            "If you don't see a popup, check that your browser isn't blocking it."}
-          {stage === "success" &&
-            "Your booking is now confirmed. A receipt will be emailed to you."}
-          {stage === "failed" &&
-            "You closed the payment window before completing checkout."}
-          {stage === "error" && errorMsg}
-        </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          {(stage === "failed" || stage === "error") && (
-            <Button onClick={() => window.location.reload()}>Try again</Button>
-          )}
-          {stage === "success" && (
-            <>
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={handleDownloadInvoice}
-                disabled={isDownloading}
-              >
-                {isDownloading ? "Preparing invoice…" : "Download Invoice"}
-              </Button>
-              <Button className="w-full" onClick={() => navigate("/")}>
-                Back to dashboard
-              </Button>
-            </>
-          )}
-        </CardFooter>
-      </Card>
-    </div>
+    <PaymentStatusCard
+      tone="error"
+      title="Something went wrong"
+      message={errorMsg ?? "We couldn't start the payment. Please try again."}
+    >
+      <button onClick={() => window.location.reload()} className={`${primaryBtnClass} w-full`}>
+        Try again
+      </button>
+      <button onClick={() => navigate("/my-bookings")} className={`${secondaryBtnClass} w-full`}>
+        View my bookings
+      </button>
+    </PaymentStatusCard>
   );
 }

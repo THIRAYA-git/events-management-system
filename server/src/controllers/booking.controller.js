@@ -31,6 +31,8 @@ const createBookingHandler = async (req, res, next) => {
       start_time,
       end_time,
       event_type,
+      custom_event_type = null,
+      use_both_halls = false,
       guest_count,
       room_count = 0,
       extra_addons = 0,
@@ -42,10 +44,12 @@ const createBookingHandler = async (req, res, next) => {
     const result = await createBooking({
       userId,
       hallId: hall_id,
+      useBothHalls: use_both_halls === true || use_both_halls === "true",
       eventDate: event_date,
       startTime: start_time,
       endTime: end_time,
       eventType: event_type,
+      customEventType: custom_event_type,
       guestCount: guest_count,
       roomCount: room_count,
       extraAddons: extra_addons,
@@ -68,7 +72,7 @@ const createBookingHandler = async (req, res, next) => {
           eventDate: event_date,
           startTime: start_time,
           endTime: end_time,
-          eventType: result.eventType,
+          eventType: result.customEventType || result.eventType,
           guestCount: result.guestCount,
           totalAmount: result.pricing.totalAmount,
         });
@@ -280,6 +284,11 @@ const SERVICE_ERROR_PATTERNS = [
   "must not be negative",
   "cannot exceed",
   "booked by another request",
+  "already seats",
+  "combined capacity",
+  "type your event type",
+  "characters or fewer",
+  "exactly one other active hall",
 ];
 const isServiceError = (err) =>
   SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));

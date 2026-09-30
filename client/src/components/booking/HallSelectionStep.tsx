@@ -1,18 +1,19 @@
-import { Button } from "@/components/ui/button";
+import { StepCard } from "@/components/booking/StepCard";
 import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-  CardFooter,
-} from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import type { AvailableHallsResponse, Hall } from "@/types/booking.types";
+  primaryBtnClass,
+  secondaryBtnClass,
+} from "@/components/booking/bookingStyles";
+import type {
+  AvailableHallsResponse,
+  BothHallsOption,
+  Hall,
+} from "@/types/booking.types";
 
 interface HallSelectionStepProps {
   availability: AvailableHallsResponse;
   guestCount: number;
   onSelect: (hall: Hall) => void;
+  onSelectBoth: (option: BothHallsOption) => void;
   onBack: () => void;
 }
 
@@ -20,74 +21,108 @@ export function HallSelectionStep({
   availability,
   guestCount,
   onSelect,
+  onSelectBoth,
   onBack,
 }: HallSelectionStepProps) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Choose a hall</CardTitle>
-        <p className="text-sm text-muted-foreground">
-          {availability.eventDate} · {availability.startTime}–
-          {availability.endTime}
-        </p>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {availability.available.length === 0 &&
-          availability.unavailable.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No hall has enough capacity for {guestCount} guests, or none are
-              free for this date/time. Try fewer guests, a different hall floor,
-              or another slot.
-            </p>
-          )}
+  const bothHalls = availability.bothHalls ?? null;
 
+  return (
+    <StepCard
+      title="Choose a hall"
+      subtitle={`${availability.eventDate} · ${availability.startTime}–${availability.endTime}`}
+      footer={
+        <button onClick={onBack} className={secondaryBtnClass}>
+          Back
+        </button>
+      }
+    >
+      {bothHalls && (
+        <div className="rounded-lg border-2 border-violet-300 bg-violet-50 p-4">
+          <div className="flex flex-wrap items-start justify-between gap-4">
+            <div>
+              <p className="font-semibold text-violet-900">Both halls together</p>
+              <p className="text-sm text-violet-800">
+                {bothHalls.primary.hall_name} + {bothHalls.secondary.hall_name}
+              </p>
+              <p className="mt-1 text-sm text-gray-600">
+                Combined capacity {bothHalls.combined_capacity} · fits your{" "}
+                {guestCount} guests
+              </p>
+              {bothHalls.second_hall_complimentary && (
+                <span className="mt-2 inline-block rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                  Second hall free of charge
+                </span>
+              )}
+            </div>
+            <button
+              onClick={() => onSelectBoth(bothHalls)}
+              className={primaryBtnClass}
+            >
+              Select both halls
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!bothHalls &&
+        availability.available.length === 0 &&
+        availability.unavailable.length === 0 && (
+          <p className="text-sm text-gray-500">
+            {guestCount > 600
+              ? `Events of ${guestCount} guests need both halls free for this date and time. Try another slot or date.`
+              : `No hall has enough capacity for ${guestCount} guests, or none are free for this date/time. Try fewer guests or another slot.`}
+          </p>
+        )}
+
+      <div className="space-y-3">
         {availability.available.map((hall) => {
           const fitsGuests = hall.capacity >= guestCount;
           return (
             <div
               key={hall.hall_id}
-              className="flex items-center justify-between rounded-lg border p-4"
+              className="flex items-center justify-between gap-4 rounded-lg border border-gray-200 p-4 transition-colors hover:border-violet-300"
             >
               <div>
-                <p className="font-medium">{hall.hall_name}</p>
-                <p className="text-sm text-muted-foreground">
+                <p className="font-medium text-gray-900">{hall.hall_name}</p>
+                <p className="text-sm text-gray-500">
                   Floor {hall.floor_number} · Capacity {hall.capacity}
                 </p>
                 {!fitsGuests && (
-                  <Badge variant="destructive" className="mt-1">
+                  <span className="mt-1 inline-block rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-700">
                     Below your guest count
-                  </Badge>
+                  </span>
                 )}
               </div>
-              <Button onClick={() => onSelect(hall)} disabled={!fitsGuests}>
+              <button
+                onClick={() => onSelect(hall)}
+                disabled={!fitsGuests}
+                className={primaryBtnClass}
+              >
                 Select
-              </Button>
+              </button>
             </div>
           );
         })}
+      </div>
 
-        {availability.unavailable.length > 0 && (
-          <div className="pt-2">
-            <p className="mb-2 text-sm font-medium text-muted-foreground">
-              Already booked
-            </p>
+      {availability.unavailable.length > 0 && (
+        <div>
+          <p className="mb-2 text-sm font-medium text-gray-500">Already booked</p>
+          <div className="space-y-3">
             {availability.unavailable.map((hall) => (
               <div
                 key={hall.hall_id}
-                className="flex items-center justify-between rounded-lg border border-dashed p-4 opacity-60"
+                className="flex items-center justify-between rounded-lg border border-dashed border-gray-300 bg-gray-50 p-4 opacity-70"
               >
-                <p>{hall.hall_name}</p>
-                <Badge variant="secondary">Unavailable</Badge>
+                <p className="text-gray-700">{hall.hall_name}</p>
+                <span className="rounded-full bg-gray-200 px-2 py-0.5 text-xs font-medium text-gray-600">
+                  Unavailable
+                </span>
               </div>
             ))}
           </div>
-        )}
-      </CardContent>
-      <CardFooter>
-        <Button variant="outline" onClick={onBack}>
-          Back
-        </Button>
-      </CardFooter>
-    </Card>
+        </div>
+      )}
+    </StepCard>
   );
 }

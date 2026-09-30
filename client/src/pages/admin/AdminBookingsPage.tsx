@@ -269,7 +269,11 @@ export function AdminBookingsPage() {
                       {b.customer_email}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{b.hall_name}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {b.second_hall_name
+                      ? `${b.hall_name} + ${b.second_hall_name}`
+                      : b.hall_name}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">
                     {formatDate(b.event_date)}
                   </td>
@@ -277,7 +281,9 @@ export function AdminBookingsPage() {
                     {formatTime(b.event_start_time)}–
                     {formatTime(b.event_end_time)}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">{b.event_type}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {b.event_type_label ?? b.event_type}
+                  </td>
                   <td className="px-4 py-3 text-gray-600">{b.guest_count}</td>
                   <td className="px-4 py-3 text-gray-600">
                     {formatCurrency(b.total_amount)}

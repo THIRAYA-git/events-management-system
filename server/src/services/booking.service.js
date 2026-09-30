@@ -1,45 +1,24 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  src/services/booking.service.js
 //  Orchestrates booking creation: pricing (pricing.service.js) + hall
-//  assignment/conflict check (hall.availability.service.js) into a
-//  persisted booking.
+//  assignment/conflict check into a persisted booking.
 //
-//  IMPORTANT — no client-side transactions here:
-//  config/db.js uses @neondatabase/serverless's HTTP driver (sql.query()
-//  per call, no pool.connect(), no BEGIN/COMMIT session). Every query()
-//  call is a separate stateless HTTP request — wrapping them in
-//  BEGIN/COMMIT from the application would do nothing, since there is
-//  no persistent connection for Postgres to hold the transaction on.
+//  No client-side transactions: config/db.js uses Neon's stateless HTTP driver,
+//  so every query() is its own request. Correctness relies on DB constraints
+//  (trg_hall_bookings_capacity_cap, idx_no_double_booking) plus explicit
+//  cleanup of the bookings row if the hall_bookings insert fails. Deleting the
+//  bookings row cascades to its hall_bookings rows.
 //
-//  Instead, correctness here relies on:
-//    1. DB-level constraints doing the real atomic enforcement:
-//       - hall_bookings_no_overlap (EXCLUDE USING gist) catches
-//         conflicting time slots at the instant of INSERT.
-//       - trg_hall_bookings_capacity_cap (trigger) catches the
-//         1,200-seat venue-wide breach at the instant of INSERT.
-//       Both fire regardless of what an earlier SELECT in this same
-//       request saw — so they're safe even under concurrent requests.
-//    2. Insert order is FK-forced: hall_bookings.booking_id REFERENCES
-//       bookings, so bookings must be inserted first. If the
-//       hall_bookings insert then fails (conflict/capacity), the now-
-//       orphaned bookings row is explicitly deleted in the catch block
-//       below — this is application-level cleanup, not a DB rollback,
-//       since there is no transaction to roll back.
+//  migration_004 — two halls:
+//  An event of 601–1200 guests uses BOTH halls. hall_bookings then holds two
+//  rows for one booking: the primary hall (is_complimentary = false) and the
+//  other hall (is_complimentary = true, free of charge). Because both rows
+//  exist, every per-hall conflict query blocks both halls automatically.
+//  Queries that must see ONE row per booking filter is_complimentary = false.
 //
-//  Practical implication: a crash between the two inserts (process
-//  killed, network drop) can leave an orphaned 'pending' bookings row
-//  with no hall_bookings row. There is no transaction safety net for
-//  that case on Neon's HTTP driver. Acceptable for this project's scale
-//  and traffic; flagged here so it isn't a silent assumption. If this
-//  ever needs hardening, the standard fix is a periodic cleanup job
-//  that cancels 'pending' bookings older than N minutes with no
-//  matching hall_bookings row.
-//
-//  listBookings / updateBookingStatus (added for admin management):
-//  updateBookingStatus updates bookings + hall_bookings together in a
-//  single data-modifying CTE — one statement, one HTTP round trip to
-//  Neon, so it's atomic at the Postgres level without needing an
-//  application-managed transaction.
+//  migration_004 — custom event type:
+//  bookings.event_type has an FK to event_pricing, so a typed-in event is stored
+//  as event_type = 'Other' with the customer's wording in custom_event_type.
 // ─────────────────────────────────────────────────────────────────────────────
 const { query } = require("../config/db");
 const { calculateBookingTotal } = require("./pricing.service");
@@ -47,6 +26,8 @@ const { calculateBookingTotal } = require("./pricing.service");
 const VENUE_COMBINED_CAPACITY = 1200;
 const BUFFER_MINUTES = 60;
 const ACTIVE_STATUSES = ["pending", "confirmed"];
+const OTHER_EVENT_TYPE = "Other";
+const MAX_CUSTOM_EVENT_TYPE_LENGTH = 100;
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  createBooking
@@ -54,10 +35,12 @@ const ACTIVE_STATUSES = ["pending", "confirmed"];
 const createBooking = async ({
   userId,
   hallId,
+  useBothHalls = false,
   eventDate,
   startTime,
   endTime,
   eventType,
+  customEventType = null,
   guestCount,
   roomCount = 0,
   extraAddons = 0,
@@ -73,6 +56,18 @@ const createBooking = async ({
   if (!eventType) throw new Error("eventType is required.");
   if (!guestCount || guestCount < 1)
     throw new Error("guestCount must be at least 1.");
+
+  // Custom (typed) event type
+  let customType = null;
+  if (eventType === OTHER_EVENT_TYPE) {
+    customType = String(customEventType || "").trim();
+    if (!customType) throw new Error("Please type your event type.");
+    if (customType.length > MAX_CUSTOM_EVENT_TYPE_LENGTH) {
+      throw new Error(
+        `Event type must be ${MAX_CUSTOM_EVENT_TYPE_LENGTH} characters or fewer.`
+      );
+    }
+  }
 
   const pricing = await calculateBookingTotal({
     eventType,
@@ -93,34 +88,66 @@ const createBooking = async ({
   }
   const hall = hallResult.rows[0];
 
-  if (guestCount > hall.capacity) {
+  // Capacity: one hall, or both halls (second hall free) for larger events
+  let secondHall = null;
+  if (useBothHalls) {
+    if (guestCount <= hall.capacity) {
+      throw new Error(
+        `${hall.hall_name} already seats ${guestCount} guests. Using both halls is only for events above ${hall.capacity} guests.`
+      );
+    }
+    const othersResult = await query(
+      `SELECT hall_id, hall_name, capacity
+         FROM halls
+        WHERE is_active = true AND hall_id <> $1
+        ORDER BY floor_number, hall_name`,
+      [hallId]
+    );
+    if (othersResult.rows.length !== 1) {
+      throw new Error(
+        "Booking both halls needs exactly one other active hall."
+      );
+    }
+    secondHall = othersResult.rows[0];
+    const combinedCapacity = hall.capacity + secondHall.capacity;
+    if (guestCount > combinedCapacity) {
+      throw new Error(
+        `Guest count (${guestCount}) exceeds the combined capacity of both halls (${combinedCapacity} seats).`
+      );
+    }
+  } else if (guestCount > hall.capacity) {
     throw new Error(
-      `Guest count (${guestCount}) exceeds ${hall.hall_name}'s capacity of ${hall.capacity} seats.`
+      `Guest count (${guestCount}) exceeds ${hall.hall_name}'s capacity of ${hall.capacity} seats. Choose both halls for larger events.`
     );
   }
 
-  const conflictResult = await query(
-    `SELECT hall_booking_id
-       FROM hall_bookings
-      WHERE hall_id    = $1
-        AND event_date = $2
-        AND status     = ANY($3)
-        AND event_start_time - INTERVAL '${BUFFER_MINUTES} minutes' < $4::time
-        AND event_end_time   + INTERVAL '${BUFFER_MINUTES} minutes' > $5::time`,
-    [hallId, eventDate, ACTIVE_STATUSES, endTime, startTime]
-  );
-  if (conflictResult.rows.length > 0) {
-    throw new Error(
-      `${hall.hall_name} is no longer available for the requested slot on ${eventDate}.`
+  // Time-slot conflict on every hall this booking will occupy
+  for (const h of [hall, secondHall].filter(Boolean)) {
+    const conflictResult = await query(
+      `SELECT hall_booking_id
+         FROM hall_bookings
+        WHERE hall_id    = $1
+          AND event_date = $2
+          AND status     = ANY($3)
+          AND event_start_time - INTERVAL '${BUFFER_MINUTES} minutes' < $4::time
+          AND event_end_time   + INTERVAL '${BUFFER_MINUTES} minutes' > $5::time`,
+      [h.hall_id, eventDate, ACTIVE_STATUSES, endTime, startTime]
     );
+    if (conflictResult.rows.length > 0) {
+      throw new Error(
+        `${h.hall_name} is no longer available for the requested slot on ${eventDate}.`
+      );
+    }
   }
 
+  // Venue-wide cap: count each booking's guests once (skip the free-hall rows)
   const combinedResult = await query(
     `SELECT COALESCE(SUM(b.guest_count), 0) AS total_guests
        FROM hall_bookings hb
        JOIN bookings b ON b.booking_id = hb.booking_id
       WHERE hb.event_date = $1
-        AND hb.status     = ANY($2)`,
+        AND hb.status     = ANY($2)
+        AND NOT hb.is_complimentary`,
     [eventDate, ACTIVE_STATUSES]
   );
   const existingGuests = parseInt(combinedResult.rows[0].total_guests, 10);
@@ -133,12 +160,12 @@ const createBooking = async ({
     );
   }
 
-    const bookingResult = await query(
+  const bookingResult = await query(
     `INSERT INTO bookings
        (user_id, event_date, event_start_time, event_end_time, event_type,
-        guest_count, status, base_amount, addon_amount, discount_amount,
-        tax_amount, total_amount, special_requests, room_count)
-     VALUES ($1, $2, $3, $4, $5, $6, 'pending', $7, $8, $9, $10, $11, $12, $13)
+        custom_event_type, guest_count, status, base_amount, addon_amount,
+        discount_amount, tax_amount, total_amount, special_requests, room_count)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'pending', $8, $9, $10, $11, $12, $13, $14)
      RETURNING booking_id, booking_ref, status, total_amount`,
     [
       userId,
@@ -146,6 +173,7 @@ const createBooking = async ({
       startTime,
       endTime,
       eventType,
+      customType,
       guestCount,
       pricing.baseAmount,
       pricing.addonAmount,
@@ -161,20 +189,37 @@ const createBooking = async ({
   try {
     const hallBookingResult = await query(
       `INSERT INTO hall_bookings
-         (hall_id, booking_id, event_date, event_start_time, event_end_time, status)
-       VALUES ($1, $2, $3, $4, $5, 'pending')
+         (hall_id, booking_id, event_date, event_start_time, event_end_time,
+          status, is_complimentary)
+       VALUES ($1, $2, $3, $4, $5, 'pending', false)
        RETURNING hall_booking_id`,
       [hallId, booking.booking_id, eventDate, startTime, endTime]
     );
+
+    if (secondHall) {
+      await query(
+        `INSERT INTO hall_bookings
+           (hall_id, booking_id, event_date, event_start_time, event_end_time,
+            status, is_complimentary)
+         VALUES ($1, $2, $3, $4, $5, 'pending', true)`,
+        [secondHall.hall_id, booking.booking_id, eventDate, startTime, endTime]
+      );
+    }
 
     return {
       bookingId: booking.booking_id,
       bookingRef: booking.booking_ref,
       hallBookingId: hallBookingResult.rows[0].hall_booking_id,
       hallId,
-      hallName: hall.hall_name,
+      hallName: secondHall
+        ? `${hall.hall_name} + ${secondHall.hall_name}`
+        : hall.hall_name,
+      secondHall: secondHall
+        ? { hallId: secondHall.hall_id, hallName: secondHall.hall_name }
+        : null,
       status: booking.status,
       eventType: pricing.eventType,
+      customEventType: customType,
       guestCount,
       pricing,
     };
@@ -204,17 +249,26 @@ const createBooking = async ({
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  getBookingById
+//  hall_id / hall_name = the primary hall; second_hall_name is set only for
+//  two-hall bookings. event_type_label shows the customer's own wording for
+//  'Other' events.
 // ─────────────────────────────────────────────────────────────────────────────
 const getBookingById = async (bookingId) => {
   const result = await query(
     `SELECT
         b.booking_id, b.booking_ref, b.user_id, b.event_date,
-        b.event_start_time, b.event_end_time, b.event_type, b.guest_count,
+        b.event_start_time, b.event_end_time, b.event_type, b.custom_event_type,
+        COALESCE(b.custom_event_type, b.event_type) AS event_type_label,
+        b.guest_count,
         b.status, b.base_amount, b.addon_amount, b.discount_amount,
         b.tax_amount, b.total_amount, b.special_requests, b.created_at, b.room_count,
-        hb.hall_booking_id, hb.hall_id, h.hall_name, h.floor_number
+        hb.hall_booking_id, hb.hall_id, h.hall_name, h.floor_number,
+        (SELECT h2.hall_name
+           FROM hall_bookings hb2
+           JOIN halls h2 ON h2.hall_id = hb2.hall_id
+          WHERE hb2.booking_id = b.booking_id AND hb2.is_complimentary) AS second_hall_name
      FROM bookings b
-     LEFT JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+     LEFT JOIN hall_bookings hb ON hb.booking_id = b.booking_id AND NOT hb.is_complimentary
      LEFT JOIN halls h          ON h.hall_id     = hb.hall_id
      WHERE b.booking_id = $1`,
     [bookingId]
@@ -229,14 +283,6 @@ const getBookingById = async (bookingId) => {
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  listBookings
-//  Staff/admin view — filterable, paginated list joining bookings +
-//  hall_bookings + halls + users. Two separate query() calls (list +
-//  count) since this is read-only; no atomicity concern here.
-//
-//  NOTE: users.full_name is the real column (confirmed via
-//  information_schema) — aliased here to customer_name so the frontend
-//  gets a stable field name regardless of what the users table itself
-//  calls it.
 // ─────────────────────────────────────────────────────────────────────────────
 const listBookings = async ({
   status,
@@ -251,14 +297,20 @@ const listBookings = async ({
     `
     SELECT
       b.booking_id, b.booking_ref, b.event_date, b.event_start_time,
-      b.event_end_time, b.event_type, b.guest_count, b.status,
+      b.event_end_time, b.event_type, b.custom_event_type,
+      COALESCE(b.custom_event_type, b.event_type) AS event_type_label,
+      b.guest_count, b.status,
       b.total_amount, b.special_requests, b.created_at, b.room_count,
       u.user_id AS customer_id, u.full_name AS customer_name,
       u.email   AS customer_email, u.phone AS customer_phone,
-      hb.hall_booking_id, h.hall_id, h.hall_name
+      hb.hall_booking_id, h.hall_id, h.hall_name,
+      (SELECT h2.hall_name
+         FROM hall_bookings hb2
+         JOIN halls h2 ON h2.hall_id = hb2.hall_id
+        WHERE hb2.booking_id = b.booking_id AND hb2.is_complimentary) AS second_hall_name
     FROM bookings b
     JOIN users u          ON u.user_id = b.user_id
-    JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+    JOIN hall_bookings hb ON hb.booking_id = b.booking_id AND NOT hb.is_complimentary
     JOIN halls h          ON h.hall_id = hb.hall_id
     WHERE ($1::booking_status IS NULL OR b.status = $1::booking_status)
       AND ($2::integer IS NULL OR h.hall_id = $2::integer)
@@ -283,7 +335,7 @@ const listBookings = async ({
     `
     SELECT COUNT(*)::integer AS total
     FROM bookings b
-    JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+    JOIN hall_bookings hb ON hb.booking_id = b.booking_id AND NOT hb.is_complimentary
     WHERE ($1::booking_status IS NULL OR b.status = $1::booking_status)
       AND ($2::integer IS NULL OR hb.hall_id = $2::integer)
       AND ($3::date IS NULL OR b.event_date >= $3::date)
@@ -309,8 +361,9 @@ const listBookings = async ({
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  updateBookingStatus
-//  Single statement, single query() call — updates bookings and
-//  hall_bookings together via a data-modifying CTE.
+//  One statement: updates bookings and ALL of its hall_bookings rows (both
+//  halls for a two-hall booking), then returns a single row with the primary
+//  hall's ids so callers see the same shape as before.
 // ─────────────────────────────────────────────────────────────────────────────
 const updateBookingStatus = async (
   bookingId,
@@ -329,14 +382,21 @@ const updateBookingStatus = async (
         updated_at    = NOW()
       WHERE booking_id = $4::integer
       RETURNING *
+    ),
+    updated_halls AS (
+      UPDATE hall_bookings hb
+      SET
+        status     = $1::booking_status,
+        updated_at = NOW()
+      FROM updated_booking ub
+      WHERE hb.booking_id = ub.booking_id
+      RETURNING hb.booking_id, hb.hall_id, hb.hall_booking_id, hb.is_complimentary
     )
-    UPDATE hall_bookings hb
-    SET
-      status     = $1::booking_status,
-      updated_at = NOW()
-    FROM updated_booking ub
-    WHERE hb.booking_id = ub.booking_id
-    RETURNING ub.*, hb.hall_id, hb.hall_booking_id
+    SELECT ub.*, uh.hall_id, uh.hall_booking_id
+      FROM updated_booking ub
+      JOIN updated_halls uh ON uh.booking_id = ub.booking_id
+     ORDER BY uh.is_complimentary ASC
+     LIMIT 1
     `,
     [status, staffId || null, cancelReason || null, bookingId]
   );
@@ -350,16 +410,17 @@ const updateBookingStatus = async (
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  getUpcomingConfirmedBookingsPublic
-//  Sponsor-facing "Browse Events" — no PII (no customer name/email/phone),
-//  confirmed bookings only, future dates only.
+//  Sponsor-facing "Browse Events" — no PII, confirmed + future only.
 // ─────────────────────────────────────────────────────────────────────────────
 const getUpcomingConfirmedBookingsPublic = async () => {
   const result = await query(
     `SELECT
-        b.booking_id, b.event_type, b.event_date, b.guest_count,
+        b.booking_id,
+        COALESCE(b.custom_event_type, b.event_type) AS event_type,
+        b.event_date, b.guest_count,
         h.hall_id, h.hall_name
      FROM bookings b
-     JOIN hall_bookings hb ON hb.booking_id = b.booking_id
+     JOIN hall_bookings hb ON hb.booking_id = b.booking_id AND NOT hb.is_complimentary
      JOIN halls h          ON h.hall_id = hb.hall_id
      WHERE b.status = 'confirmed'
        AND b.event_date >= CURRENT_DATE
@@ -375,4 +436,5 @@ module.exports = {
   updateBookingStatus,
   getUpcomingConfirmedBookingsPublic,
   VENUE_COMBINED_CAPACITY,
+  OTHER_EVENT_TYPE,
 };

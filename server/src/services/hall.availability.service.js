@@ -3,13 +3,13 @@
 //  Rewritten for raw Neon SQL (@neondatabase/serverless)
 //  Uses { query } from config/db.js  →  query(text, params) → { rows }
 // ─────────────────────────────────────────────────────────────────────────────
-const { query } = require('../config/db');
+const { query } = require("../config/db");
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const BUFFER_MINUTES = 60;
-const OPEN_TIME      = '08:00:00';
-const CLOSE_TIME     = '22:00:00';
-const ACTIVE_STATUSES = ['pending', 'confirmed'];
+const OPEN_TIME = "08:00:00";
+const CLOSE_TIME = "22:00:00";
+const ACTIVE_STATUSES = ["pending", "confirmed"];
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  1. checkAvailability
@@ -22,13 +22,17 @@ const checkAvailability = async ({
   endTime,
   excludeHallBookingId = null,
 }) => {
-  if (startTime >= endTime)  throw new Error('start_time must be before end_time.');
-  if (startTime < OPEN_TIME) throw new Error(`Events cannot start before ${OPEN_TIME}.`);
-  if (endTime > CLOSE_TIME)  throw new Error(`Events must end by ${CLOSE_TIME}.`);
+  if (startTime >= endTime)
+    throw new Error("start_time must be before end_time.");
+  if (startTime < OPEN_TIME)
+    throw new Error(`Events cannot start before ${OPEN_TIME}.`);
+  if (endTime > CLOSE_TIME)
+    throw new Error(`Events must end by ${CLOSE_TIME}.`);
 
   const today = new Date();
   today.setHours(0, 0, 0, 0);
-  if (new Date(eventDate) < today) throw new Error('Cannot check availability for a past date.');
+  if (new Date(eventDate) < today)
+    throw new Error("Cannot check availability for a past date.");
 
   // Confirm hall exists and is active
   const hallResult = await query(
@@ -47,7 +51,7 @@ const checkAvailability = async ({
   // Find conflicting bookings (with buffer on both sides)
   const excludeClause = excludeHallBookingId
     ? `AND hb.hall_booking_id <> ${parseInt(excludeHallBookingId)}`
-    : '';
+    : "";
 
   const conflictResult = await query(
     `SELECT hb.hall_booking_id,
@@ -73,70 +77,80 @@ const checkAvailability = async ({
   return {
     isAvailable,
     hall: {
-      hall_id:      hall.hall_id,
-      hall_name:    hall.hall_name,
+      hall_id: hall.hall_id,
+      hall_name: hall.hall_name,
       floor_number: hall.floor_number,
-      capacity:     hall.capacity,
-      base_price:   parseFloat(hall.base_price),
+      capacity: hall.capacity,
+      base_price: parseFloat(hall.base_price),
     },
-    requested:     { eventDate, startTime, endTime },
+    requested: { eventDate, startTime, endTime },
     bufferMinutes: BUFFER_MINUTES,
-    conflicts: isAvailable ? [] : conflictResult.rows.map((c) => ({
-      hall_booking_id: c.hall_booking_id,
-      booking_ref:     c.booking_ref,
-      event_type:      c.event_type,
-      occupied_from:   c.event_start_time,
-      occupied_until:  c.event_end_time,
-      blocked_from:    subtractMinutes(c.event_start_time, BUFFER_MINUTES),
-      blocked_until:   addMinutes(c.event_end_time, BUFFER_MINUTES),
-      status:          c.status,
-    })),
+    conflicts: isAvailable
+      ? []
+      : conflictResult.rows.map((c) => ({
+          hall_booking_id: c.hall_booking_id,
+          booking_ref: c.booking_ref,
+          event_type: c.event_type,
+          occupied_from: c.event_start_time,
+          occupied_until: c.event_end_time,
+          blocked_from: subtractMinutes(c.event_start_time, BUFFER_MINUTES),
+          blocked_until: addMinutes(c.event_end_time, BUFFER_MINUTES),
+          status: c.status,
+        })),
   };
 };
 
 // ─────────────────────────────────────────────────────────────────────────────
-//  2. getAvailableHalls
+//  2. getAvailableHalls   (REPLACE the whole existing function with this one)
 //  Return all halls that are free for a given date + time slot.
+//
+//  migration_004: when the guest count is larger than any single hall but fits
+//  both halls together (601–1200), the response also carries `bothHalls`, the
+//  two-hall option (second hall complimentary). Capacity is no longer filtered
+//  in SQL — it is needed to detect that case — but halls too small for the
+//  guest count are still left out of `available`, exactly as before.
 // ─────────────────────────────────────────────────────────────────────────────
 const getAvailableHalls = async ({
   eventDate,
   startTime,
   endTime,
   floorNumber = null,
-  guestCount  = null,
+  guestCount = null,
 }) => {
-  if (startTime >= endTime) throw new Error('start_time must be before end_time.');
+  if (startTime >= endTime)
+    throw new Error("start_time must be before end_time.");
   if (startTime < OPEN_TIME || endTime > CLOSE_TIME) {
     throw new Error(`Events must be between ${OPEN_TIME} and ${CLOSE_TIME}.`);
   }
 
-  // Build dynamic WHERE for halls
-  const hallParams  = [];
-  const hallFilters = ['is_active = true'];
+  const hallParams = [];
+  const hallFilters = ["is_active = true"];
 
   if (floorNumber) {
     hallParams.push(floorNumber);
     hallFilters.push(`floor_number = $${hallParams.length}`);
-  }
-  if (guestCount) {
-    hallParams.push(guestCount);
-    hallFilters.push(`capacity >= $${hallParams.length}`);
   }
 
   const allHallsResult = await query(
     `SELECT hall_id, hall_name, floor_number, capacity,
             base_price, amenities, image_url
        FROM halls
-      WHERE ${hallFilters.join(' AND ')}
+      WHERE ${hallFilters.join(" AND ")}
       ORDER BY floor_number, hall_name`,
     hallParams
   );
 
   if (allHallsResult.rows.length === 0) {
-    return { eventDate, startTime, endTime, available: [], unavailable: [] };
+    return {
+      eventDate,
+      startTime,
+      endTime,
+      available: [],
+      unavailable: [],
+      bothHalls: null,
+    };
   }
 
-  // Halls with a conflicting active booking for this slot
   const bookedResult = await query(
     `SELECT DISTINCT hall_id
        FROM hall_bookings
@@ -149,24 +163,45 @@ const getAvailableHalls = async ({
 
   const bookedSet = new Set(bookedResult.rows.map((r) => r.hall_id));
 
-  const available   = [];
+  const toEntry = (hall) => ({
+    hall_id: hall.hall_id,
+    hall_name: hall.hall_name,
+    floor_number: hall.floor_number,
+    capacity: hall.capacity,
+    base_price: parseFloat(hall.base_price),
+    amenities: hall.amenities ? JSON.parse(hall.amenities) : [],
+    image_url: hall.image_url,
+  });
+
+  const available = [];
   const unavailable = [];
 
   for (const hall of allHallsResult.rows) {
-    const entry = {
-      hall_id:      hall.hall_id,
-      hall_name:    hall.hall_name,
-      floor_number: hall.floor_number,
-      capacity:     hall.capacity,
-      base_price:   parseFloat(hall.base_price),
-      amenities:    hall.amenities ? JSON.parse(hall.amenities) : [],
-      image_url:    hall.image_url,
-    };
+    if (guestCount && hall.capacity < guestCount) continue; // too small on its own
 
     if (bookedSet.has(hall.hall_id)) {
-      unavailable.push(entry);
+      unavailable.push(toEntry(hall));
     } else {
-      available.push(entry);
+      available.push(toEntry(hall));
+    }
+  }
+
+  // Two-hall option: needs the venue's two halls, both free, and a guest count
+  // that no single hall can hold but the pair can.
+  let bothHalls = null;
+  const halls = allHallsResult.rows;
+  if (guestCount && !floorNumber && halls.length === 2) {
+    const maxSingle = Math.max(...halls.map((h) => h.capacity));
+    const combined = halls[0].capacity + halls[1].capacity;
+    const bothFree = halls.every((h) => !bookedSet.has(h.hall_id));
+
+    if (guestCount > maxSingle && guestCount <= combined && bothFree) {
+      bothHalls = {
+        primary: toEntry(halls[0]),
+        secondary: toEntry(halls[1]),
+        combined_capacity: combined,
+        second_hall_complimentary: true,
+      };
     }
   }
 
@@ -174,11 +209,12 @@ const getAvailableHalls = async ({
     eventDate,
     startTime,
     endTime,
-    bufferMinutes:    BUFFER_MINUTES,
-    totalAvailable:   available.length,
+    bufferMinutes: BUFFER_MINUTES,
+    totalAvailable: available.length,
     totalUnavailable: unavailable.length,
     available,
     unavailable,
+    bothHalls,
   };
 };
 
@@ -221,23 +257,28 @@ const getHallSchedule = async ({ hallId, eventDate }) => {
     ACTIVE_STATUSES.includes(b.status)
   );
 
-  const freeSlots = computeFreeSlots(activeBookings, OPEN_TIME, CLOSE_TIME, BUFFER_MINUTES);
+  const freeSlots = computeFreeSlots(
+    activeBookings,
+    OPEN_TIME,
+    CLOSE_TIME,
+    BUFFER_MINUTES
+  );
 
   return {
     hall: {
-      hall_id:      hall.hall_id,
-      hall_name:    hall.hall_name,
+      hall_id: hall.hall_id,
+      hall_name: hall.hall_name,
       floor_number: hall.floor_number,
-      capacity:     hall.capacity,
+      capacity: hall.capacity,
     },
     eventDate,
     operatingHours: { open: OPEN_TIME, close: CLOSE_TIME },
     bookings: bookingsResult.rows,
     freeSlots,
     summary: {
-      totalBookings:  bookingsResult.rows.length,
+      totalBookings: bookingsResult.rows.length,
       activeBookings: activeBookings.length,
-      freeSlotCount:  freeSlots.length,
+      freeSlotCount: freeSlots.length,
     },
   };
 };
@@ -255,7 +296,7 @@ const assignHallToBooking = async ({
   startTime,
   endTime,
   assignedBy = null,
-  notes      = null,
+  notes = null,
 }) => {
   // Confirm the hall exists, is active, and fetch its capacity
   const hallResult = await query(
@@ -285,7 +326,7 @@ const assignHallToBooking = async ({
   if (booking.guest_count > hall.capacity) {
     throw new Error(
       `Guest count (${booking.guest_count}) exceeds ${hall.hall_name}'s capacity ` +
-      `of ${hall.capacity} seats. Choose the other hall or reduce guest_count.`
+        `of ${hall.capacity} seats. Choose the other hall or reduce guest_count.`
     );
   }
 
@@ -304,7 +345,7 @@ const assignHallToBooking = async ({
   if (conflictResult.rows.length > 0) {
     throw new Error(
       `Hall is no longer available for the requested slot. ` +
-      `${conflictResult.rows.length} conflicting booking(s) found.`
+        `${conflictResult.rows.length} conflicting booking(s) found.`
     );
   }
 
@@ -316,18 +357,18 @@ const assignHallToBooking = async ({
        FROM hall_bookings hb
        JOIN bookings b ON b.booking_id = hb.booking_id
       WHERE hb.event_date = $1
-        AND hb.status     = ANY($2)`,
+        AND hb.status     = ANY($2)
+        AND NOT hb.is_complimentary`,
     [eventDate, ACTIVE_STATUSES]
   );
-
-  const existingGuests  = parseInt(combinedResult.rows[0].total_guests, 10);
+  const existingGuests = parseInt(combinedResult.rows[0].total_guests, 10);
   const projectedGuests = existingGuests + booking.guest_count;
 
   if (projectedGuests > VENUE_COMBINED_CAPACITY) {
     throw new Error(
       `Combined guest count (${projectedGuests}) across both halls on ${eventDate} ` +
-      `would exceed the venue-wide cap of ${VENUE_COMBINED_CAPACITY} seats. ` +
-      `${existingGuests} seats already committed for this date.`
+        `would exceed the venue-wide cap of ${VENUE_COMBINED_CAPACITY} seats. ` +
+        `${existingGuests} seats already committed for this date.`
     );
   }
 
@@ -357,8 +398,8 @@ const releaseHallBooking = async ({ hallBookingId, cancelledBy = null }) => {
   if (existing.rows.length === 0) {
     throw new Error(`Hall booking ID ${hallBookingId} not found.`);
   }
-  if (existing.rows[0].status === 'cancelled') {
-    throw new Error('Hall booking is already cancelled.');
+  if (existing.rows[0].status === "cancelled") {
+    throw new Error("Hall booking is already cancelled.");
   }
 
   const updated = await query(
@@ -381,40 +422,51 @@ const releaseHallBooking = async ({ hallBookingId, cancelledBy = null }) => {
 //  Internal time helpers (pure JS — no DB calls)
 // ─────────────────────────────────────────────────────────────────────────────
 const timeToMinutes = (t) => {
-  const [h, m] = t.toString().split(':').map(Number);
+  const [h, m] = t.toString().split(":").map(Number);
   return h * 60 + m;
 };
 
 const minutesToTime = (mins) => {
-  const h = Math.floor(mins / 60).toString().padStart(2, '0');
-  const m = (mins % 60).toString().padStart(2, '0');
+  const h = Math.floor(mins / 60)
+    .toString()
+    .padStart(2, "0");
+  const m = (mins % 60).toString().padStart(2, "0");
   return `${h}:${m}:00`;
 };
 
-const addMinutes      = (t, m) => minutesToTime(timeToMinutes(t) + m);
-const subtractMinutes = (t, m) => minutesToTime(Math.max(0, timeToMinutes(t) - m));
-const timeDiff        = (from, to) => timeToMinutes(to) - timeToMinutes(from);
+const addMinutes = (t, m) => minutesToTime(timeToMinutes(t) + m);
+const subtractMinutes = (t, m) =>
+  minutesToTime(Math.max(0, timeToMinutes(t) - m));
+const timeDiff = (from, to) => timeToMinutes(to) - timeToMinutes(from);
 
 const computeFreeSlots = (activeBookings, open, close, buffer) => {
   if (activeBookings.length === 0) {
-    return [{ from: open, until: close, durationMinutes: timeDiff(open, close) }];
+    return [
+      { from: open, until: close, durationMinutes: timeDiff(open, close) },
+    ];
   }
 
-  const slots  = [];
-  let   cursor = open;
+  const slots = [];
+  let cursor = open;
 
   for (const booking of activeBookings) {
     const blockStart = subtractMinutes(booking.event_start_time, buffer);
     if (timeToMinutes(cursor) < timeToMinutes(blockStart)) {
       const duration = timeDiff(cursor, blockStart);
-      if (duration >= 60) slots.push({ from: cursor, until: blockStart, durationMinutes: duration });
+      if (duration >= 60)
+        slots.push({
+          from: cursor,
+          until: blockStart,
+          durationMinutes: duration,
+        });
     }
     cursor = addMinutes(booking.event_end_time, buffer);
   }
 
   if (timeToMinutes(cursor) < timeToMinutes(close)) {
     const duration = timeDiff(cursor, close);
-    if (duration >= 60) slots.push({ from: cursor, until: close, durationMinutes: duration });
+    if (duration >= 60)
+      slots.push({ from: cursor, until: close, durationMinutes: duration });
   }
 
   return slots;
