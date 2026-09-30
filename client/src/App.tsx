@@ -35,6 +35,7 @@ import OrganizerPortfolioPage from "@/pages/organizer/OrganizerPortfolioPage";
 import BrowseEventsPage from "@/pages/sponsor/BrowseEventsPage";
 import HomePage from "@/pages/customer/HomePage";
 import AboutPage from "@/pages/customer/AboutPage";
+import ContactPage from "@/pages/customer/ContactPage";
 
 function Home() {
   const { user } = useAuth();
@@ -60,6 +61,7 @@ function App() {
             <Route element={<ProtectedRoute />}>
               <Route path="/" element={<Home />} />
               <Route path="/about" element={<AboutPage />} />
+              <Route path="/contact" element={<ContactPage />} />
             </Route>
 
             {/* Only roles allowed to create bookings */}

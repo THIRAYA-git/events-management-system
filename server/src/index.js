@@ -20,6 +20,7 @@ const cateringRoutes = require("./routes/catering.routes");
 const analyticsRoutes = require("./routes/analytics.routes");
 const feedbackRoutes = require("./routes/feedback.routes");
 const uploadRoutes = require("./routes/upload.routes");
+const contactRoutes = require("./routes/contact.routes");
 
 
 const app  = express();
@@ -56,6 +57,7 @@ app.use("/api/catering-orders", cateringRoutes);
 app.use("/api/analytics", analyticsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/uploads", uploadRoutes);
+app.use("/api/contact", contactRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");

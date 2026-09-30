@@ -15,7 +15,7 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-const sendEmail = async ({ to, subject, html, text }) => {
+const sendEmail = async ({ to, subject, html, text, replyTo }) => {
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
@@ -23,6 +23,7 @@ const sendEmail = async ({ to, subject, html, text }) => {
       subject,
       html,
       text,
+      ...(replyTo ? { replyTo } : {}),
     });
     return true;
   } catch (err) {
@@ -96,8 +97,38 @@ const sendBookingConfirmationEmail = async (to, booking) => {
   });
 };
 
+const escapeHtml = (s) =>
+  String(s)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+
+// Message from the Contact page, delivered to the hall's inbox. replyTo is the
+// customer, so staff can answer straight from their mail client.
+const sendContactMessageEmail = async ({ name, email, phone, subject, message }) => {
+  const inbox = process.env.CONTACT_INBOX || process.env.EMAIL_FROM;
+  return sendEmail({
+    to: inbox,
+    replyTo: email,
+    subject: `[Contact] ${subject} - ${name}`,
+    text: `From: ${name} <${email}>\nPhone: ${phone || "-"}\nTopic: ${subject}\n\n${message}`,
+    html: `
+      <p><strong>New message from the Contact page</strong></p>
+      <table cellpadding="6">
+        <tr><td><strong>Name</strong></td><td>${escapeHtml(name)}</td></tr>
+        <tr><td><strong>Email</strong></td><td>${escapeHtml(email)}</td></tr>
+        <tr><td><strong>Phone</strong></td><td>${escapeHtml(phone || "-")}</td></tr>
+        <tr><td><strong>Topic</strong></td><td>${escapeHtml(subject)}</td></tr>
+      </table>
+      <p style="white-space:pre-wrap">${escapeHtml(message)}</p>
+    `,
+  });
+};
+
 module.exports = {
   sendEmail,
+  sendContactMessageEmail,
   sendPasswordResetEmail,
   sendBookingConfirmationEmail,
 };

@@ -28,6 +28,7 @@ const CustomerNavbar = () => {
   const links = [
   { to: "/", label: "Home" },
   { to: "/about", label: "About" },
+  { to: "/contact", label: "Contact" },
   { to: "/book", label: "Book a Hall" },
   ...(user?.role === "customer" ? [{ to: "/my-bookings", label: "My Bookings" }] : []),
   ...(isStaff ? [{ to: "/admin", label: "Admin Dashboard" }] : []),
