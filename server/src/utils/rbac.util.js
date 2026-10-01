@@ -78,6 +78,12 @@ const PERMISSIONS = {
   "user:read": ["admin", "manager", "front_desk"],
   "user:manage": ["admin"],
 
+    // ── Staff management (FR-003) ─────────────────────────────
+  "staff:read": ["admin"],
+  "staff:create": ["admin"],
+  "staff:update": ["admin"],
+  "staff:deactivate": ["admin"],
+
   // ── Notifications ─────────────────────────────────────────
   "notification:send": ["admin", "manager", "front_desk"],
 

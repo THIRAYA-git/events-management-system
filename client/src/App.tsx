@@ -36,6 +36,7 @@ import BrowseEventsPage from "@/pages/sponsor/BrowseEventsPage";
 import HomePage from "@/pages/customer/HomePage";
 import AboutPage from "@/pages/customer/AboutPage";
 import ContactPage from "@/pages/customer/ContactPage";
+import { AdminStaffPage } from "@/pages/admin/AdminStaffPage";
 
 function Home() {
   const { user } = useAuth();
@@ -107,6 +108,9 @@ function App() {
               <Route index element={<AdminDashboardHome />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
               <Route path="customers" element={<AdminCustomersPage />} />
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                <Route path="staff" element={<AdminStaffPage />} />
+              </Route>
               <Route
                 path="organizers-sponsors"
                 element={<AdminOrganizersSponsorsPage />}

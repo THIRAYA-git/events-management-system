@@ -29,7 +29,7 @@ const {
   updatePassword,
 } = require("../models/user.model");
 
-const { query }          = require("../config/db");
+const { query } = require("../config/db");
 const { getPermissions } = require("../utils/rbac.util");
 
 // Roles a self-registering user is allowed to pick
@@ -38,9 +38,9 @@ const PUBLIC_ROLES = ["customer", "organizer", "sponsor", "restaurant"];
 // Cookie options for refresh token
 const COOKIE_OPTS = {
   httpOnly: true,
-  secure:   process.env.NODE_ENV === "production",
+  secure: process.env.NODE_ENV === "production",
   sameSite: "strict",
-  maxAge:   7 * 24 * 60 * 60 * 1000,   // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
 };
 
 // Write to your audit_log table
@@ -57,7 +57,9 @@ const audit = async (user_id, action, record_id, new_values, ip) => {
 };
 
 const getIp = (req) =>
-  req.headers["x-forwarded-for"]?.split(",")[0] || req.socket?.remoteAddress || "unknown";
+  req.headers["x-forwarded-for"]?.split(",")[0] ||
+  req.socket?.remoteAddress ||
+  "unknown";
 
 // ── POST /api/auth/register ───────────────────────────────────
 const register = async (req, res) => {
@@ -66,10 +68,16 @@ const register = async (req, res) => {
 
     // Input validation
     if (!full_name || !email || !password || !phone) {
-      return res.status(400).json({ message: "full_name, email, password and phone are required." });
+      return res
+        .status(400)
+        .json({
+          message: "full_name, email, password and phone are required.",
+        });
     }
     if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters." });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters." });
     }
 
     // ✅ SECURITY FIX: only allow safe public roles on self-register
@@ -87,24 +95,36 @@ const register = async (req, res) => {
     }
 
     const passwordHash = await hashPassword(password);
-    const user = await createUser(full_name, email, passwordHash, assignedRole, phone || null);
+    const user = await createUser(
+      full_name,
+      email,
+      passwordHash,
+      assignedRole,
+      phone || null
+    );
 
     // Issue tokens
-    const accessToken  = generateToken(user);
+    const accessToken = generateToken(user);
     const refreshToken = generateRefreshToken(user);
     await saveRefreshToken(user.user_id, refreshToken);
 
-    await audit(user.user_id, "CREATE_USER", user.user_id, { email: user.email, role: user.role }, getIp(req));
+    await audit(
+      user.user_id,
+      "CREATE_USER",
+      user.user_id,
+      { email: user.email, role: user.role },
+      getIp(req)
+    );
 
     res.cookie("refreshToken", refreshToken, COOKIE_OPTS);
     return res.status(201).json({
       message: "User registered successfully.",
       user: {
-        id:          user.user_id,
-        name:        user.full_name,
-        email:       user.email,
-        phone:       user.phone,
-        role:        user.role,
+        id: user.user_id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
         is_verified: user.is_verified,
       },
       accessToken,
@@ -122,7 +142,9 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ message: "Email and password are required." });
+      return res
+        .status(400)
+        .json({ message: "Email and password are required." });
     }
 
     const user = await findUserByEmail(email);
@@ -144,29 +166,46 @@ const login = async (req, res) => {
       await incrementLoginAttempts(user.user_id);
       return res.status(401).json({ message: "Invalid credentials." });
     }
-
+    // Deactivated accounts cannot log in (checked after the password so
+    // the message doesn't reveal which emails exist)
+    const { rows: activeRows } = await query(
+      `SELECT is_active FROM users WHERE user_id = $1`,
+      [user.user_id]
+    );
+    if (activeRows[0]?.is_active === false) {
+      return res.status(403).json({
+        message:
+          "Your account has been deactivated. Please contact the administrator.",
+      });
+    }
     // ✅ FIX: Reset attempts + update last_login on success
     await updateLastLogin(user.user_id);
 
     // Issue tokens
-    const accessToken  = generateToken(user);
+    const accessToken = generateToken(user);
     const refreshToken = generateRefreshToken(user);
     await saveRefreshToken(user.user_id, refreshToken);
 
-    await audit(user.user_id, "LOGIN", user.user_id, { email: user.email, role: user.role }, getIp(req));
+    await audit(
+      user.user_id,
+      "LOGIN",
+      user.user_id,
+      { email: user.email, role: user.role },
+      getIp(req)
+    );
 
     res.cookie("refreshToken", refreshToken, COOKIE_OPTS);
     return res.json({
       message: "Logged in successfully.",
       user: {
-        id:            user.user_id,
-        name:          user.full_name,
-        email:         user.email,
-        phone:         user.phone,
-        role:          user.role,
-        is_verified:   user.is_verified,
+        id: user.user_id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        is_verified: user.is_verified,
         profile_image: user.profile_image,
-        last_login:    user.last_login,
+        last_login: user.last_login,
       },
       accessToken,
       permissions: getPermissions(user.role),
@@ -188,16 +227,22 @@ const refresh = async (req, res) => {
     try {
       verifyRefreshToken(token);
     } catch {
-      return res.status(401).json({ message: "Invalid or expired refresh token." });
+      return res
+        .status(401)
+        .json({ message: "Invalid or expired refresh token." });
     }
 
     const user = await findUserByRefreshToken(token);
     if (!user) {
-      return res.status(401).json({ message: "Refresh token reuse detected. Please log in again." });
+      return res
+        .status(401)
+        .json({
+          message: "Refresh token reuse detected. Please log in again.",
+        });
     }
 
     // Rotate: issue new pair
-    const accessToken     = generateToken(user);
+    const accessToken = generateToken(user);
     const newRefreshToken = generateRefreshToken(user);
     await saveRefreshToken(user.user_id, newRefreshToken);
 
@@ -255,7 +300,7 @@ const forgotPassword = async (req, res) => {
 
     const user = await findUserByEmail(email);
     if (user) {
-      const token   = crypto.randomBytes(32).toString("hex");
+      const token = crypto.randomBytes(32).toString("hex");
       const expires = new Date(Date.now() + 60 * 60 * 1000); // 1 hour
       await createPasswordResetToken(user.user_id, token, expires);
 
@@ -264,7 +309,9 @@ const forgotPassword = async (req, res) => {
     }
 
     // Always return 200 — never reveal whether email exists
-    return res.json({ message: "If that email is registered, a reset link has been sent." });
+    return res.json({
+      message: "If that email is registered, a reset link has been sent.",
+    });
   } catch (error) {
     console.error("[forgotPassword]", error);
     return res.status(500).json({ error: error.message });
@@ -277,15 +324,21 @@ const resetPassword = async (req, res) => {
     const { token, password } = req.body;
 
     if (!token || !password) {
-      return res.status(400).json({ message: "Token and new password are required." });
+      return res
+        .status(400)
+        .json({ message: "Token and new password are required." });
     }
     if (password.length < 8) {
-      return res.status(400).json({ message: "Password must be at least 8 characters." });
+      return res
+        .status(400)
+        .json({ message: "Password must be at least 8 characters." });
     }
 
     const record = await findUserByResetToken(token);
     if (!record) {
-      return res.status(400).json({ message: "Reset token is invalid or has expired." });
+      return res
+        .status(400)
+        .json({ message: "Reset token is invalid or has expired." });
     }
 
     const passwordHash = await hashPassword(password);
@@ -308,7 +361,10 @@ const updateOwnProfile = async (req, res) => {
       return res.status(400).json({ message: "full_name is required." });
     }
 
-    const user = await updateProfile(req.user.id, { full_name: full_name.trim(), phone });
+    const user = await updateProfile(req.user.id, {
+      full_name: full_name.trim(),
+      phone,
+    });
     return res.json({ message: "Profile updated successfully", user });
   } catch (error) {
     console.error("[updateOwnProfile]", error);
@@ -328,13 +384,16 @@ const changeOwnPassword = async (req, res) => {
         .json({ message: "current_password and new_password are required." });
     }
     if (new_password.length < 8) {
-      return res.status(400).json({ message: "New password must be at least 8 characters." });
+      return res
+        .status(400)
+        .json({ message: "New password must be at least 8 characters." });
     }
 
     // Re-fetch with password_hash included (findUserById omits it by design)
-    const { rows } = await query(`SELECT password_hash FROM users WHERE user_id = $1`, [
-      req.user.id,
-    ]);
+    const { rows } = await query(
+      `SELECT password_hash FROM users WHERE user_id = $1`,
+      [req.user.id]
+    );
     const currentHash = rows[0]?.password_hash;
     if (!currentHash) {
       return res.status(404).json({ message: "User not found." });
@@ -342,13 +401,17 @@ const changeOwnPassword = async (req, res) => {
 
     const valid = await comparePassword(current_password, currentHash);
     if (!valid) {
-      return res.status(401).json({ message: "Current password is incorrect." });
+      return res
+        .status(401)
+        .json({ message: "Current password is incorrect." });
     }
 
     const newHash = await hashPassword(new_password);
     await updatePassword(req.user.id, newHash);
 
-    return res.json({ message: "Password changed successfully. Please log in again." });
+    return res.json({
+      message: "Password changed successfully. Please log in again.",
+    });
   } catch (error) {
     console.error("[changeOwnPassword]", error);
     return res.status(500).json({ error: error.message });

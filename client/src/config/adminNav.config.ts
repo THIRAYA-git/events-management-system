@@ -3,6 +3,7 @@ import {
   LayoutDashboard,
   CalendarCheck,
   Users,
+  UserCog,
   BarChart3,
   HandshakeIcon,
   UtensilsCrossed,
@@ -36,6 +37,12 @@ export const adminNavItems: AdminNavItem[] = [
     path: "/admin/customers",
     icon: Users,
     roles: ["front_desk", "manager", "admin"],
+  },
+  {
+    label: "Manage Staffs",
+    path: "/admin/staff",
+    icon: UserCog,
+    roles: ["admin"],
   },
   {
     label: "Organizers & Sponsors",

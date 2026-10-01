@@ -21,6 +21,8 @@ const analyticsRoutes = require("./routes/analytics.routes");
 const feedbackRoutes = require("./routes/feedback.routes");
 const uploadRoutes = require("./routes/upload.routes");
 const contactRoutes = require("./routes/contact.routes");
+const staffRoutes = require("./routes/staff.routes");
+const partnerAccountRoutes = require("./routes/partnerAccount.routes");
 
 
 const app  = express();
@@ -58,6 +60,8 @@ app.use("/api/analytics", analyticsRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contact", contactRoutes);
+app.use("/api/staff", staffRoutes);
+app.use("/api/partner-accounts", partnerAccountRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");
