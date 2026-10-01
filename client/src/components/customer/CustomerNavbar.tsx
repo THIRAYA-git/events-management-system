@@ -31,7 +31,7 @@ const CustomerNavbar = () => {
   { to: "/contact", label: "Contact" },
   { to: "/book", label: "Book a Hall" },
   ...(user?.role === "customer" ? [{ to: "/my-bookings", label: "My Bookings" }] : []),
-  ...(isStaff ? [{ to: "/admin", label: "Admin Dashboard" }] : []),
+  ...(isStaff ? [{ to: "/admin", label: "Dashboard" }] : []),
 ];
 
   return (

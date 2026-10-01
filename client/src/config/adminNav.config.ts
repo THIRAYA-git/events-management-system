@@ -8,6 +8,7 @@ import {
   HandshakeIcon,
   UtensilsCrossed,
   Settings,
+  CalendarClock,
 } from "lucide-react";
 
 export type AdminRole = "front_desk" | "manager" | "admin";
@@ -31,6 +32,12 @@ export const adminNavItems: AdminNavItem[] = [
     path: "/admin/bookings",
     icon: CalendarCheck,
     roles: ["front_desk", "manager", "admin"],
+  },
+  {
+    label: "Schedule Event",
+    path: "/admin/schedule",
+    icon: CalendarClock,
+    roles: ["admin", "manager", "front_desk"],
   },
   {
     label: "Customers",

@@ -7,12 +7,31 @@ const {
   updateTimelineActivity,
   deleteTimelineActivity,
   getBookingOwnerId,
+  isOrganizerAssignedToBooking,
 } = require('../services/timeline.service');
+
+const parseId = (value, label) => {
+  const n = Number(value);
+  if (!Number.isInteger(n) || n <= 0) {
+    const err = new Error(`Invalid ${label}.`);
+    err.statusCode = 400;
+    throw err;
+  }
+  return n;
+};
+
+// Service errors carry a statusCode; anything else goes to the error middleware
+const handleError = (err, res, next) => {
+  if (err.statusCode) {
+    return res.status(err.statusCode).json({ success: false, message: err.message });
+  }
+  return next(err);
+};
 
 // ── GET /api/bookings/:bookingId/timeline ────────────────────────────────────
 const listTimelineHandler = async (req, res, next) => {
   try {
-    const { bookingId } = req.params;
+    const bookingId = parseId(req.params.bookingId, 'booking ID');
 
     if (req.user.role === 'customer') {
       const ownerId = await getBookingOwnerId(bookingId);
@@ -24,22 +43,31 @@ const listTimelineHandler = async (req, res, next) => {
       }
     }
 
-    const activities = await listTimelineForBooking(bookingId);
-    return res.status(200).json({ success: true, data: activities });
-  } catch (err) {
-    if (isServiceError(err)) {
-      return res.status(404).json({ success: false, message: err.message });
+    if (req.user.role === 'organizer') {
+      const assigned = await isOrganizerAssignedToBooking(bookingId, req.user.id);
+      if (!assigned) {
+        return res.status(403).json({
+          success: false,
+          message: 'You are not assigned to this booking.',
+        });
+      }
     }
-    next(err);
+
+    const { booking, activities } = await listTimelineForBooking(bookingId);
+    return res.status(200).json({ success: true, data: activities, meta: { booking } });
+  } catch (err) {
+    return handleError(err, res, next);
   }
 };
 
 // ── POST /api/bookings/:bookingId/timeline ───────────────────────────────────
 const createTimelineHandler = async (req, res, next) => {
   try {
-    const { bookingId } = req.params;
+    const bookingId = parseId(req.params.bookingId, 'booking ID');
     const {
       activity_name,
+      category,
+      hall_id,
       start_time,
       end_time,
       assigned_to,
@@ -50,6 +78,8 @@ const createTimelineHandler = async (req, res, next) => {
     const activity = await createTimelineActivity({
       bookingId,
       activityName: activity_name,
+      category,
+      hallId: hall_id,
       startTime: start_time,
       endTime: end_time,
       assignedTo: assigned_to,
@@ -59,19 +89,19 @@ const createTimelineHandler = async (req, res, next) => {
 
     return res.status(201).json({ success: true, data: activity });
   } catch (err) {
-    if (isServiceError(err)) {
-      return res.status(400).json({ success: false, message: err.message });
-    }
-    next(err);
+    return handleError(err, res, next);
   }
 };
 
 // ── PATCH /api/bookings/:bookingId/timeline/:timelineId ──────────────────────
 const updateTimelineHandler = async (req, res, next) => {
   try {
-    const { timelineId } = req.params;
+    const bookingId = parseId(req.params.bookingId, 'booking ID');
+    const timelineId = parseId(req.params.timelineId, 'timeline ID');
     const {
       activity_name,
+      category,
+      hall_id,
       start_time,
       end_time,
       assigned_to,
@@ -79,8 +109,10 @@ const updateTimelineHandler = async (req, res, next) => {
       sequence_order,
     } = req.body;
 
-    const activity = await updateTimelineActivity(timelineId, {
+    const activity = await updateTimelineActivity(bookingId, timelineId, {
       activityName: activity_name,
+      category,
+      hallId: hall_id,
       startTime: start_time,
       endTime: end_time,
       assignedTo: assigned_to,
@@ -90,33 +122,21 @@ const updateTimelineHandler = async (req, res, next) => {
 
     return res.status(200).json({ success: true, data: activity });
   } catch (err) {
-    if (isServiceError(err)) {
-      const status = err.message.includes('not found') ? 404 : 400;
-      return res.status(status).json({ success: false, message: err.message });
-    }
-    next(err);
+    return handleError(err, res, next);
   }
 };
 
 // ── DELETE /api/bookings/:bookingId/timeline/:timelineId ─────────────────────
 const deleteTimelineHandler = async (req, res, next) => {
   try {
-    const { timelineId } = req.params;
-    await deleteTimelineActivity(timelineId);
+    const bookingId = parseId(req.params.bookingId, 'booking ID');
+    const timelineId = parseId(req.params.timelineId, 'timeline ID');
+    await deleteTimelineActivity(bookingId, timelineId);
     return res.status(200).json({ success: true, message: 'Timeline activity deleted.' });
   } catch (err) {
-    if (isServiceError(err)) {
-      return res.status(404).json({ success: false, message: err.message });
-    }
-    next(err);
+    return handleError(err, res, next);
   }
 };
-
-const SERVICE_ERROR_PATTERNS = [
-  'required', 'not found', 'must be before', 'no valid fields',
-];
-const isServiceError = (err) =>
-  SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));
 
 module.exports = {
   listTimelineHandler,

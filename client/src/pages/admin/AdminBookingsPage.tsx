@@ -1,7 +1,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { listBookings, updateBookingStatus } from "@/lib/booking.api";
+import { Loader2, CheckCircle2, XCircle, X, CalendarClock } from "lucide-react";
 import type { AdminBooking, BookingStatus } from "@/types/booking.types";
-import { Loader2, CheckCircle2, XCircle, X } from "lucide-react";
 import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
 import { Link } from "react-router-dom";
 
@@ -171,7 +171,9 @@ export function AdminBookingsPage() {
     await fetchBookings();
     if (failed.length > 0) {
       alert(
-        `${bulk.items.length - failed.length} of ${bulk.items.length} processed. Failed: ${failed.join(", ")}`
+        `${bulk.items.length - failed.length} of ${
+          bulk.items.length
+        } processed. Failed: ${failed.join(", ")}`
       );
     }
   };
@@ -205,7 +207,9 @@ export function AdminBookingsPage() {
         <div className="flex items-center gap-2">
           <button
             onClick={() => openBulk("confirm")}
-            disabled={bulkPreparing || (!!statusFilter && statusFilter !== "pending")}
+            disabled={
+              bulkPreparing || (!!statusFilter && statusFilter !== "pending")
+            }
             className="flex items-center gap-1 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
           >
             <CheckCircle2 className="w-4 h-4" />
@@ -213,7 +217,9 @@ export function AdminBookingsPage() {
           </button>
           <button
             onClick={() => openBulk("reject")}
-            disabled={bulkPreparing || (!!statusFilter && statusFilter !== "pending")}
+            disabled={
+              bulkPreparing || (!!statusFilter && statusFilter !== "pending")
+            }
             className="flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
           >
             <XCircle className="w-4 h-4" />
@@ -401,15 +407,14 @@ export function AdminBookingsPage() {
                           </button>
                         </>
                       )}
-                      {b.status === "confirmed" && (
-                        <button
-                          onClick={() => openCancelModal(b)}
-                          disabled={actionLoadingId === b.booking_id}
-                          className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                      {b.status !== "cancelled" && (
+                        <Link
+                          to={`/admin/bookings/${b.booking_id}/timeline`}
+                          className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
                         >
-                          <XCircle className="w-3.5 h-3.5" />
-                          Cancel
-                        </button>
+                          <CalendarClock className="w-3.5 h-3.5" />
+                          Timeline
+                        </Link>
                       )}
 
                       <AssignOrganizerDialog
@@ -566,7 +571,9 @@ export function AdminBookingsPage() {
                     : "bg-red-600 hover:bg-red-700"
                 }`}
               >
-                {bulkRunning && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                {bulkRunning && (
+                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                )}
                 {bulk.action === "confirm" ? "Confirm All" : "Reject All"}
               </button>
             </div>
