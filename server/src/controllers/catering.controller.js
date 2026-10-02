@@ -1,10 +1,56 @@
 const cateringService = require("../services/catering.service");
+const { getBookingById } = require("../services/booking.service");
+const { findUserById } = require("../models/user.model");
+const {
+  sendCateringOrderPlacedEmail,
+  sendCateringStatusEmail,
+} = require("../services/email.service");
+
+// FR-017: email the booking's customer about a catering order. Called AFTER
+// the response is sent and fully isolated, so it can never fail or slow the
+// request that triggered it.
+const notifyCustomer = async (kind, order, status) => {
+  try {
+    const booking = await getBookingById(order.booking_id);
+    const customer = await findUserById(booking.user_id);
+    if (!customer?.email) return;
+
+    if (kind === "placed") {
+      const items =
+        typeof order.menu_items === "string"
+          ? JSON.parse(order.menu_items)
+          : order.menu_items;
+      await sendCateringOrderPlacedEmail(customer.email, {
+        customerName: customer.full_name,
+        bookingRef: booking.booking_ref,
+        orderId: order.order_id,
+        items,
+        totalCost: order.total_cost,
+        guestCount: order.guest_count,
+        deliveryTime: order.delivery_time
+          ? String(order.delivery_time).slice(0, 16)
+          : "",
+      });
+    } else if (kind === "status") {
+      await sendCateringStatusEmail(customer.email, {
+        customerName: customer.full_name,
+        bookingRef: booking.booking_ref,
+        orderId: order.order_id,
+        status,
+      });
+    }
+  } catch (err) {
+    console.error("[catering.controller] Catering email failed:", err.message);
+  }
+};
 
 const createCateringOrderHandler = async (req, res) => {
   try {
     const { booking_id } = req.body;
     const order = await cateringService.createCateringOrder(booking_id, req.body, req.user);
     res.status(201).json({ message: "Catering order placed successfully", order });
+
+    notifyCustomer("placed", order);
   } catch (err) {
     res.status(err.statusCode || 500).json({
       message: err.message || "Failed to place catering order",
@@ -55,6 +101,13 @@ const updateCateringOrderStatusHandler = async (req, res) => {
     const { status } = req.body;
     const cateringOrder = await cateringService.updateCateringOrderStatus(orderId, status, req.user);
     res.status(200).json({ message: `Catering order status updated to '${status}'`, cateringOrder });
+
+    // Skip when the customer made the change themselves (e.g. cancelling
+    // their own order): they already know. Everyone else's changes notify
+    // the customer.
+    if (req.user.role !== "customer") {
+      notifyCustomer("status", cateringOrder, status);
+    }
   } catch (err) {
     res.status(err.statusCode || 500).json({ message: err.message || "Failed to update catering order status" });
   }

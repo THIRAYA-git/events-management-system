@@ -10,6 +10,14 @@ const { getBookingById } = require("../services/booking.service");
 const { findUserById } = require("../models/user.model");
 const { query } = require("../config/db");
 const { generateInvoicePdf } = require("../services/pdf.service");
+const {
+  sendPaymentReceivedSms,
+  sendPaymentRefundNoticeSms,
+} = require("../services/sms.service");
+const {
+  sendPaymentReceiptEmail,
+  sendPaymentRefundNoticeEmail,
+} = require("../services/email.service");
 
 // Marks a completed payment as needing a manual refund. Uses the existing
 // gateway_response jsonb column, so no schema change is required.
@@ -22,6 +30,169 @@ async function flagForRefund(paymentId, reason) {
      WHERE payment_id = $1`,
     [paymentId, reason]
   );
+}
+
+// Loads everything generateInvoicePdf needs for a booking's completed
+// payment. Shared by the invoice download route and the receipt email so
+// both always produce the same PDF. Returns null if there is no completed
+// payment yet.
+async function loadInvoiceData(booking, bookingId) {
+  const paymentResult = await query(
+    `SELECT payment_id, invoice_number, amount, payment_method, currency,
+            transaction_id, paid_at
+       FROM payments
+      WHERE booking_id = $1 AND status = 'completed'
+      ORDER BY created_at DESC LIMIT 1`,
+    [bookingId]
+  );
+  if (paymentResult.rows.length === 0) return null;
+  const payment = paymentResult.rows[0];
+
+  const customer = await findUserById(booking.user_id);
+
+  const cateringRes = await query(
+    `SELECT order_id, menu_items, total_cost
+       FROM catering_orders
+      WHERE booking_id = $1 AND status <> 'cancelled'
+      ORDER BY order_id`,
+    [bookingId]
+  );
+  const cateringOrders = cateringRes.rows;
+
+  const itemIds = [
+    ...new Set(
+      cateringOrders.flatMap((o) => {
+        const items =
+          typeof o.menu_items === "string"
+            ? JSON.parse(o.menu_items)
+            : o.menu_items;
+        return (items || []).map((l) => l.item_id);
+      })
+    ),
+  ];
+
+  // unit + restaurant name per item (menu_items.restaurant_id -> users.user_id)
+  let itemInfo = {};
+  if (itemIds.length) {
+    const infoRes = await query(
+      `SELECT mi.item_id, mi.unit, u.full_name AS restaurant_name
+         FROM menu_items mi
+         LEFT JOIN users u ON u.user_id = mi.restaurant_id
+        WHERE mi.item_id = ANY($1)`,
+      [itemIds]
+    );
+    itemInfo = Object.fromEntries(
+      infoRes.rows.map((r) => [
+        r.item_id,
+        { unit: r.unit, restaurant: r.restaurant_name },
+      ])
+    );
+  }
+
+  // Organizers assigned to this booking (paid directly, not through the hall)
+  const organizerRes = await query(
+    `SELECT bo.role_in_event, bo.agreed_fee, o.business_name
+       FROM booking_organizers bo
+       JOIN organizers o ON o.organizer_id = bo.organizer_id
+      WHERE bo.booking_id = $1
+        AND bo.status::text NOT IN ('cancelled', 'rejected', 'declined')
+      ORDER BY bo.assigned_at`,
+    [bookingId]
+  );
+  const organizers = organizerRes.rows;
+
+  return { payment, customer, cateringOrders, itemInfo, organizers };
+}
+
+// Sends the payment email (FR-017) and SMS (FR-016) for a PayHere payment.
+// Fully isolated: any failure here is logged and swallowed so it can never
+// change the 200 response PayHere expects from the webhook. Email and SMS
+// each have their own try/catch so one channel failing never blocks the other.
+async function sendPaymentNotifications(
+  kind,
+  bookingId,
+  { amount, invoiceNumber } = {}
+) {
+  let booking;
+  let customer;
+  try {
+    booking = await getBookingById(bookingId);
+    customer = await findUserById(booking.user_id);
+  } catch (lookupErr) {
+    console.error(
+      "[payment.routes] Notification lookup failed:",
+      lookupErr.message
+    );
+    return;
+  }
+  if (!customer) return;
+
+  const eventDate = new Date(booking.event_date).toLocaleDateString("en-GB");
+
+  // ── Email ──
+  try {
+    if (customer.email) {
+      if (kind === "paid") {
+        // Attach the invoice PDF. If generating it fails, still send the
+        // receipt: the customer can download the invoice from the site.
+        let invoicePdf = null;
+        try {
+          const data = await loadInvoiceData(booking, bookingId);
+          if (data) {
+            invoicePdf = await generateInvoicePdf({
+              booking,
+              payment: data.payment,
+              customer: data.customer,
+              cateringOrders: data.cateringOrders,
+              itemInfo: data.itemInfo,
+              organizers: data.organizers,
+            });
+          }
+        } catch (pdfErr) {
+          console.error(
+            "[payment.routes] Invoice PDF for email failed:",
+            pdfErr.message
+          );
+        }
+
+        await sendPaymentReceiptEmail(customer.email, {
+          customerName: customer.full_name,
+          bookingRef: booking.booking_ref,
+          amount,
+          invoiceNumber,
+          eventDate,
+          invoicePdf,
+        });
+      } else if (kind === "refund") {
+        await sendPaymentRefundNoticeEmail(customer.email, {
+          customerName: customer.full_name,
+          bookingRef: booking.booking_ref,
+        });
+      }
+    }
+  } catch (emailErr) {
+    console.error("[payment.routes] Payment email failed:", emailErr.message);
+  }
+
+  // ── SMS ──
+  try {
+    if (customer.phone) {
+      if (kind === "paid") {
+        await sendPaymentReceivedSms(customer.phone, {
+          bookingRef: booking.booking_ref,
+          amount,
+          invoiceNumber,
+          eventDate,
+        });
+      } else if (kind === "refund") {
+        await sendPaymentRefundNoticeSms(customer.phone, {
+          bookingRef: booking.booking_ref,
+        });
+      }
+    }
+  } catch (smsErr) {
+    console.error("[payment.routes] Payment SMS failed:", smsErr.message);
+  }
 }
 
 // ─────────────────────────────────────────────────────────────
@@ -168,6 +339,12 @@ router.post("/notify", async (req, res) => {
     const bookingId = result.rows[0]?.booking_id;
     const paymentRowId = result.rows[0]?.payment_id;
 
+    // Which notification (if any) to send once the DB work is done. Decided
+    // inside the try block, sent after it so email/SMS can never interfere
+    // with it.
+    let notifyKind = null;
+    let notifyData = {};
+
     if (bookingId && paymentStatus === "completed") {
       try {
         // Only a pending booking can be confirmed. A PayHere retry for an
@@ -195,20 +372,30 @@ router.post("/notify", async (req, res) => {
               paymentRowId,
               `booking_${currentStatus || "missing"}`
             );
+            notifyKind = "refund";
           }
         }
 
         // Invoice numbers are only ever assigned once a payment actually
         // completes, and only once — a PayHere retry must not renumber it.
-        await query(
+        // RETURNING only fires on the first assignment, so it doubles as
+        // the "first completion" signal that stops retries re-sending
+        // emails and SMS.
+        const invoiced = await query(
           `UPDATE payments
-           SET invoice_number = COALESCE(
-                 invoice_number,
-                 'INV-' || to_char(NOW(), 'YYYYMMDD') || '-' || payment_id
-               )
-           WHERE payment_id = $1`,
+           SET invoice_number = 'INV-' || to_char(NOW(), 'YYYYMMDD') || '-' || payment_id
+           WHERE payment_id = $1 AND invoice_number IS NULL
+           RETURNING invoice_number, amount`,
           [paymentRowId]
         );
+
+        if (invoiced.rows.length > 0 && notifyKind === null) {
+          notifyKind = "paid";
+          notifyData = {
+            amount: invoiced.rows[0].amount,
+            invoiceNumber: invoiced.rows[0].invoice_number,
+          };
+        }
       } catch (confirmErr) {
         // Layer 2: 23505 = idx_no_double_booking. Someone else's payment
         // confirmed this date first. Keep the payment, flag it for refund,
@@ -218,13 +405,19 @@ router.post("/notify", async (req, res) => {
             `Date conflict confirming booking ${bookingId} (payment ${paymentRowId}) — flagged for refund`
           );
           await flagForRefund(paymentRowId, "date_conflict");
+          notifyKind = "refund";
         } else {
           throw confirmErr;
         }
       }
     }
 
+    // Respond to PayHere first, then send the email/SMS in the background.
     res.status(200).send("OK");
+
+    if (notifyKind) {
+      sendPaymentNotifications(notifyKind, bookingId, notifyData);
+    }
   } catch (err) {
     console.error("Payment notify error:", err);
     res.status(500).send("Error processing notification");
@@ -305,88 +498,26 @@ router.get(
           .json({ error: "You do not have access to this invoice" });
       }
 
-      const paymentResult = await query(
-        `SELECT payment_id, invoice_number, amount, payment_method, currency,
-              transaction_id, paid_at
-       FROM payments
-       WHERE booking_id = $1 AND status = 'completed'
-       ORDER BY created_at DESC LIMIT 1`,
-        [bookingId]
-      );
-
-      if (paymentResult.rows.length === 0) {
+      const data = await loadInvoiceData(booking, bookingId);
+      if (!data) {
         return res
           .status(404)
           .json({ error: "No completed payment found for this booking" });
       }
-      const payment = paymentResult.rows[0];
-
-      const customer = await findUserById(booking.user_id);
-
-      const cateringRes = await query(
-        `SELECT order_id, menu_items, total_cost
-         FROM catering_orders
-        WHERE booking_id = $1 AND status <> 'cancelled'
-        ORDER BY order_id`,
-        [bookingId]
-      );
-      const cateringOrders = cateringRes.rows;
-
-      const itemIds = [
-        ...new Set(
-          cateringOrders.flatMap((o) => {
-            const items =
-              typeof o.menu_items === "string"
-                ? JSON.parse(o.menu_items)
-                : o.menu_items;
-            return (items || []).map((l) => l.item_id);
-          })
-        ),
-      ];
-
-      // unit + restaurant name per item (menu_items.restaurant_id -> users.user_id)
-      let itemInfo = {};
-      if (itemIds.length) {
-        const infoRes = await query(
-          `SELECT mi.item_id, mi.unit, u.full_name AS restaurant_name
-             FROM menu_items mi
-             LEFT JOIN users u ON u.user_id = mi.restaurant_id
-            WHERE mi.item_id = ANY($1)`,
-          [itemIds]
-        );
-        itemInfo = Object.fromEntries(
-          infoRes.rows.map((r) => [
-            r.item_id,
-            { unit: r.unit, restaurant: r.restaurant_name },
-          ])
-        );
-      }
-
-      // Organizers assigned to this booking (paid directly, not through the hall)
-      const organizerRes = await query(
-        `SELECT bo.role_in_event, bo.agreed_fee, o.business_name
-           FROM booking_organizers bo
-           JOIN organizers o ON o.organizer_id = bo.organizer_id
-          WHERE bo.booking_id = $1
-            AND bo.status::text NOT IN ('cancelled', 'rejected', 'declined')
-          ORDER BY bo.assigned_at`,
-        [bookingId]
-      );
-      const organizers = organizerRes.rows;
 
       const pdfBuffer = await generateInvoicePdf({
         booking,
-        payment,
-        customer,
-        cateringOrders,
-        itemInfo,
-        organizers,
+        payment: data.payment,
+        customer: data.customer,
+        cateringOrders: data.cateringOrders,
+        itemInfo: data.itemInfo,
+        organizers: data.organizers,
       });
       res.setHeader("Content-Type", "application/pdf");
       res.setHeader(
         "Content-Disposition",
         `attachment; filename="invoice-${
-          payment.invoice_number || booking.booking_ref
+          data.payment.invoice_number || booking.booking_ref
         }.pdf"`
       );
       res.send(pdfBuffer);

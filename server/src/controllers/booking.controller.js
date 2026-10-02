@@ -10,8 +10,14 @@ const {
 } = require("../services/booking.service");
 const db = require("../config/db");
 const { findUserById } = require("../models/user.model");
-const { sendBookingConfirmationEmail } = require("../services/email.service");
-const { sendBookingConfirmationSms } = require("../services/sms.service");
+const {
+  sendBookingConfirmationEmail,
+  sendBookingStatusEmail,
+} = require("../services/email.service");
+const {
+  sendBookingConfirmationSms,
+  sendBookingStatusSms,
+} = require("../services/sms.service");
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/bookings
@@ -84,9 +90,8 @@ const createBookingHandler = async (req, res, next) => {
       );
     }
 
-    // Isolated from the email try/catch above on purpose — Twilio being
-    // down (or the trial-account recipient-verification restriction)
-    // must never affect email delivery or the booking response either.
+    // Isolated from the email try/catch above on purpose — the SMS gateway
+    // being down must never affect email delivery or the booking response.
     try {
       if (user?.phone) {
         await sendBookingConfirmationSms(user.phone, {
@@ -126,12 +131,10 @@ const getBookingHandler = async (req, res, next) => {
     // Object-level check: customers may only view their own bookings.
     // Staff (admin/manager/front_desk) bypass this per their RBAC role.
     if (req.user.role === "customer" && result.user_id !== req.user.id) {
-      return res
-        .status(403)
-        .json({
-          success: false,
-          message: "You do not have access to this booking",
-        });
+      return res.status(403).json({
+        success: false,
+        message: "You do not have access to this booking",
+      });
     }
 
     return res.status(200).json({
@@ -186,11 +189,75 @@ const listBookingsHandler = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  PATCH /api/bookings/:bookingId/status
-//  Body: { status: 'confirmed' | 'cancelled' | 'completed', cancel_reason? }
-// ─────────────────────────────────────────────────────────────────────────────
+// FR-016 SMS + FR-017 email for a confirmed/cancelled booking. Runs AFTER the
+// response is sent. Each channel has its own try/catch so one failing never
+// blocks the other, and nothing here can affect the saved status update.
+
 const VALID_STATUSES = ["pending", "confirmed", "cancelled", "completed"];
+
+const notifyStatusChange = async (updated, status) => {
+  let customer = null;
+  try {
+    customer = await findUserById(updated.user_id);
+  } catch (lookupErr) {
+    console.error(
+      "[booking.controller] Customer lookup failed:",
+      lookupErr.message
+    );
+    return;
+  }
+  if (!customer) return;
+
+  const eventDate = new Date(updated.event_date).toLocaleDateString("en-GB");
+
+  // Email
+  try {
+    if (customer.email) {
+      // updateBookingStatus doesn't return hall names, so fetch them
+      // (primary hall + second hall for two-hall bookings).
+      let hallName = "Aazath Plaza";
+      try {
+        const full = await getBookingById(updated.booking_id);
+        hallName = full.second_hall_name
+          ? `${full.hall_name} + ${full.second_hall_name}`
+          : full.hall_name || hallName;
+      } catch (hallErr) {
+        console.error(
+          "[booking.controller] Hall lookup failed:",
+          hallErr.message
+        );
+      }
+
+      await sendBookingStatusEmail(customer.email, {
+        status,
+        customerName: customer.full_name,
+        bookingRef: updated.booking_ref,
+        hallName,
+        eventDate,
+        cancelReason: updated.cancel_reason,
+      });
+    }
+  } catch (emailErr) {
+    console.error(
+      "[booking.controller] Status email failed:",
+      emailErr.message
+    );
+  }
+
+  // SMS
+  try {
+    if (customer.phone) {
+      await sendBookingStatusSms(customer.phone, {
+        status,
+        bookingRef: updated.booking_ref,
+        eventDate,
+        cancelReason: updated.cancel_reason,
+      });
+    }
+  } catch (smsErr) {
+    console.error("[booking.controller] Status SMS failed:", smsErr.message);
+  }
+};
 
 const updateBookingStatusHandler = async (req, res, next) => {
   try {
@@ -210,11 +277,17 @@ const updateBookingStatusHandler = async (req, res, next) => {
       cancelReason: cancel_reason || null,
     });
 
-    return res.status(200).json({
+    res.status(200).json({
       success: true,
       message: `Booking ${status} successfully`,
       data: updated,
     });
+
+    // Not awaited: the customer is notified after staff already have their
+    // response, so the admin page no longer waits on SMTP / text.lk.
+    if (status === "confirmed" || status === "cancelled") {
+      notifyStatusChange(updated, status);
+    }
   } catch (err) {
     if (err.message?.includes("not found")) {
       return res.status(404).json({ success: false, message: err.message });

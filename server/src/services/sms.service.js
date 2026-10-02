@@ -70,8 +70,63 @@ const sendBookingConfirmationSms = async (to, { bookingRef, hallName, eventDate 
   });
 };
 
+// Sent once, when a payment completes and the booking is confirmed.
+const sendPaymentReceivedSms = async (
+  to,
+  { bookingRef, amount, invoiceNumber, eventDate }
+) => {
+  return sendSms({
+    to,
+    body:
+      `Aazath Plaza: Payment of LKR ${Number(amount).toLocaleString("en-LK")} received for ${bookingRef}. ` +
+      `Your booking for ${eventDate} is confirmed. Invoice: ${invoiceNumber}.`,
+  });
+};
+
+// Sent when money was received but the booking could not be confirmed
+// (date taken by another customer, or booking cancelled mid-payment).
+const sendPaymentRefundNoticeSms = async (to, { bookingRef }) => {
+  return sendSms({
+    to,
+    body:
+      `Aazath Plaza: We received your payment for ${bookingRef}, but the booking could not be confirmed. ` +
+      `Our staff will contact you shortly to arrange a refund.`,
+  });
+};
+
+// Sent when staff confirm or cancel a booking from the admin Bookings page.
+const sendBookingStatusSms = async (
+  to,
+  { status, bookingRef, eventDate, cancelReason }
+) => {
+  let body;
+  if (status === "confirmed") {
+    body = `Aazath Plaza: Your booking ${bookingRef} for ${eventDate} has been confirmed. We look forward to hosting you.`;
+  } else if (status === "cancelled") {
+    const reason = cancelReason ? ` Reason: ${String(cancelReason).slice(0, 80)}.` : "";
+    body = `Aazath Plaza: Your booking ${bookingRef} for ${eventDate} has been cancelled.${reason} Please contact us if you have questions.`;
+  } else {
+    return false; // pending/completed don't notify the customer
+  }
+  return sendSms({ to, body });
+};
+
+// Sent the day before a confirmed event by the reminder job.
+const sendEventReminderSms = async (to, { bookingRef, eventDate, startTime }) => {
+  return sendSms({
+    to,
+    body:
+      `Aazath Plaza: Reminder - your event (${bookingRef}) is tomorrow, ${eventDate}` +
+      `${startTime ? ` from ${startTime}` : ""}. We look forward to hosting you.`,
+  });
+};
+
 module.exports = {
   sendSms,
   sendBookingConfirmationSms,
+  sendEventReminderSms,
+  sendBookingStatusSms,
+  sendPaymentReceivedSms,
+  sendPaymentRefundNoticeSms,
   toTextLkRecipient,
 };
