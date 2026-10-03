@@ -9,6 +9,7 @@ import {
   UtensilsCrossed,
   Settings,
   CalendarClock,
+  MessageSquare,
 } from "lucide-react";
 
 export type AdminRole = "front_desk" | "manager" | "admin";
@@ -44,6 +45,12 @@ export const adminNavItems: AdminNavItem[] = [
     path: "/admin/customers",
     icon: Users,
     roles: ["front_desk", "manager", "admin"],
+  },
+  {
+    label: "Feedback",
+    path: "/admin/feedback",
+    icon: MessageSquare,
+    roles: ["admin", "manager"],
   },
   {
     label: "Manage Staffs",

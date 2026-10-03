@@ -68,7 +68,8 @@ const PERMISSIONS = {
 
   // ── Feedback ──────────────────────────────────────────────
   "feedback:create": ["customer"],
-  "feedback:read": ["admin", "manager", "front_desk"],
+  "feedback:read": ["admin", "manager"],
+  "feedback:manage": ["admin", "manager"],
 
   // ── Reports ───────────────────────────────────────────────
   "report:view": ["admin", "manager"],
@@ -78,7 +79,7 @@ const PERMISSIONS = {
   "user:read": ["admin", "manager", "front_desk"],
   "user:manage": ["admin"],
 
-    // ── Staff management (FR-003) ─────────────────────────────
+  // ── Staff management (FR-003) ─────────────────────────────
   "staff:read": ["admin"],
   "staff:create": ["admin"],
   "staff:update": ["admin"],

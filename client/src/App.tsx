@@ -38,6 +38,7 @@ import AboutPage from "@/pages/customer/AboutPage";
 import ContactPage from "@/pages/customer/ContactPage";
 import { AdminStaffPage } from "@/pages/admin/AdminStaffPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
+import AdminFeedbackPage from "@/pages/admin/AdminFeedbackPage";
 
 function Home() {
   const { user } = useAuth();
@@ -84,7 +85,6 @@ function App() {
                 path="/payment/cancelled"
                 element={<PaymentCancelledPage />}
               />
-            
             </Route>
 
             {/* Customer only — booking history + account settings */}
@@ -111,6 +111,11 @@ function App() {
                 element={<EventTimelinePage />}
               />
               <Route path="customers" element={<AdminCustomersPage />} />
+              <Route
+                element={<ProtectedRoute allowedRoles={["admin", "manager"]} />}
+              >
+                <Route path="feedback" element={<AdminFeedbackPage />} />
+              </Route>{" "}
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="staff" element={<AdminStaffPage />} />
               </Route>
