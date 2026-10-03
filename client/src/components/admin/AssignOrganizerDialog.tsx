@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
+import { Loader2 } from "lucide-react";
 import {
   getAllOrganizers,
   getOrganizersForBooking,
@@ -32,6 +33,14 @@ interface AssignOrganizerDialogProps {
   bookingId: number;
   trigger?: React.ReactNode;
 }
+
+// Explicit colours so the form doesn't depend on shadcn CSS variables
+const fieldClass =
+  "h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 " +
+  "placeholder:text-gray-400 focus-visible:border-gray-900 focus-visible:outline-none " +
+  "focus-visible:ring-1 focus-visible:ring-gray-900";
+
+const labelClass = "mb-1 block text-xs font-medium text-gray-500";
 
 const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
   bookingId,
@@ -121,85 +130,137 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
       <DialogTrigger asChild>
         {trigger ?? <Button variant="outline">Manage Organizers</Button>}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Assign Event Organizer</DialogTitle>
+      <DialogContent className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-xl border border-gray-200 bg-white p-6 shadow-xl sm:max-w-md">
+        <DialogHeader className="border-b border-gray-100 pb-4 text-left">
+          <DialogTitle className="text-lg font-semibold text-gray-900">
+            Assign event organizer
+          </DialogTitle>
+          <p className="text-sm text-gray-500">
+            Add an organizer to this booking.
+          </p>
         </DialogHeader>
 
         {loading ? (
-          <p className="text-sm text-muted-foreground">Loading…</p>
+          <div className="flex items-center justify-center py-10 text-sm text-gray-400">
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            Loading…
+          </div>
         ) : (
-          <div className="space-y-4">
+          <div className="space-y-5">
             {assignedOrganizers.length > 0 && (
               <div className="space-y-2">
-                <h4 className="text-sm font-medium">Currently Assigned</h4>
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                  Currently assigned
+                </h4>
                 {assignedOrganizers.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center justify-between rounded-md border p-2 text-sm"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
                   >
-                    <div>
-                      <p className="font-medium">{a.business_name}</p>
-                      <p className="text-muted-foreground">
+                    <div className="min-w-0">
+                      <p className="truncate font-medium text-gray-900">
+                        {a.business_name}
+                      </p>
+                      <p className="truncate text-xs text-gray-500">
                         {a.role_in_event} · LKR{" "}
                         {Number(a.agreed_fee).toLocaleString()}
                       </p>
                     </div>
-                    <Badge variant="secondary">{a.specialty}</Badge>
+                    <Badge
+                      variant="secondary"
+                      className="shrink-0 bg-purple-50 text-purple-700"
+                    >
+                      {a.specialty}
+                    </Badge>
                   </div>
                 ))}
               </div>
             )}
 
-            <div className="space-y-3 border-t pt-4">
-              <h4 className="text-sm font-medium">Assign New Organizer</h4>
+            <div className="space-y-4">
+              <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                Assign new organizer
+              </h4>
 
-              <Select
-                value={selectedOrganizerId}
-                onValueChange={setSelectedOrganizerId}
+              <div>
+                <label className={labelClass}>Organizer</label>
+                <Select
+                  value={selectedOrganizerId}
+                  onValueChange={setSelectedOrganizerId}
+                >
+                  <SelectTrigger className={fieldClass}>
+                    <SelectValue placeholder="Select an organizer" />
+                  </SelectTrigger>
+                  <SelectContent className="border border-gray-200 bg-white shadow-lg">
+                    {unassignedOrganizers.map((org) => (
+                      <SelectItem
+                        key={org.organizer_id}
+                        value={String(org.organizer_id)}
+                      >
+                        {org.business_name} — {org.specialty}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <label className={labelClass}>Role in event</label>
+                <Input
+                  className={fieldClass}
+                  placeholder="e.g. Decoration Lead"
+                  value={roleInEvent}
+                  onChange={(e) => setRoleInEvent(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>Agreed fee (LKR)</label>
+                <Input
+                  className={fieldClass}
+                  type="number"
+                  min={0}
+                  placeholder="0.00"
+                  value={agreedFee}
+                  onChange={(e) => setAgreedFee(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className={labelClass}>
+                  Notes <span className="text-gray-400">(optional)</span>
+                </label>
+                <Textarea
+                  className={`${fieldClass} h-auto min-h-[80px] py-2`}
+                  rows={3}
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+
+              {error && (
+                <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">
+                  {error}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                className="text-gray-600 hover:bg-gray-100"
               >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an organizer" />
-                </SelectTrigger>
-                <SelectContent>
-                  {unassignedOrganizers.map((org) => (
-                    <SelectItem
-                      key={org.organizer_id}
-                      value={String(org.organizer_id)}
-                    >
-                      {org.business_name} — {org.specialty}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Input
-                placeholder="Role in event (e.g. Decoration Lead)"
-                value={roleInEvent}
-                onChange={(e) => setRoleInEvent(e.target.value)}
-              />
-
-              <Input
-                type="number"
-                placeholder="Agreed fee (LKR)"
-                value={agreedFee}
-                onChange={(e) => setAgreedFee(e.target.value)}
-              />
-
-              <Textarea
-                placeholder="Notes (optional)"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-              />
-
-              {error && <p className="text-sm text-destructive">{error}</p>}
-
+                Close
+              </Button>
               <Button
                 onClick={handleAssign}
                 disabled={submitting}
-                className="w-full"
+                className="bg-gray-900 text-white hover:bg-gray-800"
               >
-                {submitting ? "Assigning…" : "Assign Organizer"}
+                {submitting && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
+                {submitting ? "Assigning…" : "Assign organizer"}
               </Button>
             </div>
           </div>

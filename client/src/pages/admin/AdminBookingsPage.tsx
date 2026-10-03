@@ -1,6 +1,15 @@
 import { useEffect, useState, useCallback } from "react";
 import { listBookings, updateBookingStatus } from "@/lib/booking.api";
-import { Loader2, CheckCircle2, XCircle, X, CalendarClock } from "lucide-react";
+import {
+  Loader2,
+  CheckCircle2,
+  XCircle,
+  X,
+  CalendarClock,
+  UserPlus,
+  Check,
+  Plus,
+} from "lucide-react";
 import type { AdminBooking, BookingStatus } from "@/types/booking.types";
 import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
 import { Link } from "react-router-dom";
@@ -20,11 +29,17 @@ const STATUS_OPTIONS: BookingStatus[] = [
 const PAGE_SIZE = 10;
 
 const STATUS_BADGE: Record<BookingStatus, string> = {
-  pending: "bg-amber-100 text-amber-700",
-  confirmed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-  completed: "bg-blue-100 text-blue-700",
+  pending: "bg-amber-50 text-amber-700 ring-amber-200",
+  confirmed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
+  cancelled: "bg-rose-50 text-rose-700 ring-rose-200",
+  completed: "bg-blue-50 text-blue-700 ring-blue-200",
 };
+
+const inputClass =
+  "h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900";
+
+const iconBtn =
+  "inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors disabled:opacity-50";
 
 export function AdminBookingsPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
@@ -195,49 +210,52 @@ export function AdminBookingsPage() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const currentPage = Math.floor(offset / PAGE_SIZE) + 1;
 
+  const bulkDisabled =
+    bulkPreparing || (!!statusFilter && statusFilter !== "pending");
+
   return (
-    <div>
-      <div className="flex items-start justify-between">
+    <div className="min-w-0">
+      {/* ── Header ──────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Bookings</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+            Bookings
+          </h1>
           <p className="mt-1 text-sm text-gray-500">
             Review, confirm, and manage hall booking requests.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           <button
             onClick={() => openBulk("confirm")}
-            disabled={
-              bulkPreparing || (!!statusFilter && statusFilter !== "pending")
-            }
-            className="flex items-center gap-1 rounded-md bg-green-600 px-4 py-2 text-sm font-medium text-white hover:bg-green-700 disabled:opacity-50"
+            disabled={bulkDisabled}
+            className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
           >
-            <CheckCircle2 className="w-4 h-4" />
+            <CheckCircle2 className="h-4 w-4" />
             Confirm All
           </button>
           <button
             onClick={() => openBulk("reject")}
-            disabled={
-              bulkPreparing || (!!statusFilter && statusFilter !== "pending")
-            }
-            className="flex items-center gap-1 rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+            disabled={bulkDisabled}
+            className="flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
           >
-            <XCircle className="w-4 h-4" />
+            <XCircle className="h-4 w-4" />
             Reject All
           </button>
           <Link
             to="/book"
-            className="rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800"
+            className="flex items-center gap-1.5 rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
           >
+            <Plus className="h-4 w-4" />
             Book a Hall
           </Link>
         </div>
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
-      <div className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-gray-200 bg-white p-4">
+      <div className="mt-6 grid grid-cols-2 items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-4 xl:grid-cols-5">
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-500">
             Status
           </label>
           <select
@@ -247,7 +265,7 @@ export function AdminBookingsPage() {
                 e.target.value as BookingStatus | ""
               )
             }
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className={inputClass}
           >
             <option value="">All statuses</option>
             {STATUS_OPTIONS.map((s) => (
@@ -259,13 +277,13 @@ export function AdminBookingsPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-500">
             Hall
           </label>
           <select
             value={hallFilter}
             onChange={(e) => handleFilterChange(setHallFilter)(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className={inputClass}
           >
             <option value="">All halls</option>
             {HALLS.map((h) => (
@@ -277,26 +295,26 @@ export function AdminBookingsPage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-500">
             From
           </label>
           <input
             type="date"
             value={dateFrom}
             onChange={(e) => handleFilterChange(setDateFrom)(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className={inputClass}
           />
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-gray-500 mb-1">
+          <label className="mb-1 block text-xs font-medium text-gray-500">
             To
           </label>
           <input
             type="date"
             value={dateTo}
             onChange={(e) => handleFilterChange(setDateTo)(e.target.value)}
-            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+            className={inputClass}
           />
         </div>
 
@@ -309,18 +327,18 @@ export function AdminBookingsPage() {
               setDateTo("");
               setOffset(0);
             }}
-            className="text-sm text-gray-500 hover:text-gray-700 underline"
+            className="h-9 text-left text-sm text-gray-500 underline hover:text-gray-700"
           >
             Clear filters
           </button>
         )}
       </div>
 
-      {/* ── Table ───────────────────────────────────────────────────── */}
-      <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      {/* ── Table card (no horizontal scroll) ───────────────────────── */}
+      <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
         {isLoading ? (
           <div className="flex items-center justify-center py-16 text-gray-400">
-            <Loader2 className="w-5 h-5 animate-spin mr-2" />
+            <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Loading bookings…
           </div>
         ) : error ? (
@@ -330,98 +348,133 @@ export function AdminBookingsPage() {
             No bookings match these filters.
           </div>
         ) : (
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase">
-                <th className="px-4 py-3">Ref</th>
+          <table className="w-full table-fixed text-sm">
+            <colgroup>
+              <col className="w-[24%]" />
+              <col className="w-[17%]" />
+              <col className="w-[14%]" />
+              <col className="w-[7%]" />
+              <col className="w-[13%]" />
+              <col className="w-[11%]" />
+              <col className="w-[14%]" />
+            </colgroup>
+            <thead className="bg-gray-50">
+              <tr className="border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Hall</th>
-                <th className="px-4 py-3">Date</th>
-                <th className="px-4 py-3">Time</th>
-                <th className="px-4 py-3">Type</th>
-                <th className="px-4 py-3">Guests</th>
-                <th className="px-4 py-3">Total</th>
+                <th className="px-4 py-3">Hall / Type</th>
+                <th className="px-4 py-3">Date &amp; Time</th>
+                <th className="px-4 py-3 text-right">Guests</th>
+                <th className="px-4 py-3 text-right">Total</th>
                 <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {bookings.map((b) => (
-                <tr key={b.booking_id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-700">
-                    {b.booking_ref}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="text-gray-800">{b.customer_name}</div>
-                    <div className="text-xs text-gray-400">
+                <tr
+                  key={b.booking_id}
+                  className="transition-colors hover:bg-gray-50/70"
+                >
+                  <td className="px-4 py-3 align-top">
+                    <div className="truncate font-medium text-gray-900">
+                      {b.customer_name}
+                    </div>
+                    <div className="truncate text-xs text-gray-500">
                       {b.customer_email}
                     </div>
+                    <div className="mt-0.5 truncate font-mono text-[11px] text-gray-400">
+                      {b.booking_ref}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {b.second_hall_name
-                      ? `${b.hall_name} + ${b.second_hall_name}`
-                      : b.hall_name}
+
+                  <td className="px-4 py-3 align-top">
+                    <div className="font-medium text-gray-800">
+                      {b.second_hall_name
+                        ? `${b.hall_name} + ${b.second_hall_name}`
+                        : b.hall_name}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {b.event_type_label ?? b.event_type}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {formatDate(b.event_date)}
+
+                  <td className="whitespace-nowrap px-4 py-3 align-top">
+                    <div className="font-medium text-gray-800">
+                      {formatDate(b.event_date)}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {formatTime(b.event_start_time)}–
+                      {formatTime(b.event_end_time)}
+                    </div>
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {formatTime(b.event_start_time)}–
-                    {formatTime(b.event_end_time)}
+
+                  <td className="px-4 py-3 text-right align-top tabular-nums text-gray-700">
+                    {b.guest_count}
                   </td>
-                  <td className="px-4 py-3 text-gray-600">
-                    {b.event_type_label ?? b.event_type}
-                  </td>
-                  <td className="px-4 py-3 text-gray-600">{b.guest_count}</td>
-                  <td className="px-4 py-3 text-gray-600">
+
+                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-medium tabular-nums text-gray-800">
                     {formatCurrency(b.total_amount)}
                   </td>
-                  <td className="px-4 py-3">
+
+                  <td className="px-4 py-3 align-top">
                     <span
-                      className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
                         STATUS_BADGE[b.status]
                       }`}
                     >
                       {b.status}
                     </span>
                   </td>
-                  <td className="px-4 py-3 text-right">
-                    <div className="flex justify-end items-center gap-2">
+
+                  <td className="px-4 py-3 align-top">
+                    <div className="flex items-center justify-end gap-1">
                       {b.status === "pending" && (
                         <>
                           <button
                             onClick={() => handleConfirm(b)}
                             disabled={actionLoadingId === b.booking_id}
-                            className="flex items-center gap-1 rounded-md bg-green-50 px-2 py-1 text-xs font-medium text-green-700 hover:bg-green-100 disabled:opacity-50"
+                            title="Confirm booking"
+                            aria-label="Confirm booking"
+                            className={`${iconBtn} text-emerald-600 hover:bg-emerald-50`}
                           >
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            Confirm
+                            {actionLoadingId === b.booking_id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Check className="h-4 w-4" />
+                            )}
                           </button>
                           <button
                             onClick={() => openCancelModal(b)}
                             disabled={actionLoadingId === b.booking_id}
-                            className="flex items-center gap-1 rounded-md bg-red-50 px-2 py-1 text-xs font-medium text-red-700 hover:bg-red-100 disabled:opacity-50"
+                            title="Reject booking"
+                            aria-label="Reject booking"
+                            className={`${iconBtn} text-rose-600 hover:bg-rose-50`}
                           >
-                            <XCircle className="w-3.5 h-3.5" />
-                            Reject
+                            <X className="h-4 w-4" />
                           </button>
                         </>
                       )}
+
                       {b.status !== "cancelled" && (
                         <Link
                           to={`/admin/bookings/${b.booking_id}/timeline`}
-                          className="flex items-center gap-1 rounded-md bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 hover:bg-blue-100"
+                          title="Event timeline"
+                          aria-label="Event timeline"
+                          className={`${iconBtn} text-blue-600 hover:bg-blue-50`}
                         >
-                          <CalendarClock className="w-3.5 h-3.5" />
-                          Timeline
+                          <CalendarClock className="h-4 w-4" />
                         </Link>
                       )}
 
                       <AssignOrganizerDialog
                         bookingId={b.booking_id}
                         trigger={
-                          <button className="flex items-center gap-1 rounded-md bg-purple-50 px-2 py-1 text-xs font-medium text-purple-700 hover:bg-purple-100">
-                            Organizer
+                          <button
+                            title="Assign organizer"
+                            aria-label="Assign organizer"
+                            className={`${iconBtn} text-purple-600 hover:bg-purple-50`}
+                          >
+                            <UserPlus className="h-4 w-4" />
                           </button>
                         }
                       />
@@ -432,41 +485,41 @@ export function AdminBookingsPage() {
             </tbody>
           </table>
         )}
-      </div>
 
-      {/* ── Pagination ──────────────────────────────────────────────── */}
-      {!isLoading && total > 0 && (
-        <div className="mt-4 flex items-center justify-between text-sm text-gray-500">
-          <span>
-            Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of{" "}
-            {total}
-          </span>
-          <div className="flex gap-2">
-            <button
-              onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
-              disabled={offset === 0}
-              className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <span className="px-2 py-1">
-              Page {currentPage} of {totalPages}
+        {/* ── Pagination (inside the card) ──────────────────────────── */}
+        {!isLoading && total > 0 && (
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 bg-gray-50/60 px-4 py-3 text-sm text-gray-500">
+            <span>
+              Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of{" "}
+              {total}
             </span>
-            <button
-              onClick={() => setOffset((o) => o + PAGE_SIZE)}
-              disabled={offset + PAGE_SIZE >= total}
-              className="rounded-md border border-gray-300 px-3 py-1 disabled:opacity-40"
-            >
-              Next
-            </button>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
+                disabled={offset === 0}
+                className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+              >
+                Previous
+              </button>
+              <span className="px-2 py-1">
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                onClick={() => setOffset((o) => o + PAGE_SIZE)}
+                disabled={offset + PAGE_SIZE >= total}
+                className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+              >
+                Next
+              </button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* ── Cancel/Reject Modal ─────────────────────────────────────── */}
       {cancelTarget && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
             <div className="flex items-start justify-between">
               <h2 className="text-lg font-semibold text-gray-800">
                 {cancelTarget.status === "pending"
@@ -477,7 +530,7 @@ export function AdminBookingsPage() {
                 onClick={() => setCancelTarget(null)}
                 className="rounded-md p-1 hover:bg-gray-100"
               >
-                <X className="w-4 h-4 text-gray-400" />
+                <X className="h-4 w-4 text-gray-400" />
               </button>
             </div>
 
@@ -486,7 +539,7 @@ export function AdminBookingsPage() {
               {formatDate(cancelTarget.event_date)}
             </p>
 
-            <label className="block text-xs font-medium text-gray-500 mt-4 mb-1">
+            <label className="mb-1 mt-4 block text-xs font-medium text-gray-500">
               Reason (optional)
             </label>
             <textarea
@@ -494,7 +547,7 @@ export function AdminBookingsPage() {
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
               placeholder="e.g. Date conflict, customer requested cancellation…"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
             />
 
             <div className="mt-4 flex justify-end gap-2">
@@ -510,7 +563,7 @@ export function AdminBookingsPage() {
                 className="flex items-center gap-1 rounded-md bg-red-600 px-3 py-1.5 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
               >
                 {actionLoadingId === cancelTarget.booking_id && (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 )}
                 Confirm{" "}
                 {cancelTarget.status === "pending"
@@ -524,8 +577,8 @@ export function AdminBookingsPage() {
 
       {/* ── Bulk Confirm/Reject Modal ───────────────────────────────── */}
       {bulk && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-5 shadow-lg">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
             <h2 className="text-lg font-semibold text-gray-800">
               {bulk.action === "confirm" ? "Confirm All" : "Reject All"}
             </h2>
@@ -542,14 +595,14 @@ export function AdminBookingsPage() {
 
             {bulk.action === "reject" && (
               <>
-                <label className="block text-xs font-medium text-gray-500 mt-4 mb-1">
+                <label className="mb-1 mt-4 block text-xs font-medium text-gray-500">
                   Reason (optional)
                 </label>
                 <textarea
                   value={bulkReason}
                   onChange={(e) => setBulkReason(e.target.value)}
                   rows={3}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
                 />
               </>
             )}
@@ -572,7 +625,7 @@ export function AdminBookingsPage() {
                 }`}
               >
                 {bulkRunning && (
-                  <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  <Loader2 className="h-3.5 w-3.5 animate-spin" />
                 )}
                 {bulk.action === "confirm" ? "Confirm All" : "Reject All"}
               </button>
