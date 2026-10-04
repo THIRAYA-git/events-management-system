@@ -72,8 +72,8 @@ const PERMISSIONS = {
   "feedback:manage": ["admin", "manager"],
 
   // ── Reports ───────────────────────────────────────────────
-  "report:view": ["admin", "manager"],
-  "report:export": ["admin"],
+  "report:read": ["admin", "manager"],
+  "report:export": ["admin", "manager"],
 
   // ── User management ───────────────────────────────────────
   "user:read": ["admin", "manager", "front_desk"],
