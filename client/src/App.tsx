@@ -39,6 +39,7 @@ import ContactPage from "@/pages/customer/ContactPage";
 import { AdminStaffPage } from "@/pages/admin/AdminStaffPage";
 import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import AdminFeedbackPage from "@/pages/admin/AdminFeedbackPage";
+import { AdminReportsPage } from "@/pages/admin/AdminReportsPage";
 
 function Home() {
   const { user } = useAuth();
@@ -125,6 +126,7 @@ function App() {
               />
               <Route path="catering" element={<AdminCateringPage />} />
               <Route path="analytics" element={<AdminAnalyticsPage />} />
+              <Route path="reports" element={<AdminReportsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>

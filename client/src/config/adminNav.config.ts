@@ -10,6 +10,7 @@ import {
   Settings,
   CalendarClock,
   MessageSquare,
+  FileText,
 } from "lucide-react";
 
 export type AdminRole = "front_desk" | "manager" | "admin";
@@ -81,5 +82,11 @@ export const adminNavItems: AdminNavItem[] = [
     path: "/admin/settings",
     icon: Settings,
     roles: ["front_desk", "manager", "admin"],
+  },
+  {
+    label: "Reports",
+    path: "/admin/reports",
+    icon: FileText,
+    roles: ["manager", "admin"],
   },
 ];

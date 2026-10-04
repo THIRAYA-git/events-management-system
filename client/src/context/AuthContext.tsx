@@ -18,6 +18,7 @@ interface AuthContextValue {
   permissions: string[];
   isLoading: boolean;
   login: (payload: LoginPayload) => Promise<AuthUser>;
+  loginWithGoogle: (credential: string) => Promise<AuthUser>;
   register: (payload: RegisterPayload) => Promise<AuthUser>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
@@ -73,6 +74,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return nextUser; // lets the login page redirect by role immediately
   };
 
+    const loginWithGoogle = async (credential: string) => {
+    const { data } = await api.post<AuthResponse>("/auth/google", { credential });
+    const nextUser = normalizeUser(data.user);
+    setAccessToken(data.accessToken);
+    setUser(nextUser);
+    setPermissions(data.permissions);
+    return nextUser;
+  };
+
   const register = async (payload: RegisterPayload) => {
     const { data } = await api.post<AuthResponse>("/auth/register", payload);
     const nextUser = normalizeUser(data.user);
@@ -109,6 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         permissions,
         isLoading,
         login,
+        loginWithGoogle,
         register,
         logout,
         refreshUser,

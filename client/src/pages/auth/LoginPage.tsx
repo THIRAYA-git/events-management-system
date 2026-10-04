@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
+import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/context/AuthContext";
 import { getHomePath } from "@/utils/navigation";
 import AuthLayout from "@/components/auth/AuthLayout";
@@ -11,7 +12,7 @@ import {
 } from "@/components/auth/authStyles";
 
 export default function LoginPage() {
-  const { login } = useAuth();
+  const { login, loginWithGoogle } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [email, setEmail] = useState("");
@@ -26,7 +27,6 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
-      // Honour a deep link the user was redirected from; otherwise go to the role's home
       navigate(from || getHomePath(loggedInUser.role), { replace: true });
     } catch (err: any) {
       const msg =
@@ -34,6 +34,22 @@ export default function LoginPage() {
         err?.response?.data?.error ||
         "Login failed. Please try again.";
       toast.error(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleGoogleSuccess = async (cred: CredentialResponse) => {
+    if (!cred.credential) {
+      toast.error("Google sign-in failed. Please try again.");
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      const loggedInUser = await loginWithGoogle(cred.credential);
+      navigate(from || getHomePath(loggedInUser.role), { replace: true });
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Google sign-in failed.");
     } finally {
       setIsSubmitting(false);
     }
@@ -96,6 +112,22 @@ export default function LoginPage() {
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
+
+      <div className="my-6 flex items-center gap-3">
+        <div className="h-px flex-1 bg-gray-200" />
+        <span className="text-xs text-gray-500">or</span>
+        <div className="h-px flex-1 bg-gray-200" />
+      </div>
+
+      <div className="flex justify-center">
+        <GoogleLogin
+          onSuccess={handleGoogleSuccess}
+          onError={() => toast.error("Google sign-in failed. Please try again.")}
+          text="signin_with"
+          shape="rectangular"
+          width="320"
+        />
+      </div>
     </AuthLayout>
   );
 }
