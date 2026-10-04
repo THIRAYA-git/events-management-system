@@ -2,12 +2,16 @@
 -- EVENTS MANAGEMENT SYSTEM - SEED DATA
 -- Aazath Plaza Reception Hall
 -- Author: R. Fathima Thiraya | SEU/IS/21/MIT/066
+-- Updated: 4 Oct 2026 - added hall_bookings (section 6b) so the
+--          Reports page / hall usage counts the seed bookings.
+-- WARNING: this script TRUNCATEs bookings (and everything that
+--          references it), so it replaces ALL existing bookings.
 -- ============================================================
 
 -- ── CLEAR EXISTING DATA (safe order) ────────────────────────
 TRUNCATE TABLE audit_log, notifications, password_reset_tokens,
   feedback, catering_orders, booking_organizers, event_timelines,
-  payments, bookings, organizers, sponsors, menu_items,
+  payments, hall_bookings, bookings, organizers, sponsors, menu_items,
   packages, users
 RESTART IDENTITY CASCADE;
 
@@ -155,6 +159,62 @@ INSERT INTO bookings (user_id, package_id, booking_ref, event_date, event_start_
 (8, 3, 'AP-20260106-0010', '2026-04-20', '14:00', '22:00', 'Wedding Reception',    300, 'cancelled', 130000,    0,    0,      0, 130000, 'Cancelled due to change of venue.',                           NULL, NULL);
 
 -- ============================================================
+-- 6b. HALLS (only if missing) + HALL BOOKINGS
+-- bookings alone do not say which hall was used; hall_bookings
+-- does, and the Reports / Dashboard hall usage read from it.
+-- Assignment: birthday bookings (0007, 0009) -> Hall 2 - Banquet,
+-- everything else -> Hall 1 - Grand. Halls are looked up by name,
+-- so hall_id values do not matter.
+-- ============================================================
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM halls WHERE hall_name = 'Hall 1 - Grand') THEN
+    INSERT INTO halls (hall_name, floor_number, capacity, description, base_price, is_active, amenities)
+    VALUES ('Hall 1 - Grand', 1, 600, 'Main hall with stage and A/C', 0, TRUE, '["A/C","Stage","Projector"]');
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM halls WHERE hall_name = 'Hall 2 - Banquet') THEN
+    INSERT INTO halls (hall_name, floor_number, capacity, description, base_price, is_active, amenities)
+    VALUES ('Hall 2 - Banquet', 2, 600, 'Banquet hall with garden view', 0, TRUE, '["A/C","Garden View"]');
+  END IF;
+END $$;
+
+-- hall_bookings.status is an enum; look its type up instead of hard-coding the name
+DO $$
+DECLARE
+  status_type text;
+  n integer;
+BEGIN
+  SELECT udt_name INTO status_type
+  FROM information_schema.columns
+  WHERE table_schema = 'public'
+    AND table_name = 'hall_bookings' AND column_name = 'status';
+
+  EXECUTE format($q$
+    INSERT INTO hall_bookings
+      (hall_id, booking_id, event_date, event_start_time, event_end_time,
+       status, notes, is_complimentary)
+    SELECT
+      (SELECT h.hall_id FROM halls h
+        WHERE h.hall_name = CASE
+          WHEN b.booking_ref IN ('AP-20260703-0007', 'AP-20260805-0009')
+            THEN 'Hall 2 - Banquet'
+          ELSE 'Hall 1 - Grand'
+        END),
+      b.booking_id, b.event_date, b.event_start_time, b.event_end_time,
+      b.status::text::%I,
+      'Seed data: hall assignment',
+      false
+    FROM bookings b
+    WHERE NOT EXISTS (
+      SELECT 1 FROM hall_bookings hb WHERE hb.booking_id = b.booking_id
+    )
+  $q$, status_type);
+
+  GET DIAGNOSTICS n = ROW_COUNT;
+  RAISE NOTICE 'Inserted % hall_bookings rows', n;
+END $$;
+
+-- ============================================================
 -- 7. PAYMENTS
 -- ============================================================
 INSERT INTO payments (booking_id, amount, payment_method, transaction_id, status, currency, invoice_number, paid_at) VALUES
@@ -267,6 +327,7 @@ INSERT INTO audit_log (user_id, action, table_name, record_id, new_values, ip_ad
 SELECT 'users'              AS table_name, COUNT(*) AS rows FROM users
 UNION ALL SELECT 'packages',          COUNT(*) FROM packages
 UNION ALL SELECT 'bookings',          COUNT(*) FROM bookings
+UNION ALL SELECT 'hall_bookings',     COUNT(*) FROM hall_bookings
 UNION ALL SELECT 'payments',          COUNT(*) FROM payments
 UNION ALL SELECT 'event_timelines',   COUNT(*) FROM event_timelines
 UNION ALL SELECT 'organizers',        COUNT(*) FROM organizers

@@ -3,6 +3,8 @@
 //  Complete replacement for your existing auth.controller.js
 // ─────────────────────────────────────────────────────────────
 const crypto = require("crypto");
+const { OAuth2Client } = require("google-auth-library");
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 const {
   hashPassword,
@@ -68,11 +70,9 @@ const register = async (req, res) => {
 
     // Input validation
     if (!full_name || !email || !password || !phone) {
-      return res
-        .status(400)
-        .json({
-          message: "full_name, email, password and phone are required.",
-        });
+      return res.status(400).json({
+        message: "full_name, email, password and phone are required.",
+      });
     }
     if (password.length < 8) {
       return res
@@ -159,6 +159,9 @@ const login = async (req, res) => {
         message: `Account locked after too many failed attempts. Try again after ${unlockTime}.`,
       });
     }
+    if (!user.password_hash) {
+      return res.status(401).json({ message: "Invalid credentials." });
+    }
 
     const valid = await comparePassword(password, user.password_hash);
     if (!valid) {
@@ -216,6 +219,106 @@ const login = async (req, res) => {
   }
 };
 
+// ── POST /api/auth/google ─────────────────────────────────────
+const googleLoginHandler = async (req, res) => {
+  try {
+    const { credential } = req.body;
+    if (!credential) {
+      return res.status(400).json({ message: "Missing Google credential." });
+    }
+
+    // Verify the ID token with Google
+    let payload;
+    try {
+      const ticket = await googleClient.verifyIdToken({
+        idToken: credential,
+        audience: process.env.GOOGLE_CLIENT_ID,
+      });
+      payload = ticket.getPayload();
+    } catch {
+      return res.status(401).json({ message: "Invalid Google token." });
+    }
+
+    if (!payload?.email || !payload.email_verified) {
+      return res.status(403).json({ message: "Google email is not verified." });
+    }
+
+    const { sub, email, name } = payload;
+
+    let user = await findUserByEmail(email);
+
+    if (!user) {
+      // First-time Google user: always a customer, no password
+      const { rows } = await query(
+        `INSERT INTO users (full_name, email, password_hash, role, google_id, is_verified, is_active)
+         VALUES ($1, $2, NULL, 'customer', $3, true, true)
+         RETURNING *`,
+        [name || email.split("@")[0], email, sub]
+      );
+      user = rows[0];
+      await audit(
+        user.user_id,
+        "CREATE_USER",
+        user.user_id,
+        { email: user.email, role: user.role, provider: "google" },
+        getIp(req)
+      );
+    } else {
+      // Existing account: link the Google ID if not linked yet
+      await query(
+        `UPDATE users SET google_id = COALESCE(google_id, $1) WHERE user_id = $2`,
+        [sub, user.user_id]
+      );
+    }
+
+    // Same deactivated-account check as login
+    const { rows: activeRows } = await query(
+      `SELECT is_active FROM users WHERE user_id = $1`,
+      [user.user_id]
+    );
+    if (activeRows[0]?.is_active === false) {
+      return res.status(403).json({
+        message:
+          "Your account has been deactivated. Please contact the administrator.",
+      });
+    }
+
+    await updateLastLogin(user.user_id);
+
+    const accessToken = generateToken(user);
+    const refreshToken = generateRefreshToken(user);
+    await saveRefreshToken(user.user_id, refreshToken);
+
+    await audit(
+      user.user_id,
+      "LOGIN",
+      user.user_id,
+      { email: user.email, role: user.role, provider: "google" },
+      getIp(req)
+    );
+
+    res.cookie("refreshToken", refreshToken, COOKIE_OPTS);
+    return res.json({
+      message: "Logged in successfully.",
+      user: {
+        id: user.user_id,
+        name: user.full_name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role,
+        is_verified: user.is_verified,
+        profile_image: user.profile_image,
+        last_login: user.last_login,
+      },
+      accessToken,
+      permissions: getPermissions(user.role),
+    });
+  } catch (error) {
+    console.error("[googleLogin]", error);
+    return res.status(500).json({ error: error.message });
+  }
+};
+
 // ── POST /api/auth/refresh ────────────────────────────────────
 const refresh = async (req, res) => {
   try {
@@ -234,11 +337,9 @@ const refresh = async (req, res) => {
 
     const user = await findUserByRefreshToken(token);
     if (!user) {
-      return res
-        .status(401)
-        .json({
-          message: "Refresh token reuse detected. Please log in again.",
-        });
+      return res.status(401).json({
+        message: "Refresh token reuse detected. Please log in again.",
+      });
     }
 
     // Rotate: issue new pair
@@ -421,6 +522,7 @@ const changeOwnPassword = async (req, res) => {
 module.exports = {
   register,
   login,
+  googleLoginHandler,
   refresh,
   logout,
   me,

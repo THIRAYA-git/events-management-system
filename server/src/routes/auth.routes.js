@@ -7,6 +7,7 @@ const { authenticate } = require("../middleware/auth.middleware");
 const {
   register,
   login,
+  googleLoginHandler,
   refresh,
   logout,
   me,
@@ -19,6 +20,7 @@ const {
 // Public
 router.post("/register",        register);
 router.post("/login",           login);
+router.post("/google", googleLoginHandler);
 router.post("/refresh",         refresh);
 router.post("/logout",          logout);
 router.post("/forgot-password", forgotPassword);
