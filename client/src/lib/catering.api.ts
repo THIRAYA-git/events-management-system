@@ -27,9 +27,18 @@ export const createCateringOrder = async (
   return data.order;
 };
 
-// Admin/manager/front_desk/restaurant table view across all bookings
+// Admin/manager/front_desk/restaurant table view across all bookings.
+// hideDeliveredThrough (YYYY-MM-DD): hides delivered orders on/before that day.
+// dateFilter + today (YYYY-MM-DD, client local date): event-date filter.
 export const listAllCateringOrders = async (
-  params: { status?: string; limit?: number; offset?: number } = {}
+  params: {
+    status?: string;
+    limit?: number;
+    offset?: number;
+    hideDeliveredThrough?: string;
+    dateFilter?: "overdue" | "today" | "upcoming";
+    today?: string;
+  } = {}
 ): Promise<CateringOrderListResponse> => {
   const { data } = await api.get("/catering-orders", { params });
   return data;

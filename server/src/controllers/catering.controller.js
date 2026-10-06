@@ -69,15 +69,34 @@ const listCateringOrdersForBookingHandler = async (req, res) => {
 };
 
 // GET /api/catering-orders — admin/manager/front_desk/restaurant table view
+const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const DATE_FILTERS = ["overdue", "today", "upcoming"];
+
 const listCateringOrdersHandler = async (req, res) => {
   try {
-    const { status, limit, offset } = req.query;
+    const { status, limit, offset, hideDeliveredThrough, dateFilter, today } = req.query;
+
+    if (hideDeliveredThrough && !DATE_RE.test(hideDeliveredThrough)) {
+      return res.status(400).json({ message: "hideDeliveredThrough must be YYYY-MM-DD" });
+    }
+    if (dateFilter) {
+      if (!DATE_FILTERS.includes(dateFilter)) {
+        return res.status(400).json({ message: "dateFilter must be overdue, today or upcoming" });
+      }
+      if (!today || !DATE_RE.test(today)) {
+        return res.status(400).json({ message: "today (YYYY-MM-DD) is required with dateFilter" });
+      }
+    }
+
     const restaurantId = req.user.role === "restaurant" ? req.user.id : undefined;
     const result = await cateringService.listAllCateringOrders({
       status,
       limit: limit ? Number(limit) : undefined,
       offset: offset ? Number(offset) : undefined,
       restaurantId,
+      hideDeliveredThrough,
+      dateFilter,
+      today,
     });
     res.status(200).json(result);
   } catch (err) {

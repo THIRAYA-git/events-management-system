@@ -42,6 +42,7 @@ export interface CateringOrder {
   // Only present on the admin GET /catering-orders list response
   booking_ref?: string;
   event_type?: string;
+  event_date?: string; // "YYYY-MM-DD", from bookings.event_date (list response only)
   customer_name?: string;
 }
 

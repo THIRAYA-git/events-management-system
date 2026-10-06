@@ -161,9 +161,22 @@ const listCateringOrdersForBooking = async (bookingId, requestingUser) => {
   return result.rows;
 };
 
-// Admin/manager/front_desk/restaurant view across every booking — used by
-// the admin Catering Orders table, not scoped to a single customer.
-const listAllCateringOrders = async ({ status, limit = 20, offset = 0, restaurantId } = {}) => {
+// Admin/manager/front_desk/restaurant view across every booking.
+// Sort: open orders first (soonest event date first), then finished orders
+// (delivered/cancelled), most recent first.
+// hideDeliveredThrough (YYYY-MM-DD): hides DELIVERED orders whose event date
+// is on or before that day. Display-only; nothing is deleted.
+// dateFilter ('overdue' | 'today' | 'upcoming') + today (YYYY-MM-DD, the
+// client's local date): filters by event date relative to today.
+const listAllCateringOrders = async ({
+  status,
+  limit = 20,
+  offset = 0,
+  restaurantId,
+  hideDeliveredThrough,
+  dateFilter,
+  today,
+} = {}) => {
   const conditions = ["1=1"];
   const params = [];
 
@@ -184,6 +197,27 @@ const listAllCateringOrders = async ({ status, limit = 20, offset = 0, restauran
     `);
   }
 
+  if (hideDeliveredThrough) {
+    params.push(hideDeliveredThrough);
+    conditions.push(
+      `NOT (co.status = 'delivered' AND b.event_date <= $${params.length}::date)`
+    );
+  }
+
+  if (dateFilter && today) {
+    params.push(today);
+    const t = `$${params.length}::date`;
+    if (dateFilter === "overdue") {
+      conditions.push(
+        `(b.event_date < ${t} AND co.status IN ('pending', 'confirmed', 'preparing'))`
+      );
+    } else if (dateFilter === "today") {
+      conditions.push(`b.event_date = ${t}`);
+    } else if (dateFilter === "upcoming") {
+      conditions.push(`b.event_date > ${t}`);
+    }
+  }
+
   const where = conditions.join(" AND ");
 
   params.push(limit);
@@ -195,18 +229,27 @@ const listAllCateringOrders = async ({ status, limit = 20, offset = 0, restauran
     `SELECT co.order_id, co.booking_id, co.menu_items, co.total_cost, co.guest_count, co.status,
             co.special_notes, co.delivery_time, co.confirmed_at, co.delivered_at,
             co.created_at, co.updated_at,
-            b.booking_ref, b.event_type, u.full_name AS customer_name
+            b.booking_ref, b.event_type, to_char(b.event_date, 'YYYY-MM-DD') AS event_date,
+            u.full_name AS customer_name
      FROM catering_orders co
      JOIN bookings b ON b.booking_id = co.booking_id
      JOIN users u ON u.user_id = b.user_id
      WHERE ${where}
-     ORDER BY co.created_at DESC
+     ORDER BY
+       (co.status IN ('delivered', 'cancelled')),
+       CASE WHEN co.status IN ('delivered', 'cancelled') THEN NULL ELSE b.event_date END ASC,
+       CASE WHEN co.status IN ('delivered', 'cancelled') THEN b.event_date END DESC,
+       co.delivery_time ASC NULLS LAST,
+       co.order_id ASC
      LIMIT ${limitParam} OFFSET ${offsetParam}`,
     params
   );
 
   const countResult = await db.query(
-    `SELECT COUNT(*)::int AS count FROM catering_orders co WHERE ${where}`,
+    `SELECT COUNT(*)::int AS count
+     FROM catering_orders co
+     JOIN bookings b ON b.booking_id = co.booking_id
+     WHERE ${where}`,
     params.slice(0, params.length - 2)
   );
 
