@@ -49,7 +49,7 @@ const getBookingOwnerId = async (bookingId) => {
 const getSponsorRequestsForBooking = async (bookingId) => {
   const result = await db.query(
     `SELECT bs.id, bs.booking_id, bs.sponsor_id, bs.proposed_amount, bs.message,
-            bs.status, bs.responded_by, bs.responded_at, bs.requested_at,
+            bs.status, bs.direction, bs.responded_by, bs.responded_at, bs.requested_at,
             s.company_name, s.industry, s.budget_range
      FROM booking_sponsors bs
      JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
@@ -63,7 +63,7 @@ const getSponsorRequestsForBooking = async (bookingId) => {
 const getSponsorRequestsForSponsorUser = async (sponsorUserId) => {
   const result = await db.query(
     `SELECT bs.id, bs.booking_id, bs.sponsor_id, bs.proposed_amount, bs.message,
-            bs.status, bs.responded_by, bs.responded_at, bs.requested_at,
+            bs.status, bs.direction, bs.responded_by, bs.responded_at, bs.requested_at,
             b.booking_ref, b.event_type, b.event_date, u.full_name AS customer_name
      FROM booking_sponsors bs
      JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
@@ -140,18 +140,27 @@ const respondToSponsorRequest = async (
   }
 
   const requestResult = await db.query(
-    `SELECT bs.id, bs.status, s.user_id AS sponsor_user_id
+    `SELECT bs.id, bs.status, bs.direction, s.user_id AS sponsor_user_id
      FROM booking_sponsors bs
      JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
      WHERE bs.id = $1`,
     [requestId]
   );
+
   if (requestResult.rows.length === 0) {
     const err = new Error("Sponsor request not found");
     err.statusCode = 404;
     throw err;
   }
   const request = requestResult.rows[0];
+
+  if (request.direction === "sponsor_to_customer") {
+    const err = new Error(
+      "Sponsor offers can only be answered by the booking's customer"
+    );
+    err.statusCode = 403;
+    throw err;
+  }
 
   const isStaff = ["admin", "manager"].includes(respondingRole);
   const isOwningSponsor =
@@ -184,7 +193,7 @@ const respondToSponsorRequest = async (
 
 const withdrawSponsorRequest = async (requestId, requestingUserId) => {
   const requestResult = await db.query(
-    `SELECT bs.id, bs.status, b.user_id AS customer_user_id
+    `SELECT bs.id, bs.status, bs.direction, b.user_id AS customer_user_id
      FROM booking_sponsors bs
      JOIN bookings b ON b.booking_id = bs.booking_id
      WHERE bs.id = $1`,
@@ -197,9 +206,41 @@ const withdrawSponsorRequest = async (requestId, requestingUserId) => {
   }
   const request = requestResult.rows[0];
 
+  if (request.direction === "sponsor_to_customer") {
+    const err = new Error("Use reject to decline a sponsor's offer");
+    err.statusCode = 400;
+    throw err;
+  }
+
   if (request.customer_user_id !== requestingUserId) {
     const err = new Error("You can only withdraw your own sponsor requests");
     err.statusCode = 403;
+    throw err;
+  }
+
+  if (request.status !== "pending") {
+    const err = new Error(
+      `Cannot withdraw a request that is already '${request.status}'`
+    );
+    err.statusCode = 409;
+    throw err;
+  }
+
+  if (request.direction === "sponsor_to_customer") {
+    const err = new Error("Use reject to decline a sponsor's offer");
+    err.statusCode = 400;
+    throw err;
+  }
+
+  if (request.customer_user_id !== requestingUserId) {
+    const err = new Error("You can only withdraw your own sponsor requests");
+    err.statusCode = 403;
+    throw err;
+  }
+
+  if (requestResult.rows.length === 0) {
+    const err = new Error("Sponsor request not found");
+    err.statusCode = 404;
     throw err;
   }
 
@@ -247,7 +288,6 @@ const getSponsorByUserId = async (userId) => {
   return result.rows[0] || null;
 };
 
-
 module.exports = {
   getAllSponsors,
   getSponsorById,
@@ -259,5 +299,5 @@ module.exports = {
   withdrawSponsorRequest,
   updateSponsorLogo,
   getSponsorByUserId,
-  updateSponsorLogo,
+  // updateSponsorLogo,
 };

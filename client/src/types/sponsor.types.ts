@@ -25,4 +25,5 @@ export interface SponsorRequest {
   event_type: string;
   event_date: string;
   customer_name: string;
+  direction: "customer_to_sponsor" | "sponsor_to_customer";
 }

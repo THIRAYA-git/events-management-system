@@ -85,54 +85,74 @@ export default function MySponsorshipsPage() {
         <p className="text-sm text-gray-500">No sponsorship requests found.</p>
       ) : (
         <div className="space-y-3">
-          {filtered.map((req) => (
-            <div key={req.id} className="rounded-md border border-gray-200 bg-white p-4">
-              <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                <div>
-                  <span className="font-medium">{req.booking_ref}</span>{" "}
-                  <span className="text-gray-500">— {req.customer_name}</span>
-                  <span className="ml-2 text-xs text-gray-400">{req.event_type}</span>
+          {filtered.map((req) => {
+            const isOffer = req.direction === "sponsor_to_customer";
+            return (
+              <div key={req.id} className="rounded-md border border-gray-200 bg-white p-4">
+                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <span className="font-medium">{req.booking_ref}</span>{" "}
+                    <span className="text-gray-500">— {req.customer_name}</span>
+                    <span className="ml-2 text-xs text-gray-400">{req.event_type}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {isOffer && (
+                      <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                        Your offer
+                      </span>
+                    )}
+                    <span
+                      className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[req.status] ?? ""}`}
+                    >
+                      {req.status}
+                    </span>
+                  </div>
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[req.status] ?? ""}`}>
-                  {req.status}
-                </span>
+
+                <div className="mb-2 text-sm text-gray-600">
+                  {new Date(req.event_date).toLocaleDateString()}
+                </div>
+
+                {req.proposed_amount != null && (
+                  <div className="mb-2 text-sm">
+                    Proposed amount:{" "}
+                    <span className="font-medium">
+                      LKR {Number(req.proposed_amount).toFixed(2)}
+                    </span>
+                  </div>
+                )}
+
+                {req.message && (
+                  <p className="mb-2 text-xs italic text-gray-500">"{req.message}"</p>
+                )}
+
+                {req.status === "pending" && isOffer && (
+                  <p className="border-t pt-2 text-xs text-gray-500">
+                    Awaiting customer response
+                  </p>
+                )}
+
+                {req.status === "pending" && !isOffer && (
+                  <div className="flex justify-end gap-2 border-t pt-2">
+                    <button
+                      onClick={() => handleRespond(req.id, "accepted")}
+                      disabled={respondingId === req.id}
+                      className="rounded-md border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      {respondingId === req.id ? "…" : "Accept"}
+                    </button>
+                    <button
+                      onClick={() => handleRespond(req.id, "rejected")}
+                      disabled={respondingId === req.id}
+                      className="rounded-md border border-red-200 px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {respondingId === req.id ? "…" : "Reject"}
+                    </button>
+                  </div>
+                )}
               </div>
-
-              <div className="mb-2 text-sm text-gray-600">
-                {new Date(req.event_date).toLocaleDateString()}
-              </div>
-
-              {req.proposed_amount != null && (
-                <div className="mb-2 text-sm">
-                  Proposed amount:{" "}
-                  <span className="font-medium">LKR {Number(req.proposed_amount).toFixed(2)}</span>
-                </div>
-              )}
-
-              {req.message && (
-                <p className="mb-2 text-xs italic text-gray-500">"{req.message}"</p>
-              )}
-
-              {req.status === "pending" && (
-                <div className="flex justify-end gap-2 border-t pt-2">
-                  <button
-                    onClick={() => handleRespond(req.id, "accepted")}
-                    disabled={respondingId === req.id}
-                    className="rounded-md border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
-                  >
-                    {respondingId === req.id ? "…" : "Accept"}
-                  </button>
-                  <button
-                    onClick={() => handleRespond(req.id, "rejected")}
-                    disabled={respondingId === req.id}
-                    className="rounded-md border border-red-200 px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
-                  >
-                    {respondingId === req.id ? "…" : "Reject"}
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>

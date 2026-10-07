@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getUpcomingConfirmedBookings } from "@/api/publicEvents.api";
+import { createSponsorOffer } from "@/api/sponsorOffer.api";
+
 import type { PublicUpcomingBooking } from "@/types/publicEvent.types";
 
 const PAGE_SIZE = 6;
@@ -11,6 +13,12 @@ export default function BrowseEventsPage() {
   const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [offerFor, setOfferFor] = useState<PublicUpcomingBooking | null>(null);
+const [amount, setAmount] = useState("");
+const [note, setNote] = useState("");
+const [submitting, setSubmitting] = useState(false);
+const [offerError, setOfferError] = useState<string | null>(null);
+const [success, setSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
@@ -42,6 +50,37 @@ export default function BrowseEventsPage() {
     setPage(1);
   }, [search]);
 
+  const closeOffer = () => {
+  setOfferFor(null);
+  setAmount("");
+  setNote("");
+  setOfferError(null);
+};
+
+const submitOffer = async () => {
+  if (!offerFor) return;
+  const value = Number(amount);
+  if (!Number.isFinite(value) || value <= 0) {
+    setOfferError("Enter an amount greater than 0.");
+    return;
+  }
+  setSubmitting(true);
+  setOfferError(null);
+  try {
+    await createSponsorOffer({
+      bookingId: offerFor.booking_id,
+      proposedAmount: value,
+      message: note.trim() || undefined,
+    });
+    setSuccess(`Offer sent for ${offerFor.event_type} on ${new Date(offerFor.event_date).toLocaleDateString()}.`);
+    closeOffer();
+  } catch (err: any) {
+    setOfferError(err?.response?.data?.message ?? "Failed to send offer.");
+  } finally {
+    setSubmitting(false);
+  }
+};
+
   const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const paginated = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
@@ -58,9 +97,14 @@ export default function BrowseEventsPage() {
         />
       </div>
 
-      <p className="mb-4 text-sm text-gray-500">
-        Upcoming confirmed events at Aazath Plaza. Contact us if you'd like to sponsor one.
-      </p>
+     <p className="mb-4 text-sm text-gray-500">
+  Upcoming confirmed events at Aazath Plaza. Send an offer to sponsor one.
+</p>
+{success && (
+  <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+    {success}
+  </div>
+)}
 
       {error && (
         <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
@@ -89,8 +133,17 @@ export default function BrowseEventsPage() {
                   <span className="ml-2 text-sm text-gray-500">{e.hall_name}</span>
                 </div>
                 <div className="text-sm text-gray-600">
-                  {new Date(e.event_date).toLocaleDateString()} · {e.guest_count} guests
-                </div>
+<div className="flex items-center gap-4">
+  <div className="text-sm text-gray-600">
+    {new Date(e.event_date).toLocaleDateString()} · {e.guest_count} guests
+  </div>
+  <button
+    onClick={() => { setSuccess(null); setOfferFor(e); }}
+    className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50"
+  >
+    Offer to sponsor
+  </button>
+</div>                </div>
               </div>
             ))}
           </div>
@@ -121,6 +174,46 @@ export default function BrowseEventsPage() {
           )}
         </>
       )}
+      {offerFor && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+    <div className="w-full max-w-md rounded-lg bg-white p-6">
+      <h2 className="text-lg font-semibold">Offer to sponsor</h2>
+      <p className="mb-4 text-sm text-gray-500">
+        {offerFor.event_type} · {offerFor.hall_name} ·{" "}
+        {new Date(offerFor.event_date).toLocaleDateString()}
+      </p>
+      <label className="mb-1 block text-sm font-medium">Proposed amount (LKR)</label>
+      <input
+        type="number"
+        min={1}
+        value={amount}
+        onChange={(e) => setAmount(e.target.value)}
+        className="mb-3 w-full rounded-md border px-3 py-2 text-sm"
+      />
+      <label className="mb-1 block text-sm font-medium">Message (optional)</label>
+      <textarea
+        value={note}
+        onChange={(e) => setNote(e.target.value)}
+        maxLength={500}
+        rows={3}
+        className="mb-3 w-full rounded-md border px-3 py-2 text-sm"
+      />
+      {offerError && <p className="mb-3 text-sm text-red-600">{offerError}</p>}
+      <div className="flex justify-end gap-2">
+        <button onClick={closeOffer} className="rounded-md border px-3 py-1.5 text-sm">
+          Cancel
+        </button>
+        <button
+          onClick={submitOffer}
+          disabled={submitting}
+          className="rounded-md bg-black px-3 py-1.5 text-sm text-white disabled:opacity-50"
+        >
+          {submitting ? "Sending..." : "Send offer"}
+        </button>
+      </div>
+    </div>
+  </div>
+)}
     </div>
   );
 }

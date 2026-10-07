@@ -191,6 +191,39 @@ const getMySponsorProfileHandler = async (req, res) => {
   }
 };
 
+const offerService = require("../services/sponsorOffer.service");
+
+const createSponsorOfferHandler = async (req, res) => {
+  try {
+    const offer = await offerService.createSponsorOffer(req.user.id, req.body);
+    res.status(201).json({ message: "Offer sent", sponsorRequest: offer });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || "Failed to create offer" });
+  }
+};
+
+const respondToSponsorOfferHandler = async (req, res) => {
+  try {
+    const updated = await offerService.respondToSponsorOffer(
+      req.params.requestId,
+      req.body.action,
+      req.user.id
+    );
+    res.status(200).json({ message: `Offer ${req.body.action}`, sponsorRequest: updated });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || "Failed to respond to offer" });
+  }
+};
+
+const getMyReceivedOffersHandler = async (req, res) => {
+  try {
+    const offers = await offerService.getOffersForCustomer(req.user.id);
+    res.status(200).json({ sponsorOffers: offers });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || "Failed to fetch offers" });
+  }
+};
+
 module.exports = {
   getAllSponsorsHandler,
   getSponsorByIdHandler,
@@ -202,4 +235,7 @@ module.exports = {
   uploadSponsorLogoHandler,
   uploadSponsorLogoHandler,
   getMySponsorProfileHandler,
+  createSponsorOfferHandler,
+  respondToSponsorOfferHandler,
+  getMyReceivedOffersHandler,
 };
