@@ -205,3 +205,6 @@ The client runs on `http://localhost:5173` and the server on `http://localhost:5
 Final Year Project, Department of Management and Information Technology, Faculty of Management and Commerce, South Eastern University of Sri Lanka.
 
 <!-- Add your GitHub / LinkedIn / email links here -->
+https://www.linkedin.com/in/fathima-thiraya
+www.linkedin.com/in/fathima-thiraya
+thirayafathima@gmail.com
