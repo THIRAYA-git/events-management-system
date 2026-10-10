@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Check, Loader2, X } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { getMyBookingAssignments, respondToAssignment } from "@/api/organizer.api";
 import type { OrganizerAssignment, RespondAction } from "@/types/organizer.types";
@@ -27,6 +27,21 @@ const DATE_TABS: { key: DateFilter; label: string }[] = [
   { key: "upcoming", label: "Upcoming" },
 ];
 
+const PAGE_SIZE_OPTIONS = [5, 10, 20];
+
+/** Builds a compact page list like [1, "…", 4, 5, 6, "…", 12] */
+function getPageItems(current: number, total: number): (number | "…")[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1);
+  const items: (number | "…")[] = [1];
+  const start = Math.max(2, current - 1);
+  const end = Math.min(total - 1, current + 1);
+  if (start > 2) items.push("…");
+  for (let p = start; p <= end; p++) items.push(p);
+  if (end < total - 1) items.push("…");
+  items.push(total);
+  return items;
+}
+
 // Midnight timestamp for a date string. Date-only strings (YYYY-MM-DD) are
 // parsed as local time to avoid the UTC off-by-one-day bug.
 const toDay = (value: string) => {
@@ -52,6 +67,10 @@ export default function OrganizerEventRequestsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // pagination
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(5);
+
   // accept / decline state
   const [busyId, setBusyId] = useState<number | null>(null);
   const [decliningId, setDecliningId] = useState<number | null>(null);
@@ -72,6 +91,11 @@ export default function OrganizerEventRequestsPage() {
     };
     load();
   }, []);
+
+  // Back to page 1 whenever the result set changes
+  useEffect(() => {
+    setPage(1);
+  }, [statusFilter, dateFilter, pageSize]);
 
   const handleRespond = async (a: OrganizerAssignment, action: RespondAction) => {
     if (
@@ -132,6 +156,19 @@ export default function OrganizerEventRequestsPage() {
     return [...list].sort((a, b) => dir * (toDay(a.event_date) - toDay(b.event_date)));
   }, [assignments, statusFilter, dateFilter]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const startIdx = (currentPage - 1) * pageSize;
+  const visible = filtered.slice(startIdx, startIdx + pageSize);
+
+  const goToPage = (p: number) => {
+    setPage(p);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const pageBtn =
+    "inline-flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm font-medium transition";
+
   const pendingCount = assignments.filter((a) => a.status === "assigned").length;
 
   return (
@@ -190,7 +227,7 @@ export default function OrganizerEventRequestsPage() {
         <p className="text-sm text-gray-500">No event assignments match these filters.</p>
       ) : (
         <div className="space-y-3">
-          {filtered.map((a) => {
+          {visible.map((a) => {
             const bucket = getBucket(a);
             const busy = busyId === a.id;
             const declining = decliningId === a.id;
@@ -301,6 +338,78 @@ export default function OrganizerEventRequestsPage() {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {!loading && filtered.length > 0 && (
+        <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+            <span>
+              Showing{" "}
+              <span className="font-medium text-gray-900">
+                {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
+              </span>{" "}
+              of <span className="font-medium text-gray-900">{filtered.length}</span>
+            </span>
+            <label className="flex items-center gap-1.5">
+              <span className="sr-only">Requests per page</span>
+              <select
+                value={pageSize}
+                onChange={(e) => setPageSize(Number(e.target.value))}
+                className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-blue-500"
+              >
+                {PAGE_SIZE_OPTIONS.map((n) => (
+                  <option key={n} value={n}>
+                    {n} / page
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          {totalPages > 1 && (
+            <nav className="flex items-center gap-1" aria-label="Pagination">
+              <button
+                onClick={() => goToPage(currentPage - 1)}
+                disabled={currentPage === 1}
+                aria-label="Previous page"
+                className={`${pageBtn} border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40`}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+
+              {getPageItems(currentPage, totalPages).map((item, i) =>
+                item === "…" ? (
+                  <span key={`gap-${i}`} className="px-1.5 text-gray-400">
+                    …
+                  </span>
+                ) : (
+                  <button
+                    key={item}
+                    onClick={() => goToPage(item)}
+                    aria-current={item === currentPage ? "page" : undefined}
+                    className={`${pageBtn} ${
+                      item === currentPage
+                        ? "border border-blue-600 bg-blue-600 text-white"
+                        : "border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+                    }`}
+                  >
+                    {item}
+                  </button>
+                )
+              )}
+
+              <button
+                onClick={() => goToPage(currentPage + 1)}
+                disabled={currentPage === totalPages}
+                aria-label="Next page"
+                className={`${pageBtn} border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40`}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
+            </nav>
+          )}
         </div>
       )}
     </div>
