@@ -1,5 +1,14 @@
 import { useEffect, useState } from "react";
-import { Loader2, CalendarClock, Users, TrendingUp, Wallet } from "lucide-react";
+import {
+  Loader2,
+  CalendarClock,
+  Users,
+  TrendingUp,
+  Wallet,
+  UserCheck,
+  UtensilsCrossed,
+  Star,
+} from "lucide-react";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -7,11 +16,12 @@ import {
   PointElement,
   LineElement,
   BarElement,
+  ArcElement,
   Title,
   Tooltip,
   Legend,
 } from "chart.js";
-import { Line, Bar } from "react-chartjs-2";
+import { Line, Bar, Doughnut } from "react-chartjs-2";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { getDashboardAnalytics } from "@/lib/analytics.api";
@@ -21,8 +31,20 @@ import {
   getBookingStatusCounts,
   type RecentBookingRow,
 } from "@/lib/recentBookings.api";
+import { getDashboardAttention } from "@/api/dashboardAttention.api";
+import type { DashboardAttention } from "@/types/dashboardAttention.types";
 
-ChartJS.register(CategoryScale, LinearScale, PointElement, LineElement, BarElement, Title, Tooltip, Legend);
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  BarElement,
+  ArcElement,
+  Title,
+  Tooltip,
+  Legend
+);
 
 const HALL_COLORS = ["#3b82f6", "#8b5cf6"];
 
@@ -31,6 +53,14 @@ const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-green-100 text-green-700",
   cancelled: "bg-red-100 text-red-700",
   completed: "bg-blue-100 text-blue-700",
+};
+
+const STATUS_ORDER = ["pending", "confirmed", "completed", "cancelled"];
+const STATUS_COLORS: Record<string, string> = {
+  pending: "#eab308",
+  confirmed: "#22c55e",
+  completed: "#3b82f6",
+  cancelled: "#ef4444",
 };
 
 const formatCurrency = (amount: string | number) =>
@@ -44,6 +74,39 @@ const formatMonth = (monthStr: string) => {
   });
 };
 
+const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
+
+interface AttentionCardProps {
+  icon: React.ReactNode;
+  label: string;
+  value: number | null;
+  hint: string;
+  to: string;
+}
+
+/** Amber when something needs action, neutral when all clear, dash when unavailable. */
+function AttentionCard({ icon, label, value, hint, to }: AttentionCardProps) {
+  const needsAction = value !== null && value > 0;
+  return (
+    <Link
+      to={to}
+      className={`block rounded-lg border p-5 transition-shadow hover:shadow-md ${
+        needsAction ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
+      }`}
+    >
+      <p
+        className={`flex items-center gap-1 text-xs font-medium uppercase ${
+          needsAction ? "text-amber-700" : "text-gray-500"
+        }`}
+      >
+        {icon} {label}
+      </p>
+      <p className="mt-1 text-2xl font-semibold text-gray-800">{value ?? "—"}</p>
+      <p className={`mt-1 text-xs ${needsAction ? "text-amber-700" : "text-gray-400"}`}>{hint}</p>
+    </Link>
+  );
+}
+
 export function AdminDashboardHome() {
   const { user } = useAuth();
   const canSeeAnalytics = user?.role === "admin" || user?.role === "manager";
@@ -51,6 +114,7 @@ export function AdminDashboardHome() {
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [statusCounts, setStatusCounts] = useState<Record<string, number> | null>(null);
   const [recentBookings, setRecentBookings] = useState<RecentBookingRow[]>([]);
+  const [attention, setAttention] = useState<DashboardAttention | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -59,20 +123,26 @@ export function AdminDashboardHome() {
       setLoading(true);
       setError(null);
       try {
+        // Attention cards are an extra: never block the dashboard if they fail
+        const attentionPromise = getDashboardAttention().catch(() => null);
         if (canSeeAnalytics) {
-          const [analyticsData, recent] = await Promise.all([
+          const [analyticsData, recent, att] = await Promise.all([
             getDashboardAnalytics({}),
             getRecentBookings(5),
+            attentionPromise,
           ]);
           setAnalytics(analyticsData);
           setRecentBookings(recent);
+          setAttention(att);
         } else {
-          const [counts, recent] = await Promise.all([
+          const [counts, recent, att] = await Promise.all([
             getBookingStatusCounts(),
             getRecentBookings(5),
+            attentionPromise,
           ]);
           setStatusCounts(counts);
           setRecentBookings(recent);
+          setAttention(att);
         }
       } catch {
         setError("Failed to load dashboard data.");
@@ -106,6 +176,22 @@ export function AdminDashboardHome() {
   const pendingCount = analytics
     ? analytics.statusBreakdown.find((s) => s.status === "pending")?.count ?? 0
     : statusCounts?.pending ?? 0;
+
+  // Status split for the doughnut (same source as the cards above)
+  const rawCounts: Record<string, number> = analytics
+    ? Object.fromEntries(analytics.statusBreakdown.map((s) => [s.status, s.count]))
+    : statusCounts ?? {};
+  const statusEntries = [
+    ...STATUS_ORDER.filter((k) => (rawCounts[k] ?? 0) > 0),
+    ...Object.keys(rawCounts).filter((k) => !STATUS_ORDER.includes(k) && rawCounts[k] > 0),
+  ].map((status) => ({ status, count: rawCounts[status] }));
+
+  const organizerHint =
+    attention?.organizerNeedsReassign && attention.organizerNeedsReassign > 0
+      ? `${attention.organizerNeedsReassign} declined, need a new organizer`
+      : "Awaiting organizer response";
+
+  const fb = attention?.feedback;
 
   return (
     <div>
@@ -141,6 +227,42 @@ export function AdminDashboardHome() {
           <p className="mt-1 text-xs text-gray-400">Awaiting confirmation</p>
         </div>
       </div>
+
+      {/* ── Needs attention ─────────────────────────────────── */}
+      {attention && (
+        <div className="mt-6">
+          <h2 className="mb-3 text-sm font-medium text-gray-700">Needs attention</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <AttentionCard
+              icon={<UserCheck className="h-3.5 w-3.5" />}
+              label="Organizer Requests"
+              value={attention.organizerPending}
+              hint={organizerHint}
+              to="/admin/bookings"
+            />
+            <AttentionCard
+              icon={<UtensilsCrossed className="h-3.5 w-3.5" />}
+              label="Catering Orders"
+              value={attention.cateringPending}
+              hint="Pending confirmation"
+              to="/admin/catering"
+            />
+            {fb && (
+              <AttentionCard
+                icon={<Star className="h-3.5 w-3.5" />}
+                label="Low-rated Reviews"
+                value={fb.lowRated}
+                hint={
+                  fb.avgRating !== null && fb.total !== null
+                    ? `2★ or below · avg ${fb.avgRating.toFixed(1)} from ${fb.total} reviews`
+                    : "2★ or below"
+                }
+                to="/admin/feedback"
+              />
+            )}
+          </div>
+        </div>
+      )}
 
       {canSeeAnalytics && analytics && (
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -208,42 +330,73 @@ export function AdminDashboardHome() {
         </div>
       )}
 
-      <div className="mt-4 rounded-lg border border-gray-200 bg-white p-5">
-        <h3 className="mb-4 text-sm font-medium text-gray-700">Recent Bookings</h3>
-        {recentBookings.length === 0 ? (
-          <p className="py-10 text-center text-sm text-gray-400">No bookings yet.</p>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-xs uppercase text-gray-400">
-                  <th className="pb-2 pr-4">Customer</th>
-                  <th className="pb-2 pr-4">Event Date</th>
-                  <th className="pb-2 pr-4">Hall</th>
-                  <th className="pb-2">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {recentBookings.map((b) => (
-                  <tr key={b.booking_id} className="border-b last:border-0">
-                    <td className="py-2 pr-4">{b.customer_name}</td>
-                    <td className="py-2 pr-4">{new Date(b.event_date).toLocaleDateString()}</td>
-                    <td className="py-2 pr-4">{b.hall_name}</td>
-                    <td className="py-2">
-                      <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[b.status] ?? ""}`}>
-                        {b.status}
-                      </span>
-                    </td>
+      {/* ── Recent bookings + status breakdown ───────────────── */}
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-lg border border-gray-200 bg-white p-5 lg:col-span-2">
+          <h3 className="mb-4 text-sm font-medium text-gray-700">Recent Bookings</h3>
+          {recentBookings.length === 0 ? (
+            <p className="py-10 text-center text-sm text-gray-400">No bookings yet.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-xs uppercase text-gray-400">
+                    <th className="pb-2 pr-4">Customer</th>
+                    <th className="pb-2 pr-4">Event Date</th>
+                    <th className="pb-2 pr-4">Hall</th>
+                    <th className="pb-2">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {recentBookings.map((b) => (
+                    <tr key={b.booking_id} className="border-b last:border-0">
+                      <td className="py-2 pr-4">{b.customer_name}</td>
+                      <td className="py-2 pr-4">{new Date(b.event_date).toLocaleDateString()}</td>
+                      <td className="py-2 pr-4">{b.hall_name}</td>
+                      <td className="py-2">
+                        <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[b.status] ?? ""}`}>
+                          {b.status}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+          <div className="mt-3 text-right">
+            <Link to="/admin/bookings" className="text-sm text-blue-600 hover:underline">
+              View all bookings →
+            </Link>
           </div>
-        )}
-        <div className="mt-3 text-right">
-          <Link to="/admin/bookings" className="text-sm text-blue-600 hover:underline">
-            View all bookings →
-          </Link>
+        </div>
+
+        <div className="rounded-lg border border-gray-200 bg-white p-5">
+          <h3 className="mb-4 text-sm font-medium text-gray-700">Booking Status</h3>
+          {statusEntries.length === 0 ? (
+            <p className="py-10 text-center text-sm text-gray-400">No bookings yet.</p>
+          ) : (
+            <div className="mx-auto max-w-[260px]">
+              <Doughnut
+                data={{
+                  labels: statusEntries.map((e) => `${capitalize(e.status)} (${e.count})`),
+                  datasets: [
+                    {
+                      data: statusEntries.map((e) => e.count),
+                      backgroundColor: statusEntries.map((e) => STATUS_COLORS[e.status] ?? "#9ca3af"),
+                      borderWidth: 2,
+                      borderColor: "#ffffff",
+                    },
+                  ],
+                }}
+                options={{
+                  responsive: true,
+                  cutout: "65%",
+                  plugins: { legend: { position: "bottom" } },
+                }}
+              />
+            </div>
+          )}
         </div>
       </div>
     </div>

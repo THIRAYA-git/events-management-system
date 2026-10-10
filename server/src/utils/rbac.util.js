@@ -95,6 +95,9 @@ const PERMISSIONS = {
   // ── Notifications ─────────────────────────────────────────
   "notification:send": ["admin", "manager", "front_desk"],
 
+  // ── Admin dashboard ───────────────────────────────────────
+  "dashboard:attention": ["admin", "manager", "front_desk"],
+
   // ── Audit log ─────────────────────────────────────────────
   "audit:view": ["admin"],
 
