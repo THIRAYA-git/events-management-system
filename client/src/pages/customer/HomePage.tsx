@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Loader2, Star, MapPin, Users } from "lucide-react";
+import { ArrowRight, Check, Loader2, Megaphone, MapPin, Sparkles, Star, Users } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import PageHero from "@/components/common/PageHero";
 import { getAllHalls } from "@/api/hall.api";
@@ -11,6 +11,37 @@ import {
   getMyNextUpcomingBooking,
   type UpcomingBookingSummary,
 } from "@/api/myUpcomingBooking.api";
+
+const PARTNER_CARDS = [
+  {
+    icon: Megaphone,
+    eyebrow: "For sponsors",
+    title: "Want to sponsor an event? Join with us.",
+    description:
+      "Connect your brand with weddings, birthdays, school and community events held at our halls.",
+    points: [
+      "Browse upcoming events and pick the ones that fit your brand",
+      "Send sponsorship offers straight to the host",
+      "Track every offer and its response in one place",
+    ],
+    cta: "Join as a sponsor",
+    to: "/register?role=sponsor",
+  },
+  {
+    icon: Sparkles,
+    eyebrow: "For organizers & decorators",
+    title: "Elevate your business with Aazath Plaza.",
+    description:
+      "Get discovered by customers planning their next event and win bookings without chasing leads.",
+    points: [
+      "Get listed where customers choose their event organizer",
+      "Receive event requests and accept or decline in one click",
+      "Showcase your portfolio and build your ratings",
+    ],
+    cta: "Join as an organizer",
+    to: "/register?role=organizer",
+  },
+];
 
 export default function HomePage() {
   const { user } = useAuth();
@@ -163,6 +194,46 @@ export default function HomePage() {
                 </div>
               </div>
             )}
+
+            {/* ── Partner call-to-action ───────────────────────── */}
+            <div className="mt-14">
+              <h2 className="text-2xl font-semibold text-gray-900">Grow with Aazath Plaza</h2>
+              <p className="mt-1 text-sm text-gray-500">
+                Partner with us and put your business in front of every event we host.
+              </p>
+              <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
+                {PARTNER_CARDS.map(({ icon: Icon, ...card }) => (
+                  <div
+                    key={card.eyebrow}
+                    className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                  >
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-700">
+                      {card.eyebrow}
+                    </p>
+                    <h3 className="mt-1 text-lg font-semibold text-gray-900">{card.title}</h3>
+                    <p className="mt-1 text-sm text-gray-500">{card.description}</p>
+                    <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                      {card.points.map((p) => (
+                        <li key={p} className="flex items-start gap-2">
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                          <span>{p}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <Link
+                      to={card.to}
+                      className="mt-5 inline-flex items-center gap-2 self-start rounded-md bg-violet-600 px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-violet-700"
+                    >
+                      {card.cta}
+                      <ArrowRight className="h-4 w-4" />
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </div>
