@@ -6,6 +6,8 @@ import type {
   OrganizerAssignment,
   RespondAction,
   CustomerBookingOrganizer,
+  BrowseOrganizer,
+  CustomerAssignmentResult,
 } from "@/types/organizer.types";
 
 export const getAllOrganizers = async (params?: {
@@ -57,6 +59,21 @@ export const respondToAssignment = async (
 export const getMyBookingOrganizers = async (): Promise<CustomerBookingOrganizer[]> => {
   const { data } = await api.get("/organizers/my-booking-organizers");
   return data.organizers;
+};
+
+/** Customer: available organizers to choose from */
+export const browseOrganizers = async (): Promise<BrowseOrganizer[]> => {
+  const { data } = await api.get("/organizers/browse");
+  return data.organizers;
+};
+
+/** Customer: assign an organizer to one of my own bookings */
+export const assignOrganizerToMyBooking = async (
+  bookingId: number,
+  payload: { organizerId: number; notes?: string }
+): Promise<CustomerAssignmentResult> => {
+  const { data } = await api.post(`/organizers/my-bookings/${bookingId}/assign`, payload);
+  return data.assignment;
 };
 
 export const updateMyOrganizerProfile = async (

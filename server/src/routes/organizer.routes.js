@@ -11,6 +11,8 @@ const {
 const {
   respondToAssignmentHandler,
   getMyBookingOrganizersHandler,
+  browseOrganizersHandler,
+  assignOwnBookingOrganizerHandler,
 } = require("../controllers/organizerResponse.controller");
 
 router.get(
@@ -40,6 +42,22 @@ router.get(
   authenticate,
   authorize("organizer:read_own_bookings"),
   getMyBookingOrganizersHandler
+);
+
+// Customer: browse available organizers (must stay above /:organizerId)
+router.get(
+  "/browse",
+  authenticate,
+  authorize("organizer:browse"),
+  browseOrganizersHandler
+);
+
+// Customer: assign an organizer to one of their own bookings
+router.post(
+  "/my-bookings/:bookingId/assign",
+  authenticate,
+  authorize("organizer:assign_own"),
+  assignOwnBookingOrganizerHandler
 );
 
 // GET /api/organizers              → list all organizers (optional ?specialty=&isAvailable=)

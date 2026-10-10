@@ -58,6 +58,8 @@ const PERMISSIONS = {
   "organizer:update_own": ["organizer"],
   "organizer:respond": ["organizer"],
   "organizer:read_own_bookings": ["customer"],
+  "organizer:browse": ["customer"],
+  "organizer:assign_own": ["customer"],
 
   // ── Sponsors ──────────────────────────────────────────────
   "sponsor:read": ["admin", "manager", "sponsor", "customer"],

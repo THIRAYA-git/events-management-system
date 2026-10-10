@@ -65,3 +65,17 @@ export interface CustomerBookingOrganizer {
   avg_rating: string | number | null;
   portfolio_url: string | null;
 }
+
+/** Organizer profile as shown to customers when picking one (no user id) */
+export type BrowseOrganizer = Omit<Organizer, "user_id" | "avg_rating"> & {
+  avg_rating: string | number | null; // numeric column comes back as string from pg
+};
+
+export interface CustomerAssignmentResult {
+  id: number;
+  booking_id: number;
+  organizer_id: number;
+  role_in_event: string | null;
+  status: string;
+  assigned_at: string;
+}

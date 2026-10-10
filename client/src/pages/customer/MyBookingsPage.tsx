@@ -359,7 +359,10 @@ export default function MyBookingsPage() {
             />
 
             <BookingOrganizerPanel
+              bookingId={booking.booking_id}
               assignments={organizersByBooking.get(booking.booking_id) ?? []}
+              canAssign={booking.status === "pending" || booking.status === "confirmed"}
+              onAssigned={(a) => setOrganizers((prev) => [a, ...prev])}
             />
 
             <BookingSponsorOffers

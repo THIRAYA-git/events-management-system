@@ -226,7 +226,13 @@ export default function OrganizerEventRequestsPage() {
                 </div>
 
                 <div className="text-sm text-gray-600">
-                  Agreed fee: <span className="font-medium">LKR {Number(a.agreed_fee).toFixed(2)}</span>
+                  {Number(a.agreed_fee) > 0 ? (
+                    <>
+                      Agreed fee: <span className="font-medium">LKR {Number(a.agreed_fee).toFixed(2)}</span>
+                    </>
+                  ) : (
+                    <span className="italic text-gray-500">Fee to be agreed</span>
+                  )}
                 </div>
 
                 {a.notes && <p className="mt-2 text-xs italic text-gray-500">Note: {a.notes}</p>}
