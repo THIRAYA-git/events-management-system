@@ -1,6 +1,6 @@
 // ─────────────────────────────────────────────────────────────
 //  server/src/utils/rbac.util.js
-//  NEW FILE — permissions for all 7 roles in your user_role enum
+//  Permissions for all 7 roles in your user_role enum
 //  Roles: customer | front_desk | manager | admin |
 //         organizer | sponsor | restaurant
 // ─────────────────────────────────────────────────────────────
@@ -56,6 +56,8 @@ const PERMISSIONS = {
   "organizer:read": ["admin", "manager", "front_desk", "organizer"],
   "organizer:manage": ["admin", "manager"],
   "organizer:update_own": ["organizer"],
+  "organizer:respond": ["organizer"],
+  "organizer:read_own_bookings": ["customer"],
 
   // ── Sponsors ──────────────────────────────────────────────
   "sponsor:read": ["admin", "manager", "sponsor", "customer"],
@@ -63,7 +65,7 @@ const PERMISSIONS = {
   "sponsor:update_own": ["sponsor"],
   "sponsor_offer:create": ["sponsor"],
   "sponsor_offer:respond": ["customer"],
-    "sponsor_offer:read_own": ["customer"],
+  "sponsor_offer:read_own": ["customer"],
 
   // ── Event timelines ───────────────────────────────────────
   "timeline:read": ["admin", "manager", "front_desk", "customer", "organizer"],

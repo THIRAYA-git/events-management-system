@@ -1,8 +1,11 @@
-import { api } from "@/lib/api";import type {
+import { api } from "@/lib/api";
+import type {
   Organizer,
   BookingOrganizerAssignment,
   AssignOrganizerPayload,
   OrganizerAssignment,
+  RespondAction,
+  CustomerBookingOrganizer,
 } from "@/types/organizer.types";
 
 export const getAllOrganizers = async (params?: {
@@ -16,9 +19,7 @@ export const getAllOrganizers = async (params?: {
 export const getOrganizersForBooking = async (
   bookingId: number
 ): Promise<BookingOrganizerAssignment[]> => {
-  const { data } = await api.get(
-    `/bookings/${bookingId}/organizers`
-  );
+  const { data } = await api.get(`/bookings/${bookingId}/organizers`);
   return data.organizers;
 };
 
@@ -26,10 +27,7 @@ export const assignOrganizerToBooking = async (
   bookingId: number,
   payload: AssignOrganizerPayload
 ): Promise<BookingOrganizerAssignment> => {
-  const { data } = await api.post(
-    `/bookings/${bookingId}/organizers`,
-    payload
-  );
+  const { data } = await api.post(`/bookings/${bookingId}/organizers`, payload);
   return data.assignment;
 };
 
@@ -43,8 +41,37 @@ export const getMyBookingAssignments = async (): Promise<OrganizerAssignment[]> 
   return data.assignments;
 };
 
+export const respondToAssignment = async (
+  assignmentId: number,
+  action: RespondAction,
+  reason?: string
+): Promise<OrganizerAssignment> => {
+  const { data } = await api.patch(
+    `/organizers/my-assignments/${assignmentId}/respond`,
+    { action, reason }
+  );
+  return data.assignment;
+};
+
+/** Customer: organizers assigned to my own bookings */
+export const getMyBookingOrganizers = async (): Promise<CustomerBookingOrganizer[]> => {
+  const { data } = await api.get("/organizers/my-booking-organizers");
+  return data.organizers;
+};
+
 export const updateMyOrganizerProfile = async (
-  payload: Partial<Pick<Organizer, "business_name" | "specialty" | "portfolio_url" | "bio" | "service_areas" | "price_range" | "is_available">>
+  payload: Partial<
+    Pick<
+      Organizer,
+      | "business_name"
+      | "specialty"
+      | "portfolio_url"
+      | "bio"
+      | "service_areas"
+      | "price_range"
+      | "is_available"
+    >
+  >
 ): Promise<Organizer> => {
   const { data } = await api.patch("/organizers/me", payload);
   return data.organizer;

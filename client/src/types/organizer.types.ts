@@ -22,7 +22,7 @@ export interface BookingOrganizerAssignment {
   specialty: string;
   role_in_event: string;
   agreed_fee: string; // numeric column comes back as string from pg
-  status: string; // e.g. "pending" | "confirmed" | "completed"
+  status: string; // "assigned" | "confirmed" | "completed" | "declined"
   notes: string | null;
   assigned_at: string; // was created_at
   avg_rating?: string;
@@ -41,11 +41,27 @@ export interface OrganizerAssignment {
   organizer_id: number;
   role_in_event: string;
   agreed_fee: string; // numeric column comes back as string from pg
-  status: string; // "assigned" | "confirmed" | "completed"
+  status: string; // "assigned" | "confirmed" | "completed" | "declined"
   notes: string | null;
   assigned_at: string;
   booking_ref: string;
   event_type: string;
   event_date: string;
   customer_name: string;
+  decline_reason?: string | null;
+  responded_at?: string | null;
+}
+
+export type RespondAction = "accept" | "decline";
+
+/** Organizer as shown to the customer on their own booking */
+export interface CustomerBookingOrganizer {
+  id: number;
+  booking_id: number;
+  role_in_event: string | null;
+  status: string; // "assigned" | "confirmed" | "completed"
+  business_name: string;
+  specialty: string;
+  avg_rating: string | number | null;
+  portfolio_url: string | null;
 }

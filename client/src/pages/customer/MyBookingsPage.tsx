@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { CalendarPlus, ChevronLeft, ChevronRight, Download, Search, X } from "lucide-react";
 import { BookingCard } from "@/components/customer/BookingCard";
 import { BookingSponsorOffers } from "@/components/customer/BookingSponsorOffers";
+import { BookingOrganizerPanel } from "@/components/customer/BookingOrganizerPanel";
 import FeedbackForm from "@/components/customer/FeedbackForm";
 import {
   primaryBtnClass,
@@ -13,8 +14,10 @@ import {
 import { fetchMyBookings } from "@/lib/booking.api";
 import { downloadInvoice } from "@/lib/payment.api";
 import { getMyReceivedOffers, respondToSponsorOffer } from "@/api/sponsor.api";
+import { getMyBookingOrganizers } from "@/api/organizer.api";
 import type { AdminBooking } from "@/types/booking.types";
 import type { SponsorOffer } from "@/types/sponsorOffer.types";
+import type { CustomerBookingOrganizer } from "@/types/organizer.types";
 
 type Filter = "all" | "pending" | "confirmed" | "completed" | "cancelled";
 
@@ -74,6 +77,7 @@ export default function MyBookingsPage() {
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [offers, setOffers] = useState<SponsorOffer[]>([]);
   const [respondingOfferId, setRespondingOfferId] = useState<number | null>(null);
+  const [organizers, setOrganizers] = useState<CustomerBookingOrganizer[]>([]);
 
   // search + pagination
   const [searchInput, setSearchInput] = useState("");
@@ -92,6 +96,13 @@ export default function MyBookingsPage() {
   useEffect(() => {
     getMyReceivedOffers()
       .then(setOffers)
+      .catch(() => {});
+  }, []);
+
+  // Same for assigned organizers
+  useEffect(() => {
+    getMyBookingOrganizers()
+      .then(setOrganizers)
       .catch(() => {});
   }, []);
 
@@ -139,6 +150,16 @@ export default function MyBookingsPage() {
     });
     return map;
   }, [offers]);
+
+  const organizersByBooking = useMemo(() => {
+    const map = new Map<number, CustomerBookingOrganizer[]>();
+    organizers.forEach((o) => {
+      const list = map.get(o.booking_id) ?? [];
+      list.push(o);
+      map.set(o.booking_id, list);
+    });
+    return map;
+  }, [organizers]);
 
   // 2) status tab, 3) paginate
   const filtered = filter === "all" ? searched : searched.filter((b) => b.status === filter);
@@ -335,6 +356,10 @@ export default function MyBookingsPage() {
                     ))}
                 </>
               }
+            />
+
+            <BookingOrganizerPanel
+              assignments={organizersByBooking.get(booking.booking_id) ?? []}
             />
 
             <BookingSponsorOffers

@@ -4,12 +4,14 @@ const { authenticate, authorize } = require("../middleware/auth.middleware");
 const {
   getAllOrganizersHandler,
   getOrganizerByIdHandler,
-  updateMyOrganizerProfileHandler
-} = require("../controllers/organizer.controller");
-const {
+  updateMyOrganizerProfileHandler,
   getMyOrganizerProfileHandler,
   getMyBookingAssignmentsHandler,
 } = require("../controllers/organizer.controller");
+const {
+  respondToAssignmentHandler,
+  getMyBookingOrganizersHandler,
+} = require("../controllers/organizerResponse.controller");
 
 router.get(
   "/me",
@@ -22,6 +24,22 @@ router.get(
   authenticate,
   authorize("organizer:read"),
   getMyBookingAssignmentsHandler
+);
+
+// Organizer accepts / declines an assignment
+router.patch(
+  "/my-assignments/:assignmentId/respond",
+  authenticate,
+  authorize("organizer:respond"),
+  respondToAssignmentHandler
+);
+
+// Customer: organizers on their own bookings (must stay above /:organizerId)
+router.get(
+  "/my-booking-organizers",
+  authenticate,
+  authorize("organizer:read_own_bookings"),
+  getMyBookingOrganizersHandler
 );
 
 // GET /api/organizers              → list all organizers (optional ?specialty=&isAvailable=)
