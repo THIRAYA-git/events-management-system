@@ -5,6 +5,7 @@ const {
   checkAvailability,
   getAvailableHalls,
   getHallSchedule,
+  getCalendarAvailability,
   assignHallToBooking,
   releaseHallBooking,
 } = require("../services/hall.availability.service");
@@ -61,6 +62,24 @@ const listAvailableHalls = async (req, res, next) => {
       success: true,
       data: result,
     });
+  } catch (err) {
+    if (isServiceError(err)) {
+      return res.status(400).json({ success: false, message: err.message });
+    }
+    next(err);
+  }
+};
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  GET /api/halls/calendar?from=YYYY-MM-DD&to=YYYY-MM-DD
+// ─────────────────────────────────────────────────────────────────────────────
+const getCalendar = async (req, res, next) => {
+  try {
+    const result = await getCalendarAvailability({
+      from: req.query.from,
+      to: req.query.to,
+    });
+    return res.status(200).json({ success: true, data: result });
   } catch (err) {
     if (isServiceError(err)) {
       return res.status(400).json({ success: false, message: err.message });
@@ -243,6 +262,7 @@ const listAllActiveHalls = async (req, res, next) => {
 module.exports = {
   checkHallAvailability,
   listAvailableHalls,
+  getCalendar,
   getSchedule,
   assignHall,
   releaseHall,

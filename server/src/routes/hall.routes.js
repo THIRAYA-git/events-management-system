@@ -15,6 +15,7 @@ const {
 const {
   checkHallAvailability,
   listAvailableHalls,
+  getCalendar,
   getSchedule,
   assignHall,
   releaseHall,
@@ -53,6 +54,14 @@ router.get(
   validateGetAvailableHalls,
   validate,
   listAvailableHalls
+);
+
+// Per-date hall usage for shading the booking calendar
+// GET /api/halls/calendar?from=2026-10-01&to=2026-10-31
+router.get(
+  '/calendar',
+  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  getCalendar
 );
 
 // Full day schedule for a specific hall

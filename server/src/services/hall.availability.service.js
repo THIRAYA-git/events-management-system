@@ -472,10 +472,50 @@ const computeFreeSlots = (activeBookings, open, close, buffer) => {
   return slots;
 };
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  getCalendarAvailability
+//  Per-date hall usage for a date range, used to shade the booking calendar.
+//  booked_halls = number of distinct halls with an active booking on that date.
+//  Dates with no bookings are omitted. total_halls lets the client decide
+//  "fully booked" (booked_halls >= total_halls) vs "partially booked".
+// ─────────────────────────────────────────────────────────────────────────────
+const MAX_CALENDAR_RANGE_DAYS = 62;
+
+const getCalendarAvailability = async ({ from, to }) => {
+  const isDate = (v) => /^\d{4}-\d{2}-\d{2}$/.test(v || "") && !isNaN(Date.parse(v));
+  if (!isDate(from) || !isDate(to))
+    throw new Error("from and to must be valid dates in YYYY-MM-DD format.");
+
+  const days = (Date.parse(to) - Date.parse(from)) / 86400000;
+  if (days < 0) throw new Error("from must be before to.");
+  if (days > MAX_CALENDAR_RANGE_DAYS)
+    throw new Error(`Date range cannot exceed ${MAX_CALENDAR_RANGE_DAYS} days.`);
+
+  const hallsResult = await query(
+    `SELECT COUNT(*)::int AS total FROM halls WHERE is_active = true`
+  );
+  const totalHalls = hallsResult.rows[0].total;
+
+  const result = await query(
+    `SELECT to_char(hb.event_date, 'YYYY-MM-DD') AS date,
+            COUNT(DISTINCT hb.hall_id)::int      AS booked_halls
+       FROM hall_bookings hb
+       JOIN halls h ON h.hall_id = hb.hall_id AND h.is_active = true
+      WHERE hb.event_date BETWEEN $1::date AND $2::date
+        AND hb.status = ANY($3)
+      GROUP BY hb.event_date
+      ORDER BY hb.event_date`,
+    [from, to, ACTIVE_STATUSES]
+  );
+
+  return { total_halls: totalHalls, dates: result.rows };
+};
+
 module.exports = {
   checkAvailability,
   getAvailableHalls,
   getHallSchedule,
+  getCalendarAvailability,
   assignHallToBooking,
   releaseHallBooking,
   BUFFER_MINUTES,

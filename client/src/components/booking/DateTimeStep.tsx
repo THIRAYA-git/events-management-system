@@ -1,5 +1,14 @@
-import { useState } from "react";
-import { format } from "date-fns";
+import { useEffect, useMemo, useState } from "react";
+import {
+  endOfMonth,
+  endOfWeek,
+  format,
+  parseISO,
+  startOfDay,
+  startOfMonth,
+  startOfWeek,
+} from "date-fns";
+import { getCalendarAvailability } from "@/api/hall.api";
 import { Calendar } from "@/components/ui/calendar";
 import { StepCard } from "@/components/booking/StepCard";
 import {
@@ -25,6 +34,46 @@ export function DateTimeStep({ onSubmit, isLoading }: DateTimeStepProps) {
   const [endTime, setEndTime] = useState("14:00");
   const [guestCount, setGuestCount] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [month, setMonth] = useState<Date>(new Date());
+  const [booked, setBooked] = useState<Record<string, number>>({});
+  const [totalHalls, setTotalHalls] = useState(2);
+
+  // Load per-date hall usage for the visible grid (includes outside days).
+  useEffect(() => {
+    let cancelled = false;
+    const from = format(startOfWeek(startOfMonth(month)), "yyyy-MM-dd");
+    const to = format(endOfWeek(endOfMonth(month)), "yyyy-MM-dd");
+
+    getCalendarAvailability(from, to)
+      .then((res) => {
+        if (cancelled) return;
+        setTotalHalls(res.total_halls);
+        setBooked(
+          Object.fromEntries(res.dates.map((d) => [d.date, d.booked_halls]))
+        );
+      })
+      .catch(() => {
+        // Non-fatal: calendar simply shows no shading.
+        if (!cancelled) setBooked({});
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [month]);
+
+const { fullDates, partialDates } = useMemo(() => {
+  const full: Date[] = [];
+  const partial: Date[] = [];
+  const today = startOfDay(new Date());
+  for (const [d, n] of Object.entries(booked)) {
+    const date = parseISO(d);
+    if (date < today) continue; // past dates are already disabled; don't shade
+    if (n >= totalHalls) full.push(date);
+    else if (n > 0) partial.push(date);
+  }
+  return { fullDates: full, partialDates: partial };
+}, [booked, totalHalls]);
 
   const handleCheck = () => {
     setError(null);
@@ -69,9 +118,27 @@ export function DateTimeStep({ onSubmit, isLoading }: DateTimeStepProps) {
           mode="single"
           selected={date}
           onSelect={setDate}
-          disabled={{ before: new Date() }}
+          month={month}
+          onMonthChange={setMonth}
+          disabled={[{ before: startOfDay(new Date()) }, ...fullDates]}
+          modifiers={{ full: fullDates, partial: partialDates }}
+         modifiersClassNames={{
+  full: "bg-gray-300 text-gray-500 [&_button]:cursor-not-allowed",
+  partial:
+    "bg-[linear-gradient(135deg,var(--color-gray-300)_50%,transparent_50%)]",
+}}
           className="rounded-lg border border-gray-200"
         />
+      </div>
+
+      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-gray-600">
+        <span className="flex items-center gap-1.5">
+<i className="inline-block size-3.5 rounded-sm border border-gray-300 bg-[linear-gradient(135deg,var(--color-gray-300)_50%,transparent_50%)]" />          One hall available
+        </span>
+        <span className="flex items-center gap-1.5">
+          <i className="inline-block size-3.5 rounded-sm border border-gray-300 bg-gray-300" />
+          Fully booked
+        </span>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
