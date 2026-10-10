@@ -3,6 +3,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Menu, X, LogOut } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import UserAvatar from "@/components/common/UserAvatar";
+import NotificationBell from "@/components/common/NotificationBell";
 import { getSettingsPath, isStaffRole } from "@/utils/navigation";
 
 const NAV_LINK_CLASS = ({ isActive }: { isActive: boolean }) =>
@@ -49,6 +50,7 @@ const CustomerNavbar = () => {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
+          {user && <NotificationBell />}
           <Link
             to={settingsPath}
             className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-gray-700 hover:bg-gray-50"
@@ -66,18 +68,21 @@ const CustomerNavbar = () => {
           </button>
         </div>
 
-        {/* Mobile menu toggle */}
-        <button
-          onClick={() => setMobileOpen((open) => !open)}
-          className="rounded-md p-2 hover:bg-gray-100 md:hidden"
-          aria-label={mobileOpen ? "Close menu" : "Open menu"}
-        >
-          {mobileOpen ? (
-            <X className="h-5 w-5 text-gray-600" />
-          ) : (
-            <Menu className="h-5 w-5 text-gray-600" />
-          )}
-        </button>
+        {/* Mobile bell + menu toggle */}
+        <div className="flex items-center gap-1 md:hidden">
+          {user && <NotificationBell />}
+          <button
+            onClick={() => setMobileOpen((open) => !open)}
+            className="rounded-md p-2 hover:bg-gray-100"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+          >
+            {mobileOpen ? (
+              <X className="h-5 w-5 text-gray-600" />
+            ) : (
+              <Menu className="h-5 w-5 text-gray-600" />
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Mobile nav panel */}

@@ -25,6 +25,7 @@ const staffRoutes = require("./routes/staff.routes");
 const partnerAccountRoutes = require("./routes/partnerAccount.routes");
 const { startReminderJob } = require("./services/reminder.service");
 const reportRoutes = require("./routes/report.routes");
+const notificationRoutes = require("./routes/notification.routes");
 
 
 const app = express();
@@ -67,6 +68,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/staff", staffRoutes);
 app.use("/api/partner-accounts", partnerAccountRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");

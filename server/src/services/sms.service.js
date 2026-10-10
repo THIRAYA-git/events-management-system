@@ -1,6 +1,7 @@
 // text.lk SMS Gateway (Sri Lanka) — plain REST API, no SDK needed.
 // Docs: https://text.lk/docs/sms-api-endpoints
 const TEXTLK_SEND_URL = "https://app.text.lk/api/v3/sms/send";
+const { logNotification } = require("./notificationLog.service");
 
 // Normalizes common Sri Lankan phone formats to the digits-with-country-code
 // shape text.lk expects (e.g. "94771234567" — no leading "+"). Test/seed
@@ -15,11 +16,20 @@ const toTextLkRecipient = (phone) => {
   return null; // Not a recognizable format — caller should skip sending.
 };
 
-const sendSms = async ({ to, body }) => {
+// `log` ({ type, bookingRef }) is optional: when given, the attempt (sent or
+// failed) is recorded in the notifications table. Logging never throws.
+const sendSms = async ({ to, body, log }) => {
+  const done = (ok, error = null) => {
+    if (log) {
+      logNotification({ ...log, channel: "sms", message: body, phone: to, ok, error });
+    }
+    return ok;
+  };
+
   const recipient = toTextLkRecipient(to);
   if (!recipient) {
     console.error(`[sms.service] Skipped send — unrecognized phone format: ${to}`);
-    return false;
+    return done(false, "Unrecognized phone format");
   }
 
   try {
@@ -44,26 +54,25 @@ const sendSms = async ({ to, body }) => {
     // data.uid) rather than a non-2xx status — checking response.ok
     // alone isn't enough, both conditions must hold.
     if (!response.ok || !result?.data?.uid) {
-      console.error(
-        "[sms.service] text.lk rejected the send:",
-        result?.message || `HTTP ${response.status}`
-      );
-      return false;
+      const reason = result?.message || `HTTP ${response.status}`;
+      console.error("[sms.service] text.lk rejected the send:", reason);
+      return done(false, reason);
     }
 
-    return true;
+    return done(true);
   } catch (err) {
     // Same fail-safe pattern as email.service.js: an SMS failure should
     // never block whatever triggered it (a booking, a payment, etc.) —
     // log it and let the caller carry on.
     console.error("[sms.service] Failed to send SMS:", err.message);
-    return false;
+    return done(false, err.message);
   }
 };
 
 const sendBookingConfirmationSms = async (to, { bookingRef, hallName, eventDate }) => {
   return sendSms({
     to,
+    log: { type: "booking_confirmation", bookingRef },
     body:
       `Aazath Plaza: Booking request received (${bookingRef}) for ${hallName} on ${eventDate}. ` +
       `Status: pending confirmation. We'll text you once it's confirmed.`,
@@ -77,6 +86,7 @@ const sendPaymentReceivedSms = async (
 ) => {
   return sendSms({
     to,
+    log: { type: "payment_receipt", bookingRef },
     body:
       `Aazath Plaza: Payment of LKR ${Number(amount).toLocaleString("en-LK")} received for ${bookingRef}. ` +
       `Your booking for ${eventDate} is confirmed. Invoice: ${invoiceNumber}.`,
@@ -88,6 +98,7 @@ const sendPaymentReceivedSms = async (
 const sendPaymentRefundNoticeSms = async (to, { bookingRef }) => {
   return sendSms({
     to,
+    log: { type: "general", bookingRef },
     body:
       `Aazath Plaza: We received your payment for ${bookingRef}, but the booking could not be confirmed. ` +
       `Our staff will contact you shortly to arrange a refund.`,
@@ -108,13 +119,21 @@ const sendBookingStatusSms = async (
   } else {
     return false; // pending/completed don't notify the customer
   }
-  return sendSms({ to, body });
+  return sendSms({
+    to,
+    body,
+    log: {
+      type: status === "confirmed" ? "booking_confirmation" : "cancellation",
+      bookingRef,
+    },
+  });
 };
 
 // Sent the day before a confirmed event by the reminder job.
 const sendEventReminderSms = async (to, { bookingRef, eventDate, startTime }) => {
   return sendSms({
     to,
+    log: { type: "event_reminder", bookingRef },
     body:
       `Aazath Plaza: Reminder - your event (${bookingRef}) is tomorrow, ${eventDate}` +
       `${startTime ? ` from ${startTime}` : ""}. We look forward to hosting you.`,

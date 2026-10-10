@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Menu, LogOut } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
+import NotificationBell from "@/components/common/NotificationBell";
 import UserAvatar from "@/components/common/UserAvatar";
 import { getSettingsPath } from "@/utils/navigation";
 
@@ -24,6 +25,7 @@ const AdminHeader = ({ onMenuClick }: AdminHeaderProps) => {
       <div className="hidden lg:block" />
 
       <div className="flex items-center gap-3">
+        <NotificationBell />
         <Link
           to={getSettingsPath(user?.role)}
           className="flex items-center gap-2 px-2 py-1 text-sm text-gray-700 rounded-md hover:bg-gray-50"

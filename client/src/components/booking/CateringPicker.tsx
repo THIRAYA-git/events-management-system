@@ -9,7 +9,7 @@ import type { MenuItem } from "@/types/catering.types";
 const RESTAURANTS = [
   { key: "althaf", name: "Althaf Hotel", available: true },
   { key: "kaldeen", name: "Kaldeen Hotel", available: false },
-  { key: "mappillai", name: "Mappillai Virunthu", available: false },
+  { key: "KFC", name: "KFC", available: false },
 ] as const;
 
 const lkr = (n: number) => `LKR ${n.toLocaleString()}`;

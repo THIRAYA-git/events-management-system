@@ -1,5 +1,5 @@
 const db = require("../config/db");
-
+const { notifyOrganizerAssigned } = require("./notify.service");
 /**
  * Get all organizers, optionally filtered by specialty / availability
  */
@@ -79,6 +79,21 @@ const assignOrganizerToBooking = async (
     `SELECT organizer_id FROM organizers WHERE organizer_id = $1`,
     [organizerId]
   );
+    // One organizer per booking
+  const existing = await db.query(
+    `SELECT 1 FROM booking_organizers
+      WHERE booking_id = $1
+        AND status::text NOT IN ('rejected', 'declined', 'cancelled', 'withdrawn')
+      LIMIT 1`,
+    [bookingId]
+  );
+  if (existing.rows.length > 0) {
+    const err = new Error(
+      "This booking already has an organizer. Only one organizer can be assigned per booking."
+    );
+    err.statusCode = 409;
+    throw err;
+  }
   if (organizerCheck.rows.length === 0) {
     const err = new Error("Organizer not found");
     err.statusCode = 404;
@@ -98,6 +113,7 @@ const assignOrganizerToBooking = async (
         notes || null,
       ]
     );
+    notifyOrganizerAssigned(bookingId, organizerId, roleInEvent);
     return result.rows[0];
   } catch (err) {
     if (err.code === "23505") {

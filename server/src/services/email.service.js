@@ -1,4 +1,6 @@
 const nodemailer = require("nodemailer");
+const { logNotification } = require("./notificationLog.service");
+const { notifyRoles, notifyBookingOrganizers } = require("./notify.service");
 
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
@@ -10,6 +12,9 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+// Roles that get a bell alert for new bookings, payments and catering orders.
+const STAFF_ROLES = ["admin", "manager", "front_desk"];
+
 const escapeHtml = (s) =>
   String(s ?? "")
     .replace(/&/g, "&amp;")
@@ -17,7 +22,15 @@ const escapeHtml = (s) =>
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;");
 
-const sendEmail = async ({ to, subject, html, text, replyTo, attachments }) => {
+// `log` ({ type, bookingRef }) is optional: when given, the attempt (sent or
+// failed) is recorded in the notifications table. Logging never throws.
+// `alert` ({ roles?, organizers?, subject, message, type? }) is optional: it adds
+// a bell notification for those roles and/or for the organizers assigned to the
+// booking. It fires whether or not the email was sent, because the alert is
+// about the event, not about the email.
+const sendEmail = async ({ to, subject, html, text, replyTo, attachments, log, alert }) => {
+  let ok = false;
+  let errorMessage = null;
   try {
     await transporter.sendMail({
       from: process.env.EMAIL_FROM,
@@ -28,12 +41,37 @@ const sendEmail = async ({ to, subject, html, text, replyTo, attachments }) => {
       ...(replyTo ? { replyTo } : {}),
       ...(attachments?.length ? { attachments } : {}),
     });
-    return true;
+    ok = true;
   } catch (err) {
     // Email failures must never crash the calling request.
+    errorMessage = err.message;
     console.error("[email.service] Failed to send email:", err.message);
-    return false;
   }
+  if (log) {
+    logNotification({
+      ...log,
+      channel: "email",
+      subject,
+      message: text,
+      email: to,
+      ok,
+      error: errorMessage,
+    });
+  }
+  if (alert) {
+    const payload = {
+      type: alert.type || log?.type || "general",
+      subject: alert.subject,
+      message: alert.message,
+    };
+    if (alert.roles?.length) {
+      notifyRoles(alert.roles, { ...payload, bookingRef: log?.bookingRef });
+    }
+    if (alert.organizers && log?.bookingRef) {
+      notifyBookingOrganizers(log.bookingRef, payload);
+    }
+  }
+  return ok;
 };
 
 // ── Shared branded layout (same purple as the invoice PDF) ──────────────
@@ -65,8 +103,6 @@ const detailsTable = (rows) =>
     .join("") +
   `</table>`;
 
-const password = null; // (placeholder removed below)
-
 const sendPasswordResetEmail = async (to, resetLink) => {
   return sendEmail({
     to,
@@ -90,6 +126,12 @@ const sendBookingConfirmationEmail = async (to, booking) => {
   return sendEmail({
     to,
     subject: `Booking request received — ${bookingRef}`,
+    log: { type: "booking_confirmation", bookingRef },
+    alert: {
+      roles: STAFF_ROLES,
+      subject: `New booking request — ${bookingRef}`,
+      message: `${customerName} requested ${hallName} for ${eventType} on ${eventDate} (${guestCount} guests).`,
+    },
     text:
       `Hi ${customerName},\n\n` +
       `We've received your booking request for Aazath Plaza. Here are the details:\n\n` +
@@ -129,6 +171,16 @@ const sendBookingStatusEmail = async (
   return sendEmail({
     to,
     subject: `Booking ${confirmed ? "confirmed" : "cancelled"} — ${bookingRef}`,
+    log: { type: confirmed ? "booking_confirmation" : "cancellation", bookingRef },
+    alert: confirmed
+      ? undefined
+      : {
+          organizers: true,
+          subject: `Booking cancelled — ${bookingRef}`,
+          message:
+            `The booking at ${hallName} on ${eventDate} was cancelled.` +
+            `${cancelReason ? ` Reason: ${cancelReason}` : ""}`,
+        },
     text:
       `Hi ${customerName},\n\n${intro}\n\n` +
       `Reference: ${bookingRef}\nHall: ${hallName}\nDate: ${eventDate}` +
@@ -156,6 +208,12 @@ const sendPaymentReceiptEmail = async (
   return sendEmail({
     to,
     subject: `Payment received — ${bookingRef} (Invoice ${invoiceNumber})`,
+    log: { type: "payment_receipt", bookingRef },
+    alert: {
+      roles: STAFF_ROLES,
+      subject: `Payment received — ${bookingRef}`,
+      message: `${customerName} paid ${amt} for the event on ${eventDate}. Invoice ${invoiceNumber}.`,
+    },
     text:
       `Hi ${customerName},\n\nWe received your payment of ${amt} for booking ${bookingRef}. ` +
       `Your booking for ${eventDate} is confirmed. Invoice ${invoiceNumber} is attached.`,
@@ -182,6 +240,12 @@ const sendPaymentRefundNoticeEmail = async (to, { customerName, bookingRef }) =>
   return sendEmail({
     to,
     subject: `Action needed — payment for ${bookingRef}`,
+    log: { type: "general", bookingRef },
+    alert: {
+      roles: ["admin", "manager"],
+      subject: `Action needed — refund for ${bookingRef}`,
+      message: `${customerName} paid, but the booking could not be confirmed. Please arrange a refund.`,
+    },
     text:
       `Hi ${customerName},\n\nWe received your payment for ${bookingRef}, but the booking could not be confirmed. ` +
       `Our staff will contact you shortly to arrange a refund.`,
@@ -202,6 +266,7 @@ const sendEventReminderEmail = async (
   return sendEmail({
     to,
     subject: `Reminder: your event is tomorrow — ${bookingRef}`,
+    log: { type: "event_reminder", bookingRef },
     text:
       `Hi ${customerName},\n\nA reminder that your event (${bookingRef}) at ${hallName} is tomorrow, ${eventDate}` +
       `${startTime ? ` from ${startTime}` : ""}. We look forward to hosting you.`,
@@ -225,6 +290,11 @@ const sendContactMessageEmail = async ({ name, email, phone, subject, message })
     to: inbox,
     replyTo: email,
     subject: `[Contact] ${subject} - ${name}`,
+    alert: {
+      roles: ["admin"],
+      subject: `New contact message — ${name}`,
+      message: `Topic: ${subject}`,
+    },
     text: `From: ${name} <${email}>\nPhone: ${phone || "-"}\nTopic: ${subject}\n\n${message}`,
     html: `
       <p><strong>New message from the Contact page</strong></p>
@@ -267,6 +337,12 @@ const sendCateringOrderPlacedEmail = async (
   return sendEmail({
     to,
     subject: `Catering order #${orderId} received — ${bookingRef}`,
+    log: { type: "catering_update", bookingRef },
+    alert: {
+      roles: [...STAFF_ROLES, "restaurant"],
+      subject: `New catering order #${orderId} — ${bookingRef}`,
+      message: `${customerName} ordered catering for ${guestCount} guests (${fmtLkr(totalCost)}).`,
+    },
     text:
       `Hi ${customerName},\n\nWe received your catering order #${orderId} for booking ${bookingRef}.\n\n` +
       `${itemsText}\n\nGuests: ${guestCount}\nTotal: ${fmtLkr(totalCost)}\n` +
@@ -305,6 +381,7 @@ const sendCateringStatusEmail = async (
   return sendEmail({
     to,
     subject: `Catering order #${orderId} ${status} — ${bookingRef}`,
+    log: { type: "catering_update", bookingRef },
     text: `Hi ${customerName},\n\n${copy}\n\nOrder: #${orderId}\nBooking: ${bookingRef}`,
     html: layout(
       `Catering order ${status}`,
@@ -326,6 +403,12 @@ const sendEventUpdateEmail = async (
   return sendEmail({
     to,
     subject: `Event schedule updated — ${bookingRef}`,
+    log: { type: "general", bookingRef },
+    alert: {
+      organizers: true,
+      subject: `Event schedule updated — ${bookingRef}`,
+      message: `An activity was ${verb} the schedule: ${activityName || "-"} on ${eventDate}.`,
+    },
     text:
       `Hi ${customerName},\n\nAn activity was ${verb} the schedule for your event.\n\n` +
       `Booking: ${bookingRef}\nHall: ${hallName}\nDate: ${eventDate}\n` +
