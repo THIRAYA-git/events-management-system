@@ -118,8 +118,7 @@ export function AdminReportsPage() {
             Reports
           </h1>
           <p className="mt-1 text-sm text-gray-500">
-            Hall bookings, event types and room revenue for the selected
-            period.
+            Hall bookings, event types and room revenue for the selected period.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
@@ -299,7 +298,10 @@ export function AdminReportsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {report.by_event_type.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-4 py-6 text-center text-gray-400">
+                      <td
+                        colSpan={3}
+                        className="px-4 py-6 text-center text-gray-400"
+                      >
                         No data
                       </td>
                     </tr>
@@ -337,14 +339,19 @@ export function AdminReportsPage() {
                 <tbody className="divide-y divide-gray-100">
                   {report.by_hall.length === 0 ? (
                     <tr>
-                      <td colSpan={3} className="px-4 py-6 text-center text-gray-400">
+                      <td
+                        colSpan={3}
+                        className="px-4 py-6 text-center text-gray-400"
+                      >
                         No data
                       </td>
                     </tr>
                   ) : (
                     report.by_hall.map((r) => (
                       <tr key={r.hall_id}>
-                        <td className="px-4 py-2 text-gray-800">{r.hall_name}</td>
+                        <td className="px-4 py-2 text-gray-800">
+                          {r.hall_name}
+                        </td>
                         <td className="px-4 py-2 text-right tabular-nums">
                           {r.booking_count}
                         </td>
@@ -379,7 +386,10 @@ export function AdminReportsPage() {
               <tbody className="divide-y divide-gray-100">
                 {report.rooms.by_event_type.length === 0 ? (
                   <tr>
-                    <td colSpan={4} className="px-4 py-6 text-center text-gray-400">
+                    <td
+                      colSpan={4}
+                      className="px-4 py-6 text-center text-gray-400"
+                    >
                       No room reservations in this period
                     </td>
                   </tr>
@@ -414,72 +424,79 @@ export function AdminReportsPage() {
             <h2 className="border-b border-gray-200 bg-gray-50 px-4 py-3 text-sm font-semibold text-gray-800">
               Booking detail
             </h2>
-            <table className="w-full table-fixed text-sm">
-              <colgroup>
-                <col className="w-[16%]" />
-                <col className="w-[18%]" />
-                <col className="w-[18%]" />
-                <col className="w-[13%]" />
-                <col className="w-[8%]" />
-                <col className="w-[12%]" />
-                <col className="w-[15%]" />
-              </colgroup>
-              <thead>
-                <tr className="text-left text-xs uppercase text-gray-500">
-                  <th className="px-4 py-2">Ref</th>
-                  <th className="px-4 py-2">Customer</th>
-                  <th className="px-4 py-2">Hall / Type</th>
-                  <th className="px-4 py-2">Date</th>
-                  <th className="px-4 py-2 text-right">Guests</th>
-                  <th className="px-4 py-2">Status</th>
-                  <th className="px-4 py-2 text-right">Total</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-100">
-                {report.bookings.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-6 text-center text-gray-400">
-                      No bookings in this period
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[900px] table-fixed text-sm">
+                <colgroup>
+                  <col className="w-[16%]" />
+                  <col className="w-[17%]" />
+                  <col className="w-[18%]" />
+                  <col className="w-[13%]" />
+                  <col className="w-[8%]" />
+                  <col className="w-[12%]" />
+                  <col className="w-[16%]" />
+                </colgroup>
+                <thead>
+                  <tr className="text-left text-xs uppercase text-gray-500">
+                    <th className="px-4 py-2">Ref</th>
+                    <th className="px-4 py-2">Customer</th>
+                    <th className="px-4 py-2">Hall / Type</th>
+                    <th className="px-4 py-2">Date</th>
+                    <th className="px-4 py-2 text-right">Guests</th>
+                    <th className="px-4 py-2">Status</th>
+                    <th className="px-4 py-2 text-right">Total</th>
                   </tr>
-                ) : (
-                  report.bookings.map((b) => (
-                    <tr key={b.booking_id}>
-                      <td className="truncate px-4 py-2 font-mono text-xs text-gray-500">
-                        {b.booking_ref}
-                      </td>
-                      <td className="truncate px-4 py-2 text-gray-800">
-                        {b.customer_name}
-                      </td>
-                      <td className="px-4 py-2">
-                        <div className="truncate text-gray-800">{b.halls}</div>
-                        <div className="text-xs text-gray-500">
-                          {label(b.event_type)}
-                        </div>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2 text-gray-700">
-                        {fmtDate(b.event_date)}
-                      </td>
-                      <td className="px-4 py-2 text-right tabular-nums">
-                        {b.guest_count}
-                      </td>
-                      <td className="px-4 py-2">
-                        <span
-                          className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                            STATUS_BADGE[b.status] ?? ""
-                          }`}
-                        >
-                          {b.status}
-                        </span>
-                      </td>
-                      <td className="whitespace-nowrap px-4 py-2 text-right font-medium tabular-nums">
-                        {money(b.total_amount)}
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {report.bookings.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={7}
+                        className="px-4 py-6 text-center text-gray-400"
+                      >
+                        No bookings in this period
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    report.bookings.map((b) => (
+                      <tr key={b.booking_id}>
+                        <td className="truncate px-4 py-2 font-mono text-xs text-gray-500">
+                          {b.booking_ref}
+                        </td>
+                        <td className="truncate px-4 py-2 text-gray-800">
+                          {b.customer_name}
+                        </td>
+                        <td className="px-4 py-2">
+                          <div className="truncate text-gray-800">
+                            {b.halls}
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {label(b.event_type)}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2 text-gray-700">
+                          {fmtDate(b.event_date)}
+                        </td>
+                        <td className="px-4 py-2 text-right tabular-nums">
+                          {b.guest_count}
+                        </td>
+                        <td className="px-4 py-2">
+                          <span
+                            className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
+                              STATUS_BADGE[b.status] ?? ""
+                            }`}
+                          >
+                            {b.status}
+                          </span>
+                        </td>
+                        <td className="whitespace-nowrap px-4 py-2 text-right font-medium tabular-nums">
+                          {money(b.total_amount)}
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+            </div>
             {report.bookings_truncated && (
               <p className="border-t border-gray-100 px-4 py-2 text-xs text-amber-600">
                 Showing the first 500 bookings only.

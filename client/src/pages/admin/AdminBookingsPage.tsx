@@ -336,7 +336,7 @@ export function AdminBookingsPage() {
 
       {/* ── Table card (no horizontal scroll) ───────────────────────── */}
       <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
-        {isLoading ? (
+  {isLoading ? (
           <div className="flex items-center justify-center py-16 text-gray-400">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Loading bookings…
@@ -348,16 +348,17 @@ export function AdminBookingsPage() {
             No bookings match these filters.
           </div>
         ) : (
-          <table className="w-full table-fixed text-sm">
-            <colgroup>
-              <col className="w-[24%]" />
-              <col className="w-[17%]" />
-              <col className="w-[14%]" />
-              <col className="w-[7%]" />
-              <col className="w-[13%]" />
-              <col className="w-[11%]" />
-              <col className="w-[14%]" />
-            </colgroup>
+          <div className="overflow-x-auto">
+      <table className="w-full min-w-[1040px] table-fixed text-sm">
+        <colgroup>
+          <col className="w-[22%]" />
+          <col className="w-[16%]" />
+          <col className="w-[13%]" />
+          <col className="w-[7%]" />
+          <col className="w-[13%]" />
+          <col className="w-[12%]" />
+          <col className="w-[17%]" />
+        </colgroup>
             <thead className="bg-gray-50">
               <tr className="border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
                 <th className="px-4 py-3">Customer</th>
@@ -484,6 +485,7 @@ export function AdminBookingsPage() {
               ))}
             </tbody>
           </table>
+          </div>
         )}
 
         {/* ── Pagination (inside the card) ──────────────────────────── */}
