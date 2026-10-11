@@ -14,7 +14,10 @@ export interface Feedback {
 }
 
 export interface CreateFeedbackPayload {
-  booking_id: number;
+  booking_id?: number;
+  event_name?: string;
+  event_date?: string; // YYYY-MM-DD
+  hall_name?: string;
   rating: number;
   title?: string;
   comment?: string;
@@ -33,8 +36,11 @@ export interface FeedbackListResponse {
 }
 
 export interface AdminFeedback {
+  booking_id?: number | null;
+  booking_ref?: string | null;
+  is_manual?: boolean;
+  hall_name?: string | null;
   feedback_id: number;
-  booking_id: number;
   user_id: number;
   rating: number;
   title: string | null;
@@ -44,7 +50,6 @@ export interface AdminFeedback {
   replied_at: string | null;
   created_at: string;
   customer_name: string;
-  booking_ref: string;
   event_type: string;
   event_date: string;
   room_count: number;
@@ -80,8 +85,8 @@ export interface AdminFeedbackQuery {
 export interface FeedbackReply {
   feedback_id: number;
   booking_id: number;
-  booking_ref: string;
-  event_type: string;
+  event_type?: string | null;
+  booking_ref?: string | null;
   event_date: string;
   rating: number;
   title: string | null;

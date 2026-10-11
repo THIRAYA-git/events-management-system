@@ -71,6 +71,14 @@ const STATUS_COLORS: Record<string, string> = {
   cancelled: "#9ca3af",
 };
 
+/* Value of the "My event isn't listed" option in the event dropdown */
+const MANUAL = "manual" as const;
+
+const EMPTY_MANUAL = { eventName: "", eventDate: "", hall: "" };
+
+const inputClass =
+  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500";
+
 function daysLeft(d: Date) {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
@@ -100,19 +108,26 @@ export default function CustomerDashboardPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [feedbackId, setFeedbackId] = useState<number | null>(null);
+
+  // null = nothing chosen yet, number = booking_id, "manual" = typed in
+  const [feedbackId, setFeedbackId] = useState<number | typeof MANUAL | null>(
+    null
+  );
+  const [manual, setManual] = useState(EMPTY_MANUAL);
 
   const [replies, setReplies] = useState<FeedbackReply[]>([]);
   const [notice, setNotice] = useState<{
     type: "success" | "error";
     text: string;
   } | null>(null);
+  const showNotice = (type: "success" | "error", text: string) => {
+    setNotice({ type, text });
+    setTimeout(() => setNotice(null), 5000);
+  };
+
   useEffect(() => {
     getMyUnreadReplies()
-      .then((r) => {
-        console.log("replies:", r);
-        setReplies(r);
-      })
+      .then((r) => setReplies(r))
       .catch((e) =>
         console.error("replies error:", e?.response?.status, e?.response?.data)
       );
@@ -203,16 +218,24 @@ export default function CustomerDashboardPage() {
     };
   }, [bookings]);
 
-  // events still waiting for feedback
+  // completed events still waiting for feedback
   const eligible = useMemo(
     () => data.completed.filter((b) => !b.has_feedback),
     [data.completed]
   );
-  const selected = eligible.find((b) => b.booking_id === feedbackId) ?? null;
 
+  const selected =
+    typeof feedbackId === "number"
+      ? eligible.find((b) => b.booking_id === feedbackId) ?? null
+      : null;
+
+  // if the chosen booking disappears (e.g. after submitting), go back to "nothing chosen"
   useEffect(() => {
-    if (!eligible.some((b) => b.booking_id === feedbackId)) {
-      setFeedbackId(eligible[0]?.booking_id ?? null);
+    if (
+      typeof feedbackId === "number" &&
+      !eligible.some((b) => b.booking_id === feedbackId)
+    ) {
+      setFeedbackId(null);
     }
   }, [eligible, feedbackId]);
 
@@ -220,6 +243,9 @@ export default function CustomerDashboardPage() {
     setBookings((prev) =>
       prev.map((b) => (b.booking_id === id ? { ...b, has_feedback: true } : b))
     );
+
+  const todayISO = new Date().toISOString().split("T")[0];
+  const manualReady = manual.eventName.trim() !== "" && manual.eventDate !== "";
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 lg:px-6">
@@ -428,25 +454,15 @@ export default function CustomerDashboardPage() {
             </div>
           </section>
 
-          {/* Post-event feedback: one form, pick the event */}
+          {/* Post-event feedback: pick a recent event or type one in */}
           <section>
             <h2 className="mb-1 text-lg font-semibold text-gray-900">
               Post-event feedback
             </h2>
             <p className="mb-3 text-sm text-gray-500">
-              Choose a completed event and tell us how it went.
+              Choose one of your recent events, or enter an event yourself, and
+              tell us how it went.
             </p>
-            {notice && (
-              <p
-                className={`mb-3 rounded-lg px-3 py-2 text-sm ${
-                  notice.type === "success"
-                    ? "bg-emerald-50 text-emerald-700"
-                    : "bg-red-50 text-red-700"
-                }`}
-              >
-                {notice.text}
-              </p>
-            )}
             {replies.length > 0 && (
               <div className="mb-4 space-y-3">
                 <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
@@ -464,10 +480,12 @@ export default function CustomerDashboardPage() {
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
                         <p className="font-medium text-gray-900">
-                          {r.title || r.event_type}
-                          <span className="ml-2 text-xs font-normal text-gray-500">
-                            {r.booking_ref}
-                          </span>
+                          {r.title || r.event_type || "Your event"}
+                          {r.booking_ref && (
+                            <span className="ml-2 text-xs font-normal text-gray-500">
+                              {r.booking_ref}
+                            </span>
+                          )}
                         </p>
                         <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">
                           Your review: {r.comment || "No comment"}
@@ -487,31 +505,46 @@ export default function CustomerDashboardPage() {
                 ))}
               </div>
             )}
+
             <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
+              {notice && (
+                <p
+                  className={`mb-4 rounded-lg px-3 py-2 text-sm ${
+                    notice.type === "success"
+                      ? "bg-emerald-50 text-emerald-700"
+                      : "bg-red-50 text-red-700"
+                  }`}
+                >
+                  {notice.text}
+                </p>
+              )}
               <label className="block text-sm font-medium text-gray-700">
                 Event
                 <select
                   value={feedbackId ?? ""}
-                  onChange={(e) => setFeedbackId(Number(e.target.value))}
-                  disabled={eligible.length === 0}
-                  className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500 disabled:bg-gray-50 disabled:text-gray-400"
+                  onChange={(e) => {
+                    const v = e.target.value;
+                    setFeedbackId(
+                      v === "" ? null : v === MANUAL ? MANUAL : Number(v)
+                    );
+                  }}
+                  className={`${inputClass} mt-1`}
                 >
-                  {eligible.length === 0 ? (
-                    <option value="">
-                      No completed events waiting for feedback
+                  <option value="">Select one of your recent events…</option>
+                  {eligible.map((b) => (
+                    <option key={b.booking_id} value={b.booking_id}>
+                      {f.type(b)} · {fmtDate(f.date(b))}
+                      {f.hall(b) && ` · ${f.hall(b)}`}
                     </option>
-                  ) : (
-                    eligible.map((b) => (
-                      <option key={b.booking_id} value={b.booking_id}>
-                        {f.type(b)} · {fmtDate(f.date(b))}
-                        {f.hall(b) && ` · ${f.hall(b)}`}
-                      </option>
-                    ))
-                  )}
+                  ))}
+                  <option value={MANUAL}>
+                    My event isn't listed – enter it manually
+                  </option>
                 </select>
               </label>
 
-              {selected ? (
+              {/* Option 1: a listed booking */}
+              {selected && (
                 <div className="mt-4 space-y-4">
                   <div className="grid gap-3 rounded-xl bg-gray-50 p-4 text-sm sm:grid-cols-4">
                     <div>
@@ -542,14 +575,89 @@ export default function CustomerDashboardPage() {
                   <FeedbackForm
                     key={selected.booking_id}
                     bookingId={selected.booking_id}
-                    onSubmitted={() => markFeedbackDone(selected.booking_id)}
+                    onSubmitted={() => {
+                      markFeedbackDone(selected.booking_id);
+                      showNotice(
+                        "success",
+                        "Thank you! Your feedback was submitted."
+                      );
+                    }}
                   />
                 </div>
-              ) : (
+              )}
+
+              {/* Option 2: typed manually */}
+              {feedbackId === MANUAL && (
+                <div className="mt-4 space-y-4">
+                  <div className="grid gap-3 sm:grid-cols-3">
+                    <label className="block text-sm font-medium text-gray-700">
+                      Event name
+                      <input
+                        value={manual.eventName}
+                        onChange={(e) =>
+                          setManual({ ...manual, eventName: e.target.value })
+                        }
+                        placeholder="e.g. Birthday party"
+                        maxLength={150}
+                        className={`${inputClass} mt-1`}
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Event date
+                      <input
+                        type="date"
+                        max={todayISO}
+                        value={manual.eventDate}
+                        onChange={(e) =>
+                          setManual({ ...manual, eventDate: e.target.value })
+                        }
+                        className={`${inputClass} mt-1`}
+                      />
+                    </label>
+                    <label className="block text-sm font-medium text-gray-700">
+                      Hall (optional)
+                      <input
+                        value={manual.hall}
+                        onChange={(e) =>
+                          setManual({ ...manual, hall: e.target.value })
+                        }
+                        placeholder="e.g. Hall 1 - Grand"
+                        maxLength={100}
+                        className={`${inputClass} mt-1`}
+                      />
+                    </label>
+                  </div>
+
+                  {manualReady ? (
+                    <FeedbackForm
+                      key="manual"
+                      manualEvent={{
+                        eventName: manual.eventName.trim(),
+                        eventDate: manual.eventDate,
+                        hall: manual.hall.trim() || undefined,
+                      }}
+                      onSubmitted={() => {
+                        setManual(EMPTY_MANUAL);
+                        setFeedbackId(null);
+                        showNotice(
+                          "success",
+                          "Thank you! Your feedback was submitted and will be reviewed by our team."
+                        );
+                      }}
+                    />
+                  ) : (
+                    <p className="text-sm text-gray-500">
+                      Enter the event name and date to continue.
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {feedbackId === null && (
                 <p className="mt-4 text-sm text-gray-500">
-                  {data.completed.length > 0
-                    ? "Thanks, you have given feedback for all your completed events."
-                    : "Feedback opens once one of your events has been completed."}
+                  {eligible.length === 0
+                    ? "No completed events are waiting for feedback. You can still enter an event manually from the list above."
+                    : "Pick an event above, or enter one manually, to leave feedback."}
                 </p>
               )}
             </div>

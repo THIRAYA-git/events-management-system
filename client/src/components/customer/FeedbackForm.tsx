@@ -14,17 +14,28 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { submitFeedback } from "@/api/feedback.api";
 
+export interface ManualEvent {
+  eventName: string;
+  eventDate: string; // YYYY-MM-DD
+  hall?: string;
+}
+
+// Pass bookingId for a listed booking, or manualEvent when the customer
+// typed the event in themselves. Exactly one of the two should be given.
 interface FeedbackFormProps {
-  bookingId: number;
+  bookingId?: number;
+  manualEvent?: ManualEvent;
   onSubmitted?: () => void;
 }
 
-// Rendered on a completed booking (e.g. a booking detail / history page).
-// The backend rejects submissions for bookings that aren't yet
-// status = 'completed', or that don't belong to the requesting customer,
-// so this form doesn't need to re-check either — it just surfaces
-// whatever error message comes back.
-const FeedbackForm: FC<FeedbackFormProps> = ({ bookingId, onSubmitted }) => {
+// For booking-based feedback the backend rejects bookings that aren't
+// status = 'completed' or don't belong to the customer; this form just
+// surfaces whatever error message comes back.
+const FeedbackForm: FC<FeedbackFormProps> = ({
+  bookingId,
+  manualEvent,
+  onSubmitted,
+}) => {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [title, setTitle] = useState("");
@@ -38,12 +49,22 @@ const FeedbackForm: FC<FeedbackFormProps> = ({ bookingId, onSubmitted }) => {
       setError("Please select a star rating.");
       return;
     }
+    if (bookingId == null && !manualEvent) {
+      setError("Please choose or enter an event first.");
+      return;
+    }
 
     setSubmitting(true);
     setError(null);
     try {
       await submitFeedback({
-        booking_id: bookingId,
+        ...(bookingId != null
+          ? { booking_id: bookingId }
+          : {
+              event_name: manualEvent!.eventName,
+              event_date: manualEvent!.eventDate,
+              hall_name: manualEvent!.hall,
+            }),
         rating,
         title: title || undefined,
         comment: comment || undefined,
