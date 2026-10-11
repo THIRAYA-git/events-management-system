@@ -117,6 +117,24 @@ const setFeedbackVisibilityHandler = async (req, res) => {
   }
 };
 
+const getMyRepliesHandler = async (req, res) => {
+  try {
+    const replies = await feedbackService.getUnreadRepliesForUser(req.user.id);
+    res.json({ replies });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message });
+  }
+};
+
+const markReplyReadHandler = async (req, res) => {
+  try {
+    await feedbackService.markReplyRead(Number(req.params.id), req.user.id);
+    res.json({ message: "Marked as read" });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message });
+  }
+};
+
 module.exports = {
   createFeedbackHandler,
   listFeedbackHandler,
@@ -124,4 +142,6 @@ module.exports = {
   listPublicFeedbackHandler,
   getFeedbackSummaryHandler,
   setFeedbackVisibilityHandler,
+  getMyRepliesHandler,
+  markReplyReadHandler,
 };

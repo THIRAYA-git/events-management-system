@@ -76,3 +76,15 @@ export interface AdminFeedbackQuery {
   limit?: number;
   offset?: number;
 }
+
+export interface FeedbackReply {
+  feedback_id: number;
+  booking_id: number;
+  booking_ref: string;
+  event_type: string;
+  event_date: string;
+  rating: number;
+  title: string | null;
+  comment: string | null;
+  admin_reply: string;
+}

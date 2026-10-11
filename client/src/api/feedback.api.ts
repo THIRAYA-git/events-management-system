@@ -8,6 +8,7 @@ import type {
   AdminFeedbackListResponse,
   AdminFeedbackQuery,
   FeedbackSummary,
+  FeedbackReply,
 } from "@/types/feedback.types";
 
 export const submitFeedback = async (
@@ -70,4 +71,11 @@ export const setFeedbackVisibility = async (
     { is_public }
   );
   return data.feedback;
+};
+
+export const getMyUnreadReplies = async (): Promise<FeedbackReply[]> =>
+  (await api.get("/feedback/my/replies")).data.replies;
+
+export const markReplyRead = async (id: number): Promise<void> => {
+  await api.patch(`/feedback/${id}/read`);
 };

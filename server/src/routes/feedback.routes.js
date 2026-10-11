@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const { authenticate, authorize } = require("../middleware/auth.middleware");
+const { authenticate, authorize, restrictTo } = require("../middleware/auth.middleware");
 const {
   createFeedbackHandler,
   listFeedbackHandler,
@@ -8,6 +8,8 @@ const {
   listPublicFeedbackHandler,
   getFeedbackSummaryHandler,
   setFeedbackVisibilityHandler,
+  getMyRepliesHandler,
+  markReplyReadHandler,
 } = require("../controllers/feedback.controller");
 
 router.use(authenticate);
@@ -24,6 +26,19 @@ router.get("/summary", authorize("feedback:read"), getFeedbackSummaryHandler);
 
 // GET /api/feedback/public — testimonials for the homepage, any logged-in role
 router.get("/public", listPublicFeedbackHandler);
+
+router.get(
+  "/my/replies",
+  authenticate,
+  restrictTo("customer"),
+  getMyRepliesHandler
+);
+router.patch(
+  "/:id/read",
+  authenticate,
+  restrictTo("customer"),
+  markReplyReadHandler
+);
 
 // PATCH /api/feedback/:feedbackId/reply — admin/manager adds or edits a reply
 router.patch(

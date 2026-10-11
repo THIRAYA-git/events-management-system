@@ -10,14 +10,33 @@ import {
   LinearScale,
   Tooltip,
 } from "chart.js";
-import { CalendarPlus, Clock, MapPin, Users } from "lucide-react";
+import {
+  CalendarPlus,
+  Check,
+  Clock,
+  MapPin,
+  MessageSquare,
+  Users,
+} from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import FeedbackForm from "@/components/customer/FeedbackForm";
-import { primaryBtnClass, errorTextClass } from "@/components/booking/bookingStyles";
+import {
+  primaryBtnClass,
+  errorTextClass,
+} from "@/components/booking/bookingStyles";
 import { fetchMyBookings } from "@/lib/booking.api";
 import type { AdminBooking } from "@/types/booking.types";
+import { getMyUnreadReplies, markReplyRead } from "@/api/feedback.api";
+import type { FeedbackReply } from "@/types/feedback.types";
 
-ChartJS.register(ArcElement, BarElement, CategoryScale, LinearScale, Tooltip, Legend);
+ChartJS.register(
+  ArcElement,
+  BarElement,
+  CategoryScale,
+  LinearScale,
+  Tooltip,
+  Legend
+);
 
 /* If your AdminBooking uses different field names, change them here only. */
 const f = {
@@ -30,8 +49,13 @@ const f = {
 };
 
 const fmtDate = (d: Date) =>
-  d.toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" });
-const lkr = (n: number) => `LKR ${n.toLocaleString("en-LK", { maximumFractionDigits: 0 })}`;
+  d.toLocaleDateString("en-GB", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+const lkr = (n: number) =>
+  `LKR ${n.toLocaleString("en-LK", { maximumFractionDigits: 0 })}`;
 
 const CARD_TINTS = [
   "bg-violet-50 border-violet-100",
@@ -78,6 +102,36 @@ export default function CustomerDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [feedbackId, setFeedbackId] = useState<number | null>(null);
 
+  const [replies, setReplies] = useState<FeedbackReply[]>([]);
+  const [notice, setNotice] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+  useEffect(() => {
+    getMyUnreadReplies()
+      .then((r) => {
+        console.log("replies:", r);
+        setReplies(r);
+      })
+      .catch((e) =>
+        console.error("replies error:", e?.response?.status, e?.response?.data)
+      );
+  }, []);
+
+  const handleMarkRead = async (id: number) => {
+    try {
+      await markReplyRead(id);
+      setReplies((prev) => prev.filter((r) => r.feedback_id !== id));
+      setNotice({ type: "success", text: "Reply marked as read." });
+    } catch {
+      setNotice({
+        type: "error",
+        text: "Could not mark the reply as read. Please try again.",
+      });
+    }
+    setTimeout(() => setNotice(null), 3000);
+  };
+
   useEffect(() => {
     fetchMyBookings()
       .then(({ bookings }) => setBookings(bookings))
@@ -90,32 +144,47 @@ export default function CustomerDashboardPage() {
     today.setHours(0, 0, 0, 0);
 
     const upcoming = bookings
-      .filter((b) => (b.status === "pending" || b.status === "confirmed") && f.date(b) >= today)
+      .filter(
+        (b) =>
+          (b.status === "pending" || b.status === "confirmed") &&
+          f.date(b) >= today
+      )
       .sort((a, b) => +f.date(a) - +f.date(b));
 
     const completed = bookings
       .filter((b) => b.status === "completed")
       .sort((a, b) => +f.date(b) - +f.date(a));
 
-    const statusCounts = (["pending", "confirmed", "completed", "cancelled"] as const).map(
-      (s) => bookings.filter((b) => b.status === s).length
-    );
+    const statusCounts = (
+      ["pending", "confirmed", "completed", "cancelled"] as const
+    ).map((s) => bookings.filter((b) => b.status === s).length);
 
     const paid = bookings
       .filter((b) => b.status === "confirmed" || b.status === "completed")
       .reduce((s, b) => s + f.total(b), 0);
-    const due = bookings.filter((b) => b.status === "pending").reduce((s, b) => s + f.total(b), 0);
+    const due = bookings
+      .filter((b) => b.status === "pending")
+      .reduce((s, b) => s + f.total(b), 0);
 
     // amount per month of event date, split paid / due
-    const months = new Map<string, { label: string; paid: number; due: number }>();
+    const months = new Map<
+      string,
+      { label: string; paid: number; due: number }
+    >();
     [...bookings]
       .filter((b) => b.status !== "cancelled")
       .sort((a, b) => +f.date(a) - +f.date(b))
       .forEach((b) => {
         const d = f.date(b);
-        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
+        const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+          2,
+          "0"
+        )}`;
         const m = months.get(key) ?? {
-          label: d.toLocaleDateString("en-GB", { month: "short", year: "numeric" }),
+          label: d.toLocaleDateString("en-GB", {
+            month: "short",
+            year: "numeric",
+          }),
           paid: 0,
           due: 0,
         };
@@ -124,11 +193,21 @@ export default function CustomerDashboardPage() {
         months.set(key, m);
       });
 
-    return { upcoming, completed, statusCounts, paid, due, months: [...months.values()] };
+    return {
+      upcoming,
+      completed,
+      statusCounts,
+      paid,
+      due,
+      months: [...months.values()],
+    };
   }, [bookings]);
 
   // events still waiting for feedback
-  const eligible = useMemo(() => data.completed.filter((b) => !b.has_feedback), [data.completed]);
+  const eligible = useMemo(
+    () => data.completed.filter((b) => !b.has_feedback),
+    [data.completed]
+  );
   const selected = eligible.find((b) => b.booking_id === feedbackId) ?? null;
 
   useEffect(() => {
@@ -138,7 +217,9 @@ export default function CustomerDashboardPage() {
   }, [eligible, feedbackId]);
 
   const markFeedbackDone = (id: number) =>
-    setBookings((prev) => prev.map((b) => (b.booking_id === id ? { ...b, has_feedback: true } : b)));
+    setBookings((prev) =>
+      prev.map((b) => (b.booking_id === id ? { ...b, has_feedback: true } : b))
+    );
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 lg:px-6">
@@ -147,7 +228,9 @@ export default function CustomerDashboardPage() {
           <h1 className="text-2xl font-bold text-gray-900">
             Hello, {user?.name?.split(" ")[0] ?? "there"} – your dashboard
           </h1>
-          <p className="mt-1 text-sm text-gray-500">Events, payments and feedback in one place.</p>
+          <p className="mt-1 text-sm text-gray-500">
+            Events, payments and feedback in one place.
+          </p>
         </div>
         <Link to="/book" className={`${primaryBtnClass} gap-2`}>
           <CalendarPlus className="h-4 w-4" />
@@ -156,17 +239,24 @@ export default function CustomerDashboardPage() {
       </div>
 
       {error && <p className={errorTextClass}>{error}</p>}
-      {isLoading && <p className="text-sm text-gray-500">Loading your dashboard…</p>}
+      {isLoading && (
+        <p className="text-sm text-gray-500">Loading your dashboard…</p>
+      )}
 
       {!isLoading && !error && (
         <>
           {/* Upcoming events */}
           <section>
-            <h2 className="mb-3 text-lg font-semibold text-gray-900">My upcoming events</h2>
+            <h2 className="mb-3 text-lg font-semibold text-gray-900">
+              My upcoming events
+            </h2>
             {data.upcoming.length === 0 ? (
               <div className="rounded-2xl border border-dashed border-gray-300! bg-white px-6 py-10 text-center text-sm text-gray-500">
                 No upcoming events.{" "}
-                <Link to="/book" className="font-medium text-violet-600 hover:underline">
+                <Link
+                  to="/book"
+                  className="font-medium text-violet-600 hover:underline"
+                >
                   Book a hall
                 </Link>
               </div>
@@ -175,11 +265,15 @@ export default function CustomerDashboardPage() {
                 {data.upcoming.map((b, i) => (
                   <div
                     key={b.booking_id}
-                    className={`w-64 shrink-0 rounded-2xl border p-4 ${CARD_TINTS[i % CARD_TINTS.length]}`}
+                    className={`w-64 shrink-0 rounded-2xl border p-4 ${
+                      CARD_TINTS[i % CARD_TINTS.length]
+                    }`}
                   >
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-semibold text-gray-900">{f.type(b)}</p>
-                      <span className="whitespace-nowrap text-xs text-gray-500">{daysLeft(f.date(b))}</span>
+                      <span className="whitespace-nowrap text-xs text-gray-500">
+                        {daysLeft(f.date(b))}
+                      </span>
                     </div>
                     <div className="mt-3 space-y-1.5 text-sm text-gray-600">
                       <p className="flex items-center gap-2">
@@ -199,12 +293,20 @@ export default function CustomerDashboardPage() {
                       )}
                     </div>
                     <div className="mt-4 flex items-center justify-between">
-                      <span className={`rounded-full px-2.5 py-0.5 text-xs ${payment(b).cls}`}>
+                      <span
+                        className={`rounded-full px-2.5 py-0.5 text-xs ${
+                          payment(b).cls
+                        }`}
+                      >
                         {payment(b).label}
                       </span>
                       <button
                         onClick={() =>
-                          navigate(b.status === "pending" ? `/payment/${b.booking_id}` : "/my-bookings")
+                          navigate(
+                            b.status === "pending"
+                              ? `/payment/${b.booking_id}`
+                              : "/my-bookings"
+                          )
                         }
                         className="rounded-lg bg-violet-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-violet-700"
                       >
@@ -221,7 +323,10 @@ export default function CustomerDashboardPage() {
           <section className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-lg font-semibold text-gray-900">Summary</h2>
-              <Link to="/my-bookings" className="text-sm font-medium text-violet-600 hover:underline">
+              <Link
+                to="/my-bookings"
+                className="text-sm font-medium text-violet-600 hover:underline"
+              >
                 Full history in My Bookings
               </Link>
             </div>
@@ -235,14 +340,23 @@ export default function CustomerDashboardPage() {
 
             <div className="grid gap-4 lg:grid-cols-3">
               <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-medium text-gray-700">Bookings by status</h3>
+                <h3 className="mb-3 text-sm font-medium text-gray-700">
+                  Bookings by status
+                </h3>
                 {bookings.length === 0 ? (
-                  <p className="py-10 text-center text-sm text-gray-500">No bookings yet.</p>
+                  <p className="py-10 text-center text-sm text-gray-500">
+                    No bookings yet.
+                  </p>
                 ) : (
                   <div className="mx-auto h-56 max-w-[14rem]">
                     <Doughnut
                       data={{
-                        labels: ["Awaiting payment", "Confirmed", "Completed", "Cancelled"],
+                        labels: [
+                          "Awaiting payment",
+                          "Confirmed",
+                          "Completed",
+                          "Cancelled",
+                        ],
                         datasets: [
                           {
                             data: data.statusCounts,
@@ -254,7 +368,12 @@ export default function CustomerDashboardPage() {
                       options={{
                         maintainAspectRatio: false,
                         cutout: "65%",
-                        plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } },
+                        plugins: {
+                          legend: {
+                            position: "bottom",
+                            labels: { boxWidth: 10 },
+                          },
+                        },
                       }}
                     />
                   </div>
@@ -262,23 +381,45 @@ export default function CustomerDashboardPage() {
               </div>
 
               <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm lg:col-span-2">
-                <h3 className="mb-3 text-sm font-medium text-gray-700">Spending by event month (LKR)</h3>
+                <h3 className="mb-3 text-sm font-medium text-gray-700">
+                  Spending by event month (LKR)
+                </h3>
                 {data.months.length === 0 ? (
-                  <p className="py-10 text-center text-sm text-gray-500">No data to chart yet.</p>
+                  <p className="py-10 text-center text-sm text-gray-500">
+                    No data to chart yet.
+                  </p>
                 ) : (
                   <div className="h-56">
                     <Bar
                       data={{
                         labels: data.months.map((m) => m.label),
                         datasets: [
-                          { label: "Paid", data: data.months.map((m) => m.paid), backgroundColor: "#7c3aed", borderRadius: 6 },
-                          { label: "Due", data: data.months.map((m) => m.due), backgroundColor: "#f59e0b", borderRadius: 6 },
+                          {
+                            label: "Paid",
+                            data: data.months.map((m) => m.paid),
+                            backgroundColor: "#7c3aed",
+                            borderRadius: 6,
+                          },
+                          {
+                            label: "Due",
+                            data: data.months.map((m) => m.due),
+                            backgroundColor: "#f59e0b",
+                            borderRadius: 6,
+                          },
                         ],
                       }}
                       options={{
                         maintainAspectRatio: false,
-                        scales: { x: { stacked: true, grid: { display: false } }, y: { stacked: true, beginAtZero: true } },
-                        plugins: { legend: { position: "bottom", labels: { boxWidth: 10 } } },
+                        scales: {
+                          x: { stacked: true, grid: { display: false } },
+                          y: { stacked: true, beginAtZero: true },
+                        },
+                        plugins: {
+                          legend: {
+                            position: "bottom",
+                            labels: { boxWidth: 10 },
+                          },
+                        },
                       }}
                     />
                   </div>
@@ -289,11 +430,63 @@ export default function CustomerDashboardPage() {
 
           {/* Post-event feedback: one form, pick the event */}
           <section>
-            <h2 className="mb-1 text-lg font-semibold text-gray-900">Post-event feedback</h2>
+            <h2 className="mb-1 text-lg font-semibold text-gray-900">
+              Post-event feedback
+            </h2>
             <p className="mb-3 text-sm text-gray-500">
               Choose a completed event and tell us how it went.
             </p>
-
+            {notice && (
+              <p
+                className={`mb-3 rounded-lg px-3 py-2 text-sm ${
+                  notice.type === "success"
+                    ? "bg-emerald-50 text-emerald-700"
+                    : "bg-red-50 text-red-700"
+                }`}
+              >
+                {notice.text}
+              </p>
+            )}
+            {replies.length > 0 && (
+              <div className="mb-4 space-y-3">
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
+                  <MessageSquare className="h-4 w-4 text-violet-600" />
+                  Replies from Aazath Plaza
+                  <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-700">
+                    {replies.length}
+                  </span>
+                </h3>
+                {replies.map((r) => (
+                  <div
+                    key={r.feedback_id}
+                    className="rounded-2xl border border-violet-100 bg-violet-50 p-4"
+                  >
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="font-medium text-gray-900">
+                          {r.title || r.event_type}
+                          <span className="ml-2 text-xs font-normal text-gray-500">
+                            {r.booking_ref}
+                          </span>
+                        </p>
+                        <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">
+                          Your review: {r.comment || "No comment"}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => handleMarkRead(r.feedback_id)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100"
+                      >
+                        <Check className="h-3.5 w-3.5" /> Mark as read
+                      </button>
+                    </div>
+                    <p className="mt-3 whitespace-pre-wrap rounded-xl bg-white p-3 text-sm text-gray-700">
+                      {r.admin_reply}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            )}
             <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
               <label className="block text-sm font-medium text-gray-700">
                 Event
@@ -304,7 +497,9 @@ export default function CustomerDashboardPage() {
                   className="mt-1 w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500 disabled:bg-gray-50 disabled:text-gray-400"
                 >
                   {eligible.length === 0 ? (
-                    <option value="">No completed events waiting for feedback</option>
+                    <option value="">
+                      No completed events waiting for feedback
+                    </option>
                   ) : (
                     eligible.map((b) => (
                       <option key={b.booking_id} value={b.booking_id}>
@@ -321,19 +516,27 @@ export default function CustomerDashboardPage() {
                   <div className="grid gap-3 rounded-xl bg-gray-50 p-4 text-sm sm:grid-cols-4">
                     <div>
                       <p className="text-gray-500">Event</p>
-                      <p className="font-medium text-gray-900">{f.type(selected)}</p>
+                      <p className="font-medium text-gray-900">
+                        {f.type(selected)}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Date</p>
-                      <p className="font-medium text-gray-900">{fmtDate(f.date(selected))}</p>
+                      <p className="font-medium text-gray-900">
+                        {fmtDate(f.date(selected))}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Hall</p>
-                      <p className="font-medium text-gray-900">{f.hall(selected) || "–"}</p>
+                      <p className="font-medium text-gray-900">
+                        {f.hall(selected) || "–"}
+                      </p>
                     </div>
                     <div>
                       <p className="text-gray-500">Booking ref</p>
-                      <p className="font-medium text-gray-900">{selected.booking_ref}</p>
+                      <p className="font-medium text-gray-900">
+                        {selected.booking_ref}
+                      </p>
                     </div>
                   </div>
                   <FeedbackForm

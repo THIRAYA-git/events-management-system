@@ -21,13 +21,16 @@ import type { AdminFeedback, FeedbackSummary } from "@/types/feedback.types";
 const PAGE_SIZE = 15;
 
 const errMsg = (e: unknown, fallback: string): string => {
-  const m = (e as { response?: { data?: { message?: string } } })?.response?.data
-    ?.message;
+  const m = (e as { response?: { data?: { message?: string } } })?.response
+    ?.data?.message;
   return m || fallback;
 };
 
 const Stars = ({ value }: { value: number }) => (
-  <span className="inline-flex items-center gap-0.5" aria-label={`${value} out of 5`}>
+  <span
+    className="inline-flex items-center gap-0.5"
+    aria-label={`${value} out of 5`}
+  >
     {[1, 2, 3, 4, 5].map((n) => (
       <Star
         key={n}
@@ -46,7 +49,12 @@ interface Filters {
   rooms: string; // "" | "with" | "without"
 }
 
-const emptyFilters: Filters = { rating: "", visibility: "", reply: "", rooms: "" };
+const emptyFilters: Filters = {
+  rating: "",
+  visibility: "",
+  reply: "",
+  rooms: "",
+};
 
 const AdminFeedbackPage = () => {
   const [items, setItems] = useState<AdminFeedback[]>([]);
@@ -64,6 +72,7 @@ const AdminFeedbackPage = () => {
   const [replyText, setReplyText] = useState("");
   const [saving, setSaving] = useState(false);
   const [dialogError, setDialogError] = useState<string | null>(null);
+  const [dialogSuccess, setDialogSuccess] = useState<string | null>(null);
 
   useEffect(() => {
     const t = setTimeout(() => {
@@ -100,7 +109,11 @@ const AdminFeedbackPage = () => {
             ? false
             : undefined,
         has_rooms:
-          filters.rooms === "with" ? true : filters.rooms === "without" ? false : undefined,
+          filters.rooms === "with"
+            ? true
+            : filters.rooms === "without"
+            ? false
+            : undefined,
         q: debouncedSearch || undefined,
         limit: PAGE_SIZE,
         offset: page * PAGE_SIZE,
@@ -131,14 +144,19 @@ const AdminFeedbackPage = () => {
     setSelected(f);
     setReplyText(f.admin_reply ?? "");
     setDialogError(null);
+    setDialogSuccess(null);
   };
 
   const applyUpdate = (updated: AdminFeedback) => {
     // PATCH responses omit the joined columns, so merge onto the existing row
     setItems((prev) =>
-      prev.map((i) => (i.feedback_id === updated.feedback_id ? { ...i, ...updated } : i))
+      prev.map((i) =>
+        i.feedback_id === updated.feedback_id ? { ...i, ...updated } : i
+      )
     );
-    setSelected((s) => (s && s.feedback_id === updated.feedback_id ? { ...s, ...updated } : s));
+    setSelected((s) =>
+      s && s.feedback_id === updated.feedback_id ? { ...s, ...updated } : s
+    );
     loadSummary();
   };
 
@@ -146,8 +164,12 @@ const AdminFeedbackPage = () => {
     if (!selected) return;
     setSaving(true);
     setDialogError(null);
+    setDialogSuccess(null);
     try {
       applyUpdate(await replyToFeedback(selected.feedback_id, replyText));
+      setDialogSuccess(
+        "Reply saved. The customer will see it on their dashboard."
+      );
     } catch (e) {
       setDialogError(errMsg(e, "Could not save the reply."));
     } finally {
@@ -160,7 +182,12 @@ const AdminFeedbackPage = () => {
     setSaving(true);
     setDialogError(null);
     try {
-      applyUpdate(await setFeedbackVisibility(selected.feedback_id, !selected.is_public));
+      applyUpdate(
+        await setFeedbackVisibility(selected.feedback_id, !selected.is_public)
+      );
+      setDialogSuccess(
+        selected.is_public ? "Review hidden." : "Review published."
+      );
     } catch (e) {
       setDialogError(errMsg(e, "Could not update visibility."));
     } finally {
@@ -176,32 +203,42 @@ const AdminFeedbackPage = () => {
     <div className="p-6 md:p-8">
       <h1 className="text-3xl font-bold text-gray-900">Customer Feedback</h1>
       <p className="mt-1 text-gray-600">
-        Review ratings for hall events and room stays, hide inappropriate reviews and reply
-        to customers.
+        Review ratings for hall events and room stays, hide inappropriate
+        reviews and reply to customers.
       </p>
 
       {/* Summary */}
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">Average rating</p>
+          <p className="text-xs font-medium uppercase text-gray-500">
+            Average rating
+          </p>
           <p className="mt-1 flex items-center gap-2 text-3xl font-bold text-gray-900">
             {summary ? summary.avg_rating.toFixed(1) : "–"}
             <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
           </p>
         </div>
         <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">Total reviews</p>
-          <p className="mt-1 text-3xl font-bold text-gray-900">{summary?.total ?? "–"}</p>
+          <p className="text-xs font-medium uppercase text-gray-500">
+            Total reviews
+          </p>
+          <p className="mt-1 text-3xl font-bold text-gray-900">
+            {summary?.total ?? "–"}
+          </p>
         </div>
         <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">Awaiting reply</p>
+          <p className="text-xs font-medium uppercase text-gray-500">
+            Awaiting reply
+          </p>
           <p className="mt-1 text-3xl font-bold text-orange-600">
             {summary?.awaiting_reply ?? "–"}
           </p>
         </div>
         <div className="rounded-xl border bg-white p-5">
           <p className="text-xs font-medium uppercase text-gray-500">Hidden</p>
-          <p className="mt-1 text-3xl font-bold text-gray-700">{summary?.hidden ?? "–"}</p>
+          <p className="mt-1 text-3xl font-bold text-gray-700">
+            {summary?.hidden ?? "–"}
+          </p>
         </div>
       </div>
 
@@ -247,7 +284,9 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-gray-500">Booking type</label>
+          <label className="mb-1 block text-xs text-gray-500">
+            Booking type
+          </label>
           <select
             className={selectClass}
             value={filters.rooms}
@@ -289,7 +328,10 @@ const AdminFeedbackPage = () => {
           <tbody>
             {loading && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
+                <td
+                  colSpan={7}
+                  className="px-4 py-10 text-center text-gray-500"
+                >
                   Loading feedback…
                 </td>
               </tr>
@@ -303,7 +345,10 @@ const AdminFeedbackPage = () => {
             )}
             {!loading && !error && items.length === 0 && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-gray-500">
+                <td
+                  colSpan={7}
+                  className="px-4 py-10 text-center text-gray-500"
+                >
                   No feedback matches these filters.
                 </td>
               </tr>
@@ -311,11 +356,16 @@ const AdminFeedbackPage = () => {
             {!loading &&
               !error &&
               items.map((f) => (
-                <tr key={f.feedback_id} className="border-b last:border-0 align-top">
+                <tr
+                  key={f.feedback_id}
+                  className="border-b last:border-0 align-top"
+                >
                   <td className="whitespace-nowrap px-4 py-3 text-gray-600">
                     {new Date(f.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{f.customer_name}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {f.customer_name}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="text-gray-900">{f.event_type}</div>
                     <div className="text-xs text-gray-500">{f.booking_ref}</div>
@@ -329,9 +379,13 @@ const AdminFeedbackPage = () => {
                     <Stars value={f.rating} />
                   </td>
                   <td className="max-w-xs px-4 py-3">
-                    {f.title && <div className="font-medium text-gray-900">{f.title}</div>}
+                    {f.title && (
+                      <div className="font-medium text-gray-900">{f.title}</div>
+                    )}
                     <div className="line-clamp-2 text-gray-600">
-                      {f.comment || <span className="italic text-gray-400">No comment</span>}
+                      {f.comment || (
+                        <span className="italic text-gray-400">No comment</span>
+                      )}
                     </div>
                   </td>
                   <td className="px-4 py-3">
@@ -357,7 +411,11 @@ const AdminFeedbackPage = () => {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Button variant="outline" size="sm" onClick={() => openDialog(f)}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => openDialog(f)}
+                    >
                       Manage
                     </Button>
                   </td>
@@ -370,7 +428,8 @@ const AdminFeedbackPage = () => {
       {/* Pagination */}
       <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
         <span>
-          {total} review{total === 1 ? "" : "s"} · page {page + 1} of {totalPages}
+          {total} review{total === 1 ? "" : "s"} · page {page + 1} of{" "}
+          {totalPages}
         </span>
         <div className="flex gap-2">
           <Button
@@ -393,7 +452,10 @@ const AdminFeedbackPage = () => {
       </div>
 
       {/* Manage dialog */}
-      <Dialog open={selected !== null} onOpenChange={(open) => !open && setSelected(null)}>
+      <Dialog
+        open={selected !== null}
+        onOpenChange={(open) => !open && setSelected(null)}
+      >
         <DialogContent className="max-h-[90vh] overflow-y-auto bg-white text-gray-900 ring-gray-200 sm:max-w-lg">
           {selected && (
             <>
@@ -436,11 +498,20 @@ const AdminFeedbackPage = () => {
                   </p>
                 </div>
 
-                {dialogError && <p className="text-sm text-red-600">{dialogError}</p>}
+                {dialogError && (
+                  <p className="text-sm text-red-600">{dialogError}</p>
+                )}
+                {dialogSuccess && (
+                  <p className="text-sm text-emerald-600">{dialogSuccess}</p>
+                )}
               </div>
 
               <DialogFooter className="gap-2 sm:justify-between">
-                <Button variant="outline" onClick={handleVisibility} disabled={saving}>
+                <Button
+                  variant="outline"
+                  onClick={handleVisibility}
+                  disabled={saving}
+                >
                   {selected.is_public ? (
                     <>
                       <EyeOff className="mr-2 h-4 w-4" /> Hide review
@@ -451,7 +522,10 @@ const AdminFeedbackPage = () => {
                     </>
                   )}
                 </Button>
-                <Button onClick={handleReply} disabled={saving || !replyText.trim()}>
+                <Button
+                  onClick={handleReply}
+                  disabled={saving || !replyText.trim()}
+                >
                   {selected.admin_reply ? "Update reply" : "Send reply"}
                 </Button>
               </DialogFooter>

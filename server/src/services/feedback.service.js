@@ -38,7 +38,9 @@ const createFeedback = async (data, requestingUser) => {
     throw err;
   }
   if (booking.status !== "completed") {
-    const err = new Error("Feedback can only be submitted after the event is completed");
+    const err = new Error(
+      "Feedback can only be submitted after the event is completed"
+    );
     err.statusCode = 400;
     throw err;
   }
@@ -54,7 +56,9 @@ const createFeedback = async (data, requestingUser) => {
     return result.rows[0];
   } catch (err) {
     if (err.code === "23505") {
-      const conflictErr = new Error("Feedback has already been submitted for this booking.");
+      const conflictErr = new Error(
+        "Feedback has already been submitted for this booking."
+      );
       conflictErr.statusCode = 409;
       throw conflictErr;
     }
@@ -86,7 +90,9 @@ const listFeedback = async ({
     conditions.push(`f.is_public = $${params.length}`);
   }
   if (hasReply !== undefined) {
-    conditions.push(hasReply ? "f.admin_reply IS NOT NULL" : "f.admin_reply IS NULL");
+    conditions.push(
+      hasReply ? "f.admin_reply IS NOT NULL" : "f.admin_reply IS NULL"
+    );
   }
   if (hasRooms !== undefined) {
     conditions.push(hasRooms ? "b.room_count > 0" : "b.room_count = 0");
@@ -171,7 +177,7 @@ const respondToFeedback = async (feedbackId, adminReply) => {
 
   const result = await db.query(
     `UPDATE feedback
-        SET admin_reply = $1, replied_at = NOW()
+SET admin_reply = $1, replied_at = NOW(), reply_read_at = NULL
       WHERE feedback_id = $2
       RETURNING feedback_id, booking_id, user_id, rating, title, comment,
                 is_public, admin_reply, replied_at, created_at`,
@@ -213,10 +219,46 @@ const setFeedbackVisibility = async (feedbackId, isPublic) => {
   return result.rows[0];
 };
 
+const getUnreadRepliesForUser = async (userId) => {
+  const { rows } = await db.query(
+    `SELECT f.feedback_id, f.booking_id, f.rating, f.title, f.comment,
+            f.admin_reply, b.booking_ref, b.event_type, b.event_date
+       FROM feedback f
+       JOIN bookings b ON b.booking_id = f.booking_id
+      WHERE b.user_id = $1
+        AND f.admin_reply IS NOT NULL
+        AND f.reply_read_at IS NULL
+      ORDER BY f.feedback_id DESC`,
+    [userId]
+  );
+  return rows;
+};
+
+const markReplyRead = async (feedbackId, userId) => {
+  const { rows } = await db.query(
+    `UPDATE feedback f
+        SET reply_read_at = NOW()
+       FROM bookings b
+      WHERE f.feedback_id = $1
+        AND b.booking_id = f.booking_id
+        AND b.user_id = $2
+      RETURNING f.feedback_id`,
+    [feedbackId, userId]
+  );
+  if (rows.length === 0) {
+    const err = new Error("Feedback not found");
+    err.statusCode = 404;
+    throw err;
+  }
+  return rows[0];
+};
+
 module.exports = {
   createFeedback,
   listFeedback,
   getFeedbackSummary,
   respondToFeedback,
   setFeedbackVisibility,
+  getUnreadRepliesForUser,
+  markReplyRead,
 };
