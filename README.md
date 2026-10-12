@@ -15,7 +15,7 @@ Final Year Project · MIT 32046 Software Development Project · Department of Ma
 
 <!-- Add once available: [Live Demo](https://your-demo-url) · [Project Report](link) · [Demo Video](link) -->
 
-<img src="docs/screenshots/01-home.png" alt="EMS home page" width="900">
+<img src="docs/screenshots/00-hero.png" alt="EMS home page" width="900">
 
 </div>
 
@@ -77,55 +77,63 @@ EMS replaces that with a single integrated platform built around four modules:
 
 ## Screenshots
 
-### Public Site & Customer Booking
+### Public Site & Account
 
-| Home | Availability & Date Selection |
+| Home | About |
 | :---: | :---: |
-| <img src="docs/screenshots/01-home.png" width="420"> | <img src="docs/screenshots/04-booking-date-time.png" width="420"> |
-| **Hall Selection** | **Event Details & Live Pricing** |
-| <img src="docs/screenshots/05-booking-hall.png" width="420"> | <img src="docs/screenshots/06-booking-details.png" width="420"> |
-| **Catering – Choose Restaurant** | **Catering – Menu** |
-| <img src="docs/screenshots/07-booking-catering-restaurants.png" width="420"> | <img src="docs/screenshots/08-booking-catering-menu.png" width="420"> |
+| <img src="docs/screenshots/01-home.png" width="420"> | <img src="docs/screenshots/02-about.png" width="420"> |
+| **Contact** | **Login** |
+| <img src="docs/screenshots/03-contact.png" width="420"> | <img src="docs/screenshots/04-login.png" width="420"> |
+
+### Customer Booking & Payment
+
+| Booking Wizard – Date & Time | Booking Wizard – Catering Menu |
+| :---: | :---: |
+| <img src="docs/screenshots/05-booking-date-time.png" width="420"> | <img src="docs/screenshots/06-booking-catering-menu.png" width="420"> |
 | **Booking Confirmed** | **Payment Portal** |
-| <img src="docs/screenshots/09-booking-confirmed.png" width="420"> | <img src="docs/screenshots/10-payment-portal.png" width="420"> |
-| **Payment Success & Invoice** | **My Bookings** |
-| <img src="docs/screenshots/11-payment-success.png" width="420"> | <img src="docs/screenshots/12-customer-my-bookings.png" width="420"> |
+| <img src="docs/screenshots/07-booking-confirmed.png" width="420"> | <img src="docs/screenshots/08-payment-portal.png" width="420"> |
+| **Payment Success & Invoice Download** | **Customer Dashboard** |
+| <img src="docs/screenshots/09-payment-success.png" width="420"> | <img src="docs/screenshots/10-customer-dashboard.png" width="420"> |
+| **Profile Settings** | |
+| <img src="docs/screenshots/11-profile-settings.png" width="420"> | |
 
 ### Administration & Analytics
 
-| Dashboard | Analytics |
+| Dashboard | Bookings |
 | :---: | :---: |
-| <img src="docs/screenshots/13-admin-dashboard.png" width="420"> | <img src="docs/screenshots/14-admin-analytics.png" width="420"> |
-| **Bookings** | **Event Scheduling** |
-| <img src="docs/screenshots/15-admin-bookings.png" width="420"> | <img src="docs/screenshots/16-admin-event-schedule.png" width="420"> |
-| **Catering Orders** | **Customer Management** |
-| <img src="docs/screenshots/17-admin-catering-orders.png" width="420"> | <img src="docs/screenshots/18-admin-customers.png" width="420"> |
-| **Organizer & Sponsor Management** | **Staff Management** |
-| <img src="docs/screenshots/19-admin-organizers-sponsors.png" width="420"> | <img src="docs/screenshots/20-admin-staff.png" width="420"> |
-| **Customer Feedback** | **Reports** |
-| <img src="docs/screenshots/21-admin-feedback.png" width="420"> | <img src="docs/screenshots/22-admin-reports.png" width="420"> |
+| <img src="docs/screenshots/12-admin-dashboard.png" width="420"> | <img src="docs/screenshots/13-admin-bookings.png" width="420"> |
+| **Event Scheduling** | **Add Activity** |
+| <img src="docs/screenshots/14-admin-event-schedule.png" width="420"> | <img src="docs/screenshots/15-admin-add-activity.png" width="420"> |
+| **Staff Management** | **Customer Feedback** |
+| <img src="docs/screenshots/16-admin-staff.png" width="420"> | <img src="docs/screenshots/17-admin-feedback.png" width="420"> |
+| **Reports** | |
+| <img src="docs/screenshots/18-admin-reports.png" width="420"> | |
 
 ### Manager & Front Desk
 
 | Manager Dashboard | Front Desk |
 | :---: | :---: |
-| <img src="docs/screenshots/23-manager-dashboard.png" width="420"> | <img src="docs/screenshots/24-front-desk.png" width="420"> |
+| <img src="docs/screenshots/19-manager-dashboard.png" width="420"> | <img src="docs/screenshots/20-front-desk.png" width="420"> |
 
 ### Organizer & Sponsor Connect
 
-| Organizer Dashboard | Event Requests |
+| Organizer Dashboard | Organizer Portfolio |
 | :---: | :---: |
-| <img src="docs/screenshots/25-organizer-dashboard.png" width="420"> | <img src="docs/screenshots/26-organizer-requests.png" width="420"> |
-| **Organizer Portfolio** | **Sponsor Dashboard** |
-| <img src="docs/screenshots/27-organizer-portfolio.png" width="420"> | <img src="docs/screenshots/28-sponsor-dashboard.png" width="420"> |
-| **Browse Events (Sponsor)** | **My Sponsorships** |
-| <img src="docs/screenshots/29-sponsor-browse-events.png" width="420"> | <img src="docs/screenshots/30-sponsor-my-sponsorships.png" width="420"> |
+| <img src="docs/screenshots/21-organizer-dashboard.png" width="420"> | <img src="docs/screenshots/22-organizer-portfolio.png" width="420"> |
+| **Sponsor Dashboard** | |
+| <img src="docs/screenshots/23-sponsor-dashboard.png" width="420"> | |
+
+### Restaurant & Catering
+
+| Restaurant Dashboard | Menu Items |
+| :---: | :---: |
+| <img src="docs/screenshots/24-restaurant-dashboard.png" width="420"> | <img src="docs/screenshots/25-restaurant-menu-items.png" width="420"> |
 
 ### Notifications
 
-| Booking Received Email | Payment Received Email |
-| :---: | :---: |
-| <img src="docs/screenshots/31-email-booking-received.png" width="420"> | <img src="docs/screenshots/32-email-payment-received.png" width="420"> |
+| Payment Received Email |
+| :---: |
+| <img src="docs/screenshots/26-email-payment-received.png" width="420"> |
 
 ## Tech Stack
 
@@ -204,7 +212,4 @@ The client runs on `http://localhost:5173` and the server on `http://localhost:5
 **R. Fathima Thiraya**
 Final Year Project, Department of Management and Information Technology, Faculty of Management and Commerce, South Eastern University of Sri Lanka.
 
-<!-- Add your GitHub / LinkedIn / email links here -->
-https://www.linkedin.com/in/fathima-thiraya
-www.linkedin.com/in/fathima-thiraya
-thirayafathima@gmail.com
+[LinkedIn](https://www.linkedin.com/in/fathima-thiraya) · [Email](mailto:thirayafathima@gmail.com)
