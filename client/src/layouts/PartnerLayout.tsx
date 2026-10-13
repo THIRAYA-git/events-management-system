@@ -13,15 +13,21 @@ const PartnerLayout = () => {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <aside className="hidden w-64 shrink-0 border-r border-gray-200 bg-white lg:block">
+      <aside className="hidden w-64 shrink-0 border-r border-white/15 bg-violet-800 lg:block">
         <RoleSidebar items={items} />
       </aside>
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-black/40" onClick={() => setDrawerOpen(false)} />
-          <aside className="absolute inset-y-0 left-0 w-64 bg-white shadow-lg">
-            <RoleSidebar items={items} onNavigate={() => setDrawerOpen(false)} />
+          <div
+            className="absolute inset-0 bg-black/40"
+            onClick={() => setDrawerOpen(false)}
+          />
+          <aside className="hidden w-64 shrink-0 border-r border-white/15 bg-violet-800 lg:block">
+            <RoleSidebar
+              items={items}
+              onNavigate={() => setDrawerOpen(false)}
+            />
           </aside>
         </div>
       )}

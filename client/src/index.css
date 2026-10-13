@@ -127,8 +127,10 @@
   --sidebar-ring: oklch(0.439 0.023 286.375);
 }
 
-* {
-  border-color: var(--color-border);
+@layer base {
+  * {
+    border-color: var(--border);
+  }
 }
 
 body {
