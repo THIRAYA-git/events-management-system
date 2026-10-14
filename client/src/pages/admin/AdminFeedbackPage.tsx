@@ -200,8 +200,8 @@ const AdminFeedbackPage = () => {
     "h-10 rounded-md border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
-    <div className="p-6 md:p-8">
-      <h1 className="text-3xl font-bold text-foreground">Customer Feedback</h1>
+    <div className="p-3 md:p-0.5">
+      <h1 className="text-2xl font-bold text-foreground">Customer Feedback</h1>
       <p className="mt-1 text-muted-foreground">
         Review ratings for hall events and room stays, hide inappropriate
         reviews and reply to customers.
