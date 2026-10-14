@@ -393,95 +393,92 @@ export default function CustomerDashboardPage() {
             )}
           </section>
 
-          {/* Charts: side by side, bar chart gets the wider share */}
-          <section className="grid gap-4 lg:grid-cols-3 2xl:grid-cols-5">
-            <div className="rounded-2xl border border-border! bg-card p-5 shadow-sm 2xl:col-span-2">
-              <h3 className="mb-3 text-sm font-medium text-foreground">
-                Bookings by status
-              </h3>
-              {bookings.length === 0 ? (
-                <p className="py-10 text-center text-sm text-muted-foreground">
-                  No bookings yet.
-                </p>
-              ) : (
-                <div className="mx-auto h-64 max-w-[18rem]">
-                  <Doughnut
-                    data={{
-                      labels: [
-                        "Awaiting payment",
-                        "Confirmed",
-                        "Completed",
-                        "Cancelled",
-                      ],
-                      datasets: [
-                        {
-                          data: data.statusCounts,
-                          backgroundColor: Object.values(STATUS_COLORS),
-                          borderWidth: 0,
-                        },
-                      ],
-                    }}
-                    options={{
-                      maintainAspectRatio: false,
-                      cutout: "65%",
-                      plugins: {
-                        legend: {
-                          position: "bottom",
-                          labels: { boxWidth: 10 },
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              )}
-            </div>
+          {/* Charts */}
+<section className="grid grid-cols-1 gap-4 lg:grid-cols-3 2xl:grid-cols-5">
+  <div className="min-w-0 rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5 2xl:col-span-2">
+    <h3 className="mb-3 text-sm font-medium text-foreground">
+      Bookings by status
+    </h3>
+    {bookings.length === 0 ? (
+      <p className="py-10 text-center text-sm text-muted-foreground">
+        No bookings yet.
+      </p>
+    ) : (
+      <div className="relative mx-auto h-64 w-full max-w-[18rem]">
+        <Doughnut
+          data={{
+            labels: ["Awaiting payment", "Confirmed", "Completed", "Cancelled"],
+            datasets: [
+              {
+                data: data.statusCounts,
+                backgroundColor: Object.values(STATUS_COLORS),
+                borderWidth: 0,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            cutout: "65%",
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 10 },
+              },
+            },
+          }}
+        />
+      </div>
+    )}
+  </div>
 
-            <div className="rounded-2xl border border-border! bg-card p-5 shadow-sm lg:col-span-2 2xl:col-span-3">
-              <h3 className="mb-3 text-sm font-medium text-foreground">
-                Spending by event month (LKR)
-              </h3>
-              {data.months.length === 0 ? (
-                <p className="py-10 text-center text-sm text-muted-foreground">
-                  No data to chart yet.
-                </p>
-              ) : (
-                <div className="h-64">
-                  <Bar
-                    data={{
-                      labels: data.months.map((m) => m.label),
-                      datasets: [
-                        {
-                          label: "Paid",
-                          data: data.months.map((m) => m.paid),
-                          backgroundColor: "#7c3aed",
-                          borderRadius: 6,
-                        },
-                        {
-                          label: "Due",
-                          data: data.months.map((m) => m.due),
-                          backgroundColor: "#f59e0b",
-                          borderRadius: 6,
-                        },
-                      ],
-                    }}
-                    options={{
-                      maintainAspectRatio: false,
-                      scales: {
-                        x: { stacked: true, grid: { display: false } },
-                        y: { stacked: true, beginAtZero: true },
-                      },
-                      plugins: {
-                        legend: {
-                          position: "bottom",
-                          labels: { boxWidth: 10 },
-                        },
-                      },
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-          </section>
+  <div className="min-w-0 rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5 lg:col-span-2 2xl:col-span-3">
+    <h3 className="mb-3 text-sm font-medium text-foreground">
+      Spending by event month (LKR)
+    </h3>
+    {data.months.length === 0 ? (
+      <p className="py-10 text-center text-sm text-muted-foreground">
+        No data to chart yet.
+      </p>
+    ) : (
+      <div className="relative h-64 w-full">
+        <Bar
+          data={{
+            labels: data.months.map((m) => m.label),
+            datasets: [
+              {
+                label: "Paid",
+                data: data.months.map((m) => m.paid),
+                backgroundColor: "#7c3aed",
+                borderRadius: 6,
+              },
+              {
+                label: "Due",
+                data: data.months.map((m) => m.due),
+                backgroundColor: "#f59e0b",
+                borderRadius: 6,
+              },
+            ],
+          }}
+          options={{
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { stacked: true, grid: { display: false } },
+              y: { stacked: true, beginAtZero: true },
+            },
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: { boxWidth: 10 },
+              },
+            },
+          }}
+        />
+      </div>
+    )}
+  </div>
+</section>
 
           {/* Post-event feedback: replies left, form right on wide screens */}
           <section>

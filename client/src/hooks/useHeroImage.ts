@@ -2,7 +2,8 @@ import { useEffect, useState } from "react";
 import { getAllHalls } from "@/api/hall.api";
 
 // Want your own banner photo instead of a hall photo? Put the file in
-// client/public (e.g. hero.jpg) and set this to "/hero.jpg".
+// client/public (e.g. hero.jpg) and set this.".
+// const HERO_IMAGE_OVERRIDE: string | null = "/auth-hero2.jpg";
 const HERO_IMAGE_OVERRIDE: string | null = null;
 
 // One shared request for every page that shows a hero, so moving between
