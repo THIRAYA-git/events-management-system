@@ -23,7 +23,7 @@ const CONTACT = {
 
 const MAP_QUERY = encodeURIComponent("Aazath Plaza Reception Hall, Kalmunai, Sri Lanka");
 
-const CARD = "rounded-2xl border border-gray-200! bg-white shadow-sm";
+const CARD = "rounded-2xl border border-border! bg-card shadow-sm";
 const MAX_MESSAGE = 2000;
 
 function InfoRow({
@@ -37,12 +37,12 @@ function InfoRow({
 }) {
   return (
     <div className={`${CARD} flex items-start gap-4 p-5`}>
-      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
         <Icon className="h-5 w-5" />
       </span>
       <div className="min-w-0 text-sm">
-        <p className="font-semibold text-gray-900">{title}</p>
-        <div className="mt-1 text-gray-600">{children}</div>
+        <p className="font-semibold text-foreground">{title}</p>
+        <div className="mt-1 text-muted-foreground">{children}</div>
       </div>
     </div>
   );
@@ -123,14 +123,14 @@ export default function ContactPage() {
                 href={`https://www.google.com/maps/search/?api=1&query=${MAP_QUERY}`}
                 target="_blank"
                 rel="noreferrer"
-                className="mt-2 inline-block font-medium text-violet-700 hover:underline"
+                className="mt-2 inline-block font-medium text-violet-700 dark:text-violet-400 hover:underline"
               >
                 Get directions →
               </a>
             </InfoRow>
             <InfoRow icon={Clock} title="Hours">
               <p>{CONTACT.hours}</p>
-              <p className="text-xs text-gray-400">Sri Lanka Standard Time</p>
+              <p className="text-xs text-muted-foreground">Sri Lanka Standard Time</p>
             </InfoRow>
           </div>
 
@@ -138,11 +138,11 @@ export default function ContactPage() {
           <section className={`${CARD} p-6 sm:p-8 lg:col-span-3`}>
             {sent ? (
               <div className="py-8 text-center" role="status">
-                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 text-green-600 ring-8 ring-green-100">
+                <span className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-green-50 dark:bg-green-500/10 text-green-600 dark:text-green-400 ring-8 ring-green-100 dark:ring-green-500/30">
                   <CheckCircle2 className="h-8 w-8" />
                 </span>
-                <h2 className="mt-5 text-xl font-semibold text-gray-900">Message sent</h2>
-                <p className="mx-auto mt-2 max-w-sm text-sm text-gray-500">
+                <h2 className="mt-5 text-xl font-semibold text-foreground">Message sent</h2>
+                <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
                   Thank you, {name.split(" ")[0] || "there"}. Our team will reply to {email} as soon
                   as possible.
                 </p>
@@ -158,8 +158,8 @@ export default function ContactPage() {
             ) : (
               <form onSubmit={handleSubmit} noValidate className="space-y-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-gray-900">Send us a message</h2>
-                  <p className="mt-1 text-sm text-gray-500">
+                  <h2 className="text-lg font-semibold text-foreground">Send us a message</h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
                     We'll reply to the email address below.
                   </p>
                 </div>
@@ -195,7 +195,7 @@ export default function ContactPage() {
                   </div>
                   <div>
                     <label htmlFor="c_phone" className={fieldLabelClass}>
-                      Phone <span className="font-normal text-gray-400">(optional)</span>
+                      Phone <span className="font-normal text-muted-foreground">(optional)</span>
                     </label>
                     <input
                       id="c_phone"
@@ -239,7 +239,7 @@ export default function ContactPage() {
                     placeholder="Tell us about your event, preferred date or question…"
                     className={fieldInputClass}
                   />
-                  <p className="mt-1 text-right text-xs text-gray-400">
+                  <p className="mt-1 text-right text-xs text-muted-foreground">
                     {message.length}/{MAX_MESSAGE}
                   </p>
                 </div>

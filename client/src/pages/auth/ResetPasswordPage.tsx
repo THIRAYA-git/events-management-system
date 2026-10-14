@@ -43,7 +43,7 @@ export default function ResetPasswordPage() {
   };
 
   const backToSignIn = (
-    <Link to="/login" className="font-medium text-violet-700 hover:underline">
+    <Link to="/login" className="font-medium text-violet-700 dark:text-violet-400 hover:underline">
       Back to sign in
     </Link>
   );

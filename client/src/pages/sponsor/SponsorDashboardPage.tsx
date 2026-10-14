@@ -9,10 +9,10 @@ import {
 import type { Sponsor, SponsorRequest } from "@/types/sponsor.types";
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  accepted: "bg-green-100 text-green-700",
-  rejected: "bg-red-100 text-red-700",
-  withdrawn: "bg-gray-100 text-gray-500",
+  pending: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  accepted: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  rejected: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
+  withdrawn: "bg-muted text-muted-foreground",
 };
 
 const MAX_LOGO_MB = 2;
@@ -99,14 +99,14 @@ export default function SponsorDashboardPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
 
   if (error || !sponsor) {
     return (
-      <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+      <div className="rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
         {error ?? "Sponsor profile not found."}
       </div>
     );
@@ -131,7 +131,7 @@ export default function SponsorDashboardPage() {
       <h1 className="text-xl font-semibold">Dashboard</h1>
 
       {/* Profile summary */}
-      <div className="flex items-center gap-4 rounded-md border border-gray-200 bg-white p-4">
+      <div className="flex items-center gap-4 rounded-md border border-border bg-card p-4">
         {sponsor.logo_url ? (
           <img
             src={sponsor.logo_url}
@@ -139,7 +139,7 @@ export default function SponsorDashboardPage() {
             className="h-16 w-16 rounded-md object-cover"
           />
         ) : (
-          <div className="flex h-16 w-16 items-center justify-center rounded-md bg-gray-100 text-xs text-gray-400">
+          <div className="flex h-16 w-16 items-center justify-center rounded-md bg-muted text-xs text-muted-foreground">
             No logo
           </div>
         )}
@@ -149,18 +149,18 @@ export default function SponsorDashboardPage() {
             <span
               className={`rounded-full px-2 py-0.5 text-xs ${
                 sponsor.status === "active"
-                  ? "bg-green-100 text-green-700"
-                  : "bg-gray-100 text-gray-500"
+                  ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400"
+                  : "bg-muted text-muted-foreground"
               }`}
             >
               {sponsor.status}
             </span>
           </div>
-          <p className="text-sm text-gray-500">{sponsor.industry}</p>
+          <p className="text-sm text-muted-foreground">{sponsor.industry}</p>
           {logoMessage && (
             <p
               className={`mt-1 text-xs ${
-                logoMessage.type === "ok" ? "text-green-700" : "text-red-600"
+                logoMessage.type === "ok" ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"
               }`}
             >
               {logoMessage.text}
@@ -178,7 +178,7 @@ export default function SponsorDashboardPage() {
         <button
           onClick={() => fileInputRef.current?.click()}
           disabled={uploadingLogo}
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-gray-50 disabled:opacity-50"
+          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50"
         >
           {uploadingLogo ? "Uploading…" : sponsor.logo_url ? "Change logo" : "Add logo"}
         </button>
@@ -186,38 +186,38 @@ export default function SponsorDashboardPage() {
 
       {/* Request counts + total committed */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
-        <div className="rounded-md border border-gray-200 bg-white p-4 text-center">
-          <div className="text-2xl font-semibold text-yellow-700">{counts.pending}</div>
-          <div className="text-xs text-gray-500">Pending</div>
+        <div className="rounded-md border border-border bg-card p-4 text-center">
+          <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">{counts.pending}</div>
+          <div className="text-xs text-muted-foreground">Pending</div>
         </div>
-        <div className="rounded-md border border-gray-200 bg-white p-4 text-center">
-          <div className="text-2xl font-semibold text-green-700">{counts.accepted}</div>
-          <div className="text-xs text-gray-500">Accepted</div>
+        <div className="rounded-md border border-border bg-card p-4 text-center">
+          <div className="text-2xl font-semibold text-green-700 dark:text-green-400">{counts.accepted}</div>
+          <div className="text-xs text-muted-foreground">Accepted</div>
         </div>
-        <div className="rounded-md border border-gray-200 bg-white p-4 text-center">
-          <div className="text-2xl font-semibold text-red-700">{counts.rejected}</div>
-          <div className="text-xs text-gray-500">Rejected</div>
+        <div className="rounded-md border border-border bg-card p-4 text-center">
+          <div className="text-2xl font-semibold text-red-700 dark:text-red-400">{counts.rejected}</div>
+          <div className="text-xs text-muted-foreground">Rejected</div>
         </div>
-        <div className="rounded-md border border-gray-200 bg-white p-4 text-center">
-          <div className="text-2xl font-semibold text-gray-900">
+        <div className="rounded-md border border-border bg-card p-4 text-center">
+          <div className="text-2xl font-semibold text-foreground">
             LKR {totalCommitted.toLocaleString()}
           </div>
-          <div className="text-xs text-gray-500">Total committed</div>
+          <div className="text-xs text-muted-foreground">Total committed</div>
         </div>
       </div>
 
       {/* Recent requests */}
       <div>
-        <h3 className="mb-2 text-sm font-medium text-gray-700">Recent Requests</h3>
+        <h3 className="mb-2 text-sm font-medium text-foreground">Recent Requests</h3>
 
         {actionError && (
-          <div className="mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <div className="mb-2 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
             {actionError}
           </div>
         )}
 
         {recent.length === 0 ? (
-          <p className="text-sm text-gray-500">No sponsorship requests yet.</p>
+          <p className="text-sm text-muted-foreground">No sponsorship requests yet.</p>
         ) : (
           <div className="space-y-2">
             {recent.map((req) => {
@@ -225,17 +225,17 @@ export default function SponsorDashboardPage() {
               return (
                 <div
                   key={req.id}
-                  className="rounded-md border border-gray-200 bg-white p-3 text-sm"
+                  className="rounded-md border border-border bg-card p-3 text-sm"
                 >
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <span className="font-medium">{req.booking_ref}</span>{" "}
-                      <span className="text-gray-500">— {req.customer_name}</span>
-                      <span className="ml-2 text-xs text-gray-400">{req.event_type}</span>
+                      <span className="text-muted-foreground">— {req.customer_name}</span>
+                      <span className="ml-2 text-xs text-muted-foreground">{req.event_type}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {isOffer && (
-                        <span className="rounded-full bg-blue-100 px-2 py-0.5 text-xs text-blue-700">
+                        <span className="rounded-full bg-blue-100 dark:bg-blue-500/15 px-2 py-0.5 text-xs text-blue-700 dark:text-blue-400">
                           Your offer
                         </span>
                       )}
@@ -248,7 +248,7 @@ export default function SponsorDashboardPage() {
                   </div>
 
                   {req.status === "pending" && isOffer && (
-                    <p className="mt-2 border-t pt-2 text-xs text-gray-500">
+                    <p className="mt-2 border-t pt-2 text-xs text-muted-foreground">
                       Awaiting customer response
                     </p>
                   )}
@@ -258,14 +258,14 @@ export default function SponsorDashboardPage() {
                       <button
                         onClick={() => handleRespond(req, "accepted")}
                         disabled={respondingId === req.id}
-                        className="rounded-md border px-3 py-1 text-xs hover:bg-gray-50 disabled:opacity-50"
+                        className="rounded-md border px-3 py-1 text-xs hover:bg-muted disabled:opacity-50"
                       >
                         {respondingId === req.id ? "…" : "Accept"}
                       </button>
                       <button
                         onClick={() => handleRespond(req, "rejected")}
                         disabled={respondingId === req.id}
-                        className="rounded-md border border-red-200 px-3 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        className="rounded-md border border-red-200 dark:border-red-500/30 px-3 py-1 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 disabled:opacity-50"
                       >
                         {respondingId === req.id ? "…" : "Reject"}
                       </button>

@@ -36,14 +36,14 @@ interface AssignOrganizerDialogProps {
 
 // Explicit colours so the form doesn't depend on shadcn CSS variables
 const fieldClass =
-  "h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 " +
-  "placeholder:text-gray-400 focus-visible:border-gray-900 focus-visible:outline-none " +
+  "h-9 w-full rounded-md border border-input bg-card px-3 text-sm text-foreground " +
+  "placeholder:text-muted-foreground focus-visible:border-primary focus-visible:outline-none " +
   "focus-visible:ring-1 focus-visible:ring-gray-900";
 
 // Long option text must truncate instead of stretching the dialog
 const selectTriggerClass = `${fieldClass} min-w-0 overflow-hidden [&>span]:min-w-0 [&>span]:truncate`;
 
-const labelClass = "mb-1 block text-xs font-medium text-gray-500";
+const labelClass = "mb-1 block text-xs font-medium text-muted-foreground";
 
 const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
   bookingId,
@@ -139,12 +139,12 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
       <DialogTrigger asChild>
         {trigger ?? <Button variant="outline">Manage Organizers</Button>}
       </DialogTrigger>
-      <DialogContent className="max-h-[90vh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-xl border border-gray-200 bg-white p-6 shadow-xl sm:max-w-md">
-        <DialogHeader className="border-b border-gray-100 pb-4 text-left">
-          <DialogTitle className="text-lg font-semibold text-gray-900">
+      <DialogContent className="max-h-[90vh] w-full max-w-md overflow-y-auto overflow-x-hidden rounded-xl border border-border bg-card p-6 shadow-xl sm:max-w-md">
+        <DialogHeader className="border-b border-border pb-4 text-left">
+          <DialogTitle className="text-lg font-semibold text-foreground">
             {hasOrganizer ? "Event organizer" : "Assign event organizer"}
           </DialogTitle>
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-muted-foreground">
             {hasOrganizer
               ? "This booking already has an organizer."
               : "Add an organizer to this booking."}
@@ -152,7 +152,7 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
         </DialogHeader>
 
         {loading ? (
-          <div className="flex items-center justify-center py-10 text-sm text-gray-400">
+          <div className="flex items-center justify-center py-10 text-sm text-muted-foreground">
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             Loading…
           </div>
@@ -160,19 +160,19 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
           <div className="min-w-0 space-y-5">
             {hasOrganizer && (
               <div className="space-y-2">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Assigned organizer
                 </h4>
                 {assignedOrganizers.map((a) => (
                   <div
                     key={a.id}
-                    className="flex items-center justify-between gap-3 rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm"
+                    className="flex items-center justify-between gap-3 rounded-lg border border-border bg-muted px-3 py-2 text-sm"
                   >
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-gray-900">
+                      <p className="truncate font-medium text-foreground">
                         {a.business_name}
                       </p>
-                      <p className="truncate text-xs text-gray-500">
+                      <p className="truncate text-xs text-muted-foreground">
                         {a.role_in_event}
                         {a.agreed_fee != null &&
                           ` · LKR ${Number(a.agreed_fee).toLocaleString()}`}
@@ -181,14 +181,14 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
                     {a.specialty && (
                       <Badge
                         variant="secondary"
-                        className="shrink-0 bg-purple-50 text-purple-700"
+                        className="shrink-0 bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400"
                       >
                         {a.specialty}
                       </Badge>
                     )}
                   </div>
                 ))}
-                <p className="rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-500">
+                <p className="rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
                   Only one organizer can be assigned to a booking.
                 </p>
               </div>
@@ -196,7 +196,7 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
 
             {!hasOrganizer && (
               <div className="space-y-4">
-                <h4 className="text-xs font-semibold uppercase tracking-wide text-gray-500">
+                <h4 className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                   Assign new organizer
                 </h4>
 
@@ -209,7 +209,7 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
                     <SelectTrigger className={selectTriggerClass}>
                       <SelectValue placeholder="Select an organizer" />
                     </SelectTrigger>
-                    <SelectContent className="border border-gray-200 bg-white shadow-lg">
+                    <SelectContent className="border border-border bg-card shadow-lg">
                       {availableOrganizers.map((org) => (
                         <SelectItem
                           key={org.organizer_id}
@@ -246,7 +246,7 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
 
                 <div>
                   <label className={labelClass}>
-                    Notes <span className="text-gray-400">(optional)</span>
+                    Notes <span className="text-muted-foreground">(optional)</span>
                   </label>
                   <Textarea
                     className={`${fieldClass} h-auto min-h-[80px] py-2`}
@@ -259,17 +259,17 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
             )}
 
             {error && (
-              <p className="rounded-md bg-rose-50 px-3 py-2 text-sm text-rose-700">
+              <p className="rounded-md bg-rose-50 dark:bg-rose-500/10 px-3 py-2 text-sm text-rose-700 dark:text-rose-400">
                 {error}
               </p>
             )}
 
-            <div className="flex justify-end gap-2 border-t border-gray-100 pt-4">
+            <div className="flex justify-end gap-2 border-t border-border pt-4">
               <Button
                 type="button"
                 variant="ghost"
                 onClick={() => setOpen(false)}
-                className="text-gray-600 hover:bg-gray-100"
+                className="text-muted-foreground hover:bg-muted"
               >
                 Close
               </Button>
@@ -277,7 +277,7 @@ const AssignOrganizerDialog: FC<AssignOrganizerDialogProps> = ({
                 <Button
                   onClick={handleAssign}
                   disabled={submitting}
-                  className="bg-gray-900 text-white hover:bg-gray-800"
+                  className="bg-primary text-primary-foreground hover:bg-primary/90"
                 >
                   {submitting && (
                     <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />

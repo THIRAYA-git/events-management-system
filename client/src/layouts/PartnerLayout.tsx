@@ -12,25 +12,12 @@ const PartnerLayout = () => {
   const items = partnerNavByRole[user?.role as PartnerRole] ?? [];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
-      <aside className="hidden w-64 shrink-0 border-r border-white/15 bg-violet-800 lg:block">
-        <RoleSidebar items={items} />
-      </aside>
-
-      {drawerOpen && (
-        <div className="fixed inset-0 z-40 lg:hidden">
-          <div
-            className="absolute inset-0 bg-black/40"
-            onClick={() => setDrawerOpen(false)}
-          />
-          <aside className="hidden w-64 shrink-0 border-r border-white/15 bg-violet-800 lg:block">
-            <RoleSidebar
-              items={items}
-              onNavigate={() => setDrawerOpen(false)}
-            />
-          </aside>
-        </div>
-      )}
+    <div className="flex min-h-screen bg-muted">
+      <RoleSidebar
+        items={items}
+        isOpen={drawerOpen}
+        onClose={() => setDrawerOpen(false)}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <AdminHeader onMenuClick={() => setDrawerOpen(true)} />

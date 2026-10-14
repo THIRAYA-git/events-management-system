@@ -5,9 +5,9 @@ import { OrganizerPicker } from "@/components/customer/OrganizerPicker";
 import type { CustomerBookingOrganizer } from "@/types/organizer.types";
 
 const STATUS_META: Record<string, { label: string; className: string }> = {
-  assigned: { label: "Awaiting organizer response", className: "bg-amber-50 text-amber-700" },
-  confirmed: { label: "Confirmed", className: "bg-green-50 text-green-700" },
-  completed: { label: "Completed", className: "bg-gray-100 text-gray-600" },
+  assigned: { label: "Awaiting organizer response", className: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400" },
+  confirmed: { label: "Confirmed", className: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400" },
+  completed: { label: "Completed", className: "bg-muted text-muted-foreground" },
 };
 
 interface Props {
@@ -25,10 +25,10 @@ export function BookingOrganizerPanel({ bookingId, assignments, canAssign, onAss
   if (assignments.length === 0 && !showAssign) return null;
 
   return (
-    <div className="mt-2 rounded-2xl border border-gray-200! bg-white p-4 shadow-sm">
+    <div className="mt-2 rounded-2xl border border-border! bg-card p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-          <UserCheck className="h-4 w-4 text-violet-600" />
+        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+          <UserCheck className="h-4 w-4 text-violet-600 dark:text-violet-400" />
           Event organizer
         </div>
         {showAssign && !picking && (
@@ -40,7 +40,7 @@ export function BookingOrganizerPanel({ bookingId, assignments, canAssign, onAss
       </div>
 
       {showAssign && !picking && (
-        <p className="mt-2 text-sm text-gray-500">
+        <p className="mt-2 text-sm text-muted-foreground">
           No organizer yet. Choose one to handle decorations and event coordination.
         </p>
       )}
@@ -61,21 +61,21 @@ export function BookingOrganizerPanel({ bookingId, assignments, canAssign, onAss
           {assignments.map((a) => {
             const meta = STATUS_META[a.status] ?? {
               label: a.status,
-              className: "bg-gray-100 text-gray-600",
+              className: "bg-muted text-muted-foreground",
             };
             const rating = a.avg_rating !== null ? Number(a.avg_rating) : NaN;
             return (
               <li
                 key={a.id}
-                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-gray-50 px-3 py-2.5"
+                className="flex flex-wrap items-center justify-between gap-2 rounded-xl bg-muted px-3 py-2.5"
               >
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-gray-900">{a.business_name}</p>
-                  <p className="text-xs text-gray-500">
+                  <p className="truncate text-sm font-medium text-foreground">{a.business_name}</p>
+                  <p className="text-xs text-muted-foreground">
                     {a.specialty}
                     {a.role_in_event ? ` · ${a.role_in_event}` : ""}
                     {!Number.isNaN(rating) && (
-                      <span className="ml-2 inline-flex items-center gap-0.5 text-amber-600">
+                      <span className="ml-2 inline-flex items-center gap-0.5 text-amber-600 dark:text-amber-400">
                         <Star className="h-3 w-3 fill-current" />
                         {rating.toFixed(1)}
                       </span>

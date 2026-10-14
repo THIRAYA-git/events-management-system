@@ -18,9 +18,9 @@ const EMPTY_FORM: TimelineFormValues = {
   notes: "",
 };
 
-const LABEL = "block text-xs font-medium text-gray-500 mb-1";
+const LABEL = "block text-xs font-medium text-muted-foreground mb-1";
 const FIELD =
-  "w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-800 placeholder:text-gray-400 focus:border-gray-500 focus:outline-none focus:ring-2 focus:ring-gray-900/10";
+  "w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20";
 
 interface ActivityFormDialogProps {
   open: boolean;
@@ -104,23 +104,23 @@ export function ActivityFormDialog({
       <div
         role="dialog"
         aria-modal="true"
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-white p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-lg bg-card p-6 shadow-xl"
       >
         <div className="flex items-start justify-between">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">
+            <h2 className="text-lg font-semibold text-foreground">
               {editingActivity ? "Edit activity" : "Add activity"}
             </h2>
-            <p className="mt-0.5 text-sm text-gray-500">
+            <p className="mt-0.5 text-sm text-muted-foreground">
               Schedule a task for this event.
             </p>
           </div>
           <button
             onClick={() => onOpenChange(false)}
-            className="rounded-md p-1 hover:bg-gray-100"
+            className="rounded-md p-1 hover:bg-muted"
             aria-label="Close"
           >
-            <X className="h-4 w-4 text-gray-400" />
+            <X className="h-4 w-4 text-muted-foreground" />
           </button>
         </div>
 
@@ -241,21 +241,21 @@ export function ActivityFormDialog({
           </div>
 
           {error && (
-            <p className="rounded-md bg-red-50 px-3 py-2 text-sm text-red-700">{error}</p>
+            <p className="rounded-md bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">{error}</p>
           )}
         </div>
 
         <div className="mt-6 flex justify-end gap-2">
           <button
             onClick={() => onOpenChange(false)}
-            className="rounded-md px-3 py-2 text-sm text-gray-600 hover:bg-gray-100"
+            className="rounded-md px-3 py-2 text-sm text-muted-foreground hover:bg-muted"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={isSubmitting}
-            className="flex items-center gap-1.5 rounded-md bg-gray-900 px-4 py-2 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             {isSubmitting && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
             {isSubmitting ? "Saving…" : editingActivity ? "Save changes" : "Add activity"}

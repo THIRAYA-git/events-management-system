@@ -24,6 +24,7 @@ import {
 import { Line, Bar, Doughnut } from "react-chartjs-2";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useTheme } from "@/context/ThemeContext";
 import { getDashboardAnalytics } from "@/lib/analytics.api";
 import type { DashboardAnalytics } from "@/types/analytics.types";
 import {
@@ -49,10 +50,10 @@ ChartJS.register(
 const HALL_COLORS = ["#3b82f6", "#8b5cf6"];
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-green-100 text-green-700",
-  cancelled: "bg-red-100 text-red-700",
-  completed: "bg-blue-100 text-blue-700",
+  pending: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  confirmed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
+  completed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
 };
 
 const STATUS_ORDER = ["pending", "confirmed", "completed", "cancelled"];
@@ -91,25 +92,32 @@ function AttentionCard({ icon, label, value, hint, to }: AttentionCardProps) {
     <Link
       to={to}
       className={`block rounded-lg border p-5 transition-shadow hover:shadow-md ${
-        needsAction ? "border-amber-200 bg-amber-50" : "border-gray-200 bg-white"
+        needsAction ? "border-amber-200 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-500/10" : "border-border bg-card"
       }`}
     >
       <p
         className={`flex items-center gap-1 text-xs font-medium uppercase ${
-          needsAction ? "text-amber-700" : "text-gray-500"
+          needsAction ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"
         }`}
       >
         {icon} {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold text-gray-800">{value ?? "—"}</p>
-      <p className={`mt-1 text-xs ${needsAction ? "text-amber-700" : "text-gray-400"}`}>{hint}</p>
+      <p className="mt-1 text-2xl font-semibold text-foreground">{value ?? "—"}</p>
+      <p className={`mt-1 text-xs ${needsAction ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"}`}>{hint}</p>
     </Link>
   );
 }
 
 export function AdminDashboardHome() {
   const { user } = useAuth();
+  const { theme } = useTheme();
   const canSeeAnalytics = user?.role === "admin" || user?.role === "manager";
+
+  // Chart.js can't read Tailwind classes, so theme colours are passed in directly
+  const dark = theme === "dark";
+  const tickColor = dark ? "#94a3b8" : "#64748b";
+  const gridColor = dark ? "rgba(148,163,184,0.15)" : "rgba(15,23,42,0.08)";
+  const legendColor = dark ? "#cbd5e1" : "#475569";
 
   const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [statusCounts, setStatusCounts] = useState<Record<string, number> | null>(null);
@@ -156,7 +164,7 @@ export function AdminDashboardHome() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-24 text-gray-400">
+      <div className="flex items-center justify-center py-24 text-muted-foreground">
         <Loader2 className="w-5 h-5 animate-spin mr-2" />
         Loading dashboard…
       </div>
@@ -164,7 +172,7 @@ export function AdminDashboardHome() {
   }
 
   if (error) {
-    return <div className="py-24 text-center text-sm text-red-600">{error}</div>;
+    return <div className="py-24 text-center text-sm text-red-600 dark:text-red-400">{error}</div>;
   }
 
   const totalRevenue = analytics
@@ -195,8 +203,8 @@ export function AdminDashboardHome() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-800">Dashboard</h1>
-      <p className="mt-1 text-sm text-gray-500">
+      <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+      <p className="mt-1 text-sm text-muted-foreground">
         {canSeeAnalytics
           ? "Revenue and booking overview across Aazath Plaza."
           : "Booking status overview across Aazath Plaza."}
@@ -204,34 +212,34 @@ export function AdminDashboardHome() {
 
       <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {canSeeAnalytics && (
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <p className="flex items-center gap-1 text-xs font-medium uppercase text-gray-500">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" /> Total Revenue
             </p>
-            <p className="mt-1 text-2xl font-semibold text-gray-800">{formatCurrency(totalRevenue)}</p>
-            <p className="mt-1 text-xs text-gray-400">Confirmed + completed, all-time</p>
+            <p className="mt-1 text-2xl font-semibold text-foreground">{formatCurrency(totalRevenue)}</p>
+            <p className="mt-1 text-xs text-muted-foreground">Confirmed + completed, all-time</p>
           </div>
         )}
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <p className="flex items-center gap-1 text-xs font-medium uppercase text-gray-500">
+        <div className="rounded-lg border border-border bg-card p-5">
+          <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
             <CalendarClock className="h-3.5 w-3.5" /> Total Bookings
           </p>
-          <p className="mt-1 text-2xl font-semibold text-gray-800">{totalBookings}</p>
-          <p className="mt-1 text-xs text-gray-400">All statuses</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">{totalBookings}</p>
+          <p className="mt-1 text-xs text-muted-foreground">All statuses</p>
         </div>
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <p className="flex items-center gap-1 text-xs font-medium uppercase text-gray-500">
+        <div className="rounded-lg border border-border bg-card p-5">
+          <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
             <Users className="h-3.5 w-3.5" /> Pending Approval
           </p>
-          <p className="mt-1 text-2xl font-semibold text-gray-800">{pendingCount}</p>
-          <p className="mt-1 text-xs text-gray-400">Awaiting confirmation</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">{pendingCount}</p>
+          <p className="mt-1 text-xs text-muted-foreground">Awaiting confirmation</p>
         </div>
       </div>
 
       {/* ── Needs attention ─────────────────────────────────── */}
       {attention && (
         <div className="mt-6">
-          <h2 className="mb-3 text-sm font-medium text-gray-700">Needs attention</h2>
+          <h2 className="mb-3 text-sm font-medium text-foreground">Needs attention</h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <AttentionCard
               icon={<UserCheck className="h-3.5 w-3.5" />}
@@ -266,14 +274,15 @@ export function AdminDashboardHome() {
 
       {canSeeAnalytics && analytics && (
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h3 className="mb-4 flex items-center gap-1 text-sm font-medium text-gray-700">
+          <div className="rounded-lg border border-border bg-card p-5">
+            <h3 className="mb-4 flex items-center gap-1 text-sm font-medium text-foreground">
               <TrendingUp className="h-4 w-4" /> Monthly Revenue
             </h3>
             {analytics.revenueOverTime.length === 0 ? (
-              <p className="py-10 text-center text-sm text-gray-400">No revenue data yet.</p>
+              <p className="py-10 text-center text-sm text-muted-foreground">No revenue data yet.</p>
             ) : (
               <Line
+                key={theme}
                 data={{
                   labels: analytics.revenueOverTime.map((p) => formatMonth(p.month)),
                   datasets: [
@@ -290,18 +299,26 @@ export function AdminDashboardHome() {
                 options={{
                   responsive: true,
                   plugins: { legend: { display: false } },
-                  scales: { y: { beginAtZero: true } },
+                  scales: {
+                    x: { ticks: { color: tickColor }, grid: { color: gridColor } },
+                    y: {
+                      beginAtZero: true,
+                      ticks: { color: tickColor },
+                      grid: { color: gridColor },
+                    },
+                  },
                 }}
               />
             )}
           </div>
 
-          <div className="rounded-lg border border-gray-200 bg-white p-5">
-            <h3 className="mb-4 text-sm font-medium text-gray-700">Hall Booking Counts</h3>
+          <div className="rounded-lg border border-border bg-card p-5">
+            <h3 className="mb-4 text-sm font-medium text-foreground">Hall Booking Counts</h3>
             {analytics.hallUtilization.length === 0 ? (
-              <p className="py-10 text-center text-sm text-gray-400">No bookings yet.</p>
+              <p className="py-10 text-center text-sm text-muted-foreground">No bookings yet.</p>
             ) : (
               <Bar
+                key={theme}
                 data={{
                   labels: analytics.hallUtilization.map((h) => h.hall_name),
                   datasets: [
@@ -316,14 +333,21 @@ export function AdminDashboardHome() {
                   indexAxis: "y" as const,
                   responsive: true,
                   plugins: { legend: { display: false } },
-                  scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } } },
+                  scales: {
+                    x: {
+                      beginAtZero: true,
+                      ticks: { stepSize: 1, color: tickColor },
+                      grid: { color: gridColor },
+                    },
+                    y: { ticks: { color: tickColor }, grid: { color: gridColor } },
+                  },
                 }}
               />
             )}
           </div>
 
           <div className="text-right lg:col-span-2">
-            <Link to="/admin/analytics" className="text-sm text-blue-600 hover:underline">
+            <Link to="/admin/analytics" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
               View full analytics →
             </Link>
           </div>
@@ -332,15 +356,15 @@ export function AdminDashboardHome() {
 
       {/* ── Recent bookings + status breakdown ───────────────── */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-lg border border-gray-200 bg-white p-5 lg:col-span-2">
-          <h3 className="mb-4 text-sm font-medium text-gray-700">Recent Bookings</h3>
+        <div className="rounded-lg border border-border bg-card p-5 lg:col-span-2">
+          <h3 className="mb-4 text-sm font-medium text-foreground">Recent Bookings</h3>
           {recentBookings.length === 0 ? (
-            <p className="py-10 text-center text-sm text-gray-400">No bookings yet.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">No bookings yet.</p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b text-left text-xs uppercase text-gray-400">
+                  <tr className="border-b text-left text-xs uppercase text-muted-foreground">
                     <th className="pb-2 pr-4">Customer</th>
                     <th className="pb-2 pr-4">Event Date</th>
                     <th className="pb-2 pr-4">Hall</th>
@@ -365,19 +389,20 @@ export function AdminDashboardHome() {
             </div>
           )}
           <div className="mt-3 text-right">
-            <Link to="/admin/bookings" className="text-sm text-blue-600 hover:underline">
+            <Link to="/admin/bookings" className="text-sm text-blue-600 dark:text-blue-400 hover:underline">
               View all bookings →
             </Link>
           </div>
         </div>
 
-        <div className="rounded-lg border border-gray-200 bg-white p-5">
-          <h3 className="mb-4 text-sm font-medium text-gray-700">Booking Status</h3>
+        <div className="rounded-lg border border-border bg-card p-5">
+          <h3 className="mb-4 text-sm font-medium text-foreground">Booking Status</h3>
           {statusEntries.length === 0 ? (
-            <p className="py-10 text-center text-sm text-gray-400">No bookings yet.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">No bookings yet.</p>
           ) : (
             <div className="mx-auto max-w-[260px]">
               <Doughnut
+                key={theme}
                 data={{
                   labels: statusEntries.map((e) => `${capitalize(e.status)} (${e.count})`),
                   datasets: [
@@ -385,14 +410,20 @@ export function AdminDashboardHome() {
                       data: statusEntries.map((e) => e.count),
                       backgroundColor: statusEntries.map((e) => STATUS_COLORS[e.status] ?? "#9ca3af"),
                       borderWidth: 2,
-                      borderColor: "#ffffff",
+                      // White borders look like outlines on a dark card
+                      borderColor: dark ? "transparent" : "#ffffff",
                     },
                   ],
                 }}
                 options={{
                   responsive: true,
                   cutout: "65%",
-                  plugins: { legend: { position: "bottom" } },
+                  plugins: {
+                    legend: {
+                      position: "bottom",
+                      labels: { color: legendColor },
+                    },
+                  },
                 }}
               />
             </div>

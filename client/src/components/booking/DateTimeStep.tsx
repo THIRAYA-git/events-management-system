@@ -122,21 +122,21 @@ const { fullDates, partialDates } = useMemo(() => {
           onMonthChange={setMonth}
           disabled={[{ before: startOfDay(new Date()) }, ...fullDates]}
           modifiers={{ full: fullDates, partial: partialDates }}
-         modifiersClassNames={{
-  full: "bg-gray-300 text-gray-500 [&_button]:cursor-not-allowed",
-  partial:
-    "bg-[linear-gradient(135deg,var(--color-gray-300)_50%,transparent_50%)]",
-}}
-          className="rounded-lg border border-gray-200"
+                  modifiersClassNames={{
+            full: "bg-muted-foreground/30 text-muted-foreground [&_button]:cursor-not-allowed",
+            partial:
+              "bg-[linear-gradient(135deg,color-mix(in_oklab,var(--muted-foreground)_45%,transparent)_50%,transparent_50%)]",
+          }}
+          className="rounded-lg border border-border"
         />
       </div>
 
-      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-gray-600">
+      <div className="flex flex-wrap justify-center gap-x-5 gap-y-1 text-xs text-muted-foreground">
         <span className="flex items-center gap-1.5">
-<i className="inline-block size-3.5 rounded-sm border border-gray-300 bg-[linear-gradient(135deg,var(--color-gray-300)_50%,transparent_50%)]" />          One hall available
-        </span>
+          <i className="inline-block size-3.5 rounded-sm border border-input bg-[linear-gradient(135deg,color-mix(in_oklab,var(--muted-foreground)_45%,transparent)_50%,transparent_50%)]" />
+          One hall available        </span>
         <span className="flex items-center gap-1.5">
-          <i className="inline-block size-3.5 rounded-sm border border-gray-300 bg-gray-300" />
+          <i className="inline-block size-3.5 rounded-sm border border-input bg-muted-foreground/30" />
           Fully booked
         </span>
       </div>

@@ -16,15 +16,15 @@ export function WizardSteps({ current }: { current: number }) {
                   done
                     ? "bg-violet-600 text-white"
                     : active
-                      ? "border-2 border-violet-600 bg-white text-violet-700"
-                      : "border border-gray-300 bg-white text-gray-400"
+                      ? "border-2 border-violet-600 bg-card text-violet-700 dark:text-violet-400"
+                      : "border border-input bg-card text-muted-foreground"
                 }`}
               >
                 {done ? <Check className="h-4 w-4" /> : i + 1}
               </span>
               <span
                 className={`hidden text-xs font-medium sm:inline ${
-                  active ? "text-violet-700" : done ? "text-gray-700" : "text-gray-400"
+                  active ? "text-violet-700 dark:text-violet-400" : done ? "text-foreground" : "text-muted-foreground"
                 }`}
               >
                 {label}
@@ -32,7 +32,7 @@ export function WizardSteps({ current }: { current: number }) {
             </div>
             {i < STEPS.length - 1 && (
               <span
-                className={`mx-3 h-px flex-1 ${done ? "bg-violet-600" : "bg-gray-200"}`}
+                className={`mx-3 h-px flex-1 ${done ? "bg-violet-600" : "bg-muted"}`}
               />
             )}
           </li>

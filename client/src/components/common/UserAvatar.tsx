@@ -22,7 +22,7 @@ export default function UserAvatar({ src, name, size = 32 }: Props) {
   ) : (
     <div
       style={{ width: size, height: size, fontSize: size * 0.4 }}
-      className="flex shrink-0 items-center justify-center rounded-full bg-gray-200 font-semibold text-gray-600"
+      className="flex shrink-0 items-center justify-center rounded-full bg-muted font-semibold text-muted-foreground"
     >
       {initials}
     </div>

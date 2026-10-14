@@ -38,8 +38,8 @@ const STEP_INDEX: Record<Exclude<Step, "success">, number> = {
 function SummaryRow({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex justify-between gap-4 py-2.5">
-      <dt className="text-gray-500">{label}</dt>
-      <dd className="text-right font-medium text-gray-900">{value}</dd>
+      <dt className="text-muted-foreground">{label}</dt>
+      <dd className="text-right font-medium text-foreground">{value}</dd>
     </div>
   );
 }
@@ -205,7 +205,7 @@ export default function BookingWizardPage() {
               </>
             }
           >
-            <dl className="-my-2 divide-y divide-gray-100 text-sm">
+            <dl className="-my-2 divide-y divide-border text-sm">
               <SummaryRow
                 label="Hall"
                 value={
@@ -218,7 +218,7 @@ export default function BookingWizardPage() {
                 <SummaryRow
                   label="Second hall"
                   value={
-                    <span className="text-green-700">
+                    <span className="text-green-700 dark:text-green-400">
                       {secondHall.hall_name} — complimentary
                     </span>
                   }
@@ -245,7 +245,7 @@ export default function BookingWizardPage() {
                 />
               )}
             </dl>
-            <div className="flex justify-between rounded-lg border border-violet-100 bg-violet-50 px-4 py-3 text-base font-semibold text-violet-900">
+            <div className="flex justify-between rounded-lg border border-violet-100 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 px-4 py-3 text-base font-semibold text-violet-900 dark:text-violet-200">
               <span>Total</span>
               <span>LKR {details.pricing.totalAmount.toLocaleString()}</span>
             </div>
@@ -274,15 +274,15 @@ export default function BookingWizardPage() {
           >
             <div className="flex flex-col items-center gap-2 text-center">
               <CheckCircle2 className="h-12 w-12 text-green-500" />
-              <p className="text-sm text-gray-600">
+              <p className="text-sm text-muted-foreground">
                 Your booking reference is{" "}
-                <span className="font-mono font-semibold text-gray-900">
+                <span className="font-mono font-semibold text-foreground">
                   {result.bookingRef}
                 </span>
               </p>
-              <p className="text-sm text-gray-500">Status: {result.status}</p>
+              <p className="text-sm text-muted-foreground">Status: {result.status}</p>
             </div>
-            <div className="flex justify-between rounded-lg border border-violet-100 bg-violet-50 px-4 py-3 text-base font-semibold text-violet-900">
+            <div className="flex justify-between rounded-lg border border-violet-100 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 px-4 py-3 text-base font-semibold text-violet-900 dark:text-violet-200">
               <span>Total</span>
               <span>LKR {result.pricing.totalAmount.toLocaleString()}</span>
             </div>

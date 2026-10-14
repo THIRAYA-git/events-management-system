@@ -7,11 +7,11 @@ import {
 import type { CateringOrder } from "@/types/catering.types";
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
-  preparing: "bg-purple-100 text-purple-700",
-  delivered: "bg-green-100 text-green-700",
-  cancelled: "bg-gray-100 text-gray-500",
+  pending: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  preparing: "bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400",
+  delivered: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  cancelled: "bg-muted text-muted-foreground",
 };
 
 // Mirrors the backend's ALLOWED_TRANSITIONS state machine (catering.service.js)
@@ -174,7 +174,7 @@ export default function RestaurantCateringOrdersPage() {
           {canClear && (
             <button
               onClick={handleClearDelivered}
-              className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+              className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
             >
               Clear delivered
             </button>
@@ -206,7 +206,7 @@ export default function RestaurantCateringOrdersPage() {
             className={`rounded-full border px-3 py-1 text-sm ${
               dateFilter === f.value
                 ? "border-blue-600 bg-blue-600 text-white"
-                : "hover:bg-gray-50"
+                : "hover:bg-muted"
             }`}
           >
             {f.label}
@@ -215,7 +215,7 @@ export default function RestaurantCateringOrdersPage() {
       </div>
 
       {clearedThrough && (
-        <div className="mb-4 flex items-center justify-between rounded-md bg-gray-50 px-3 py-2 text-xs text-gray-600">
+        <div className="mb-4 flex items-center justify-between rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">
           <span>
             {showCleared
               ? "Showing previously cleared delivered orders."
@@ -228,7 +228,7 @@ export default function RestaurantCateringOrdersPage() {
               setShowCleared((v) => !v);
               setPage(1);
             }}
-            className="font-medium text-blue-600 hover:underline"
+            className="font-medium text-blue-600 dark:text-blue-400 hover:underline"
           >
             {showCleared ? "Hide again" : "Show"}
           </button>
@@ -236,17 +236,17 @@ export default function RestaurantCateringOrdersPage() {
       )}
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : orders.length === 0 ? (
-        <p className="text-sm text-gray-500">No catering orders found.</p>
+        <p className="text-sm text-muted-foreground">No catering orders found.</p>
       ) : (
         <>
           <div className="space-y-3">
@@ -258,15 +258,15 @@ export default function RestaurantCateringOrdersPage() {
               return (
                 <div
                   key={order.order_id}
-                  className="rounded-md border border-gray-200 bg-white p-4"
+                  className="rounded-md border border-border bg-card p-4"
                 >
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div>
                       <span className="font-medium">{order.booking_ref}</span>{" "}
-                      <span className="text-gray-500">
+                      <span className="text-muted-foreground">
                         — {order.customer_name}
                       </span>
-                      <span className="ml-2 text-xs text-gray-400">
+                      <span className="ml-2 text-xs text-muted-foreground">
                         {order.event_type}
                       </span>
                     </div>
@@ -280,23 +280,23 @@ export default function RestaurantCateringOrdersPage() {
                   </div>
 
                   {order.event_date && (
-                    <div className="mb-2 flex items-center gap-1.5 text-xs text-gray-500">
+                    <div className="mb-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                       <CalendarDays className="h-3.5 w-3.5" />
                       <span>{formatEventDate(order.event_date)}</span>
                       {order.event_date === today && (
-                        <span className="rounded bg-blue-50 px-1.5 py-0.5 text-blue-700">
+                        <span className="rounded bg-blue-50 dark:bg-blue-500/10 px-1.5 py-0.5 text-blue-700 dark:text-blue-400">
                           Today
                         </span>
                       )}
                       {overdue && (
-                        <span className="rounded bg-red-50 px-1.5 py-0.5 text-red-600">
+                        <span className="rounded bg-red-50 dark:bg-red-500/10 px-1.5 py-0.5 text-red-600 dark:text-red-400">
                           Overdue
                         </span>
                       )}
                     </div>
                   )}
 
-                  <div className="mb-2 text-sm text-gray-600">
+                  <div className="mb-2 text-sm text-muted-foreground">
                     {order.menu_items.map((line, idx) => {
                       const name =
                         line.item_name || `Item #${line.item_id ?? "?"}`;
@@ -343,8 +343,8 @@ export default function RestaurantCateringOrdersPage() {
                           disabled={updatingId === order.order_id}
                           className={`rounded-md border px-3 py-1 text-xs disabled:opacity-50 ${
                             action.to === "cancelled"
-                              ? "border-red-200 text-red-600 hover:bg-red-50"
-                              : "hover:bg-gray-50"
+                              ? "border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20"
+                              : "hover:bg-muted"
                           }`}
                         >
                           {updatingId === order.order_id ? "…" : action.label}
@@ -354,7 +354,7 @@ export default function RestaurantCateringOrdersPage() {
                   </div>
 
                   {order.special_notes && (
-                    <p className="mt-2 text-xs italic text-gray-500">
+                    <p className="mt-2 text-xs italic text-muted-foreground">
                       Note: {order.special_notes}
                     </p>
                   )}
@@ -365,7 +365,7 @@ export default function RestaurantCateringOrdersPage() {
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
+              <span className="text-muted-foreground">
                 Page {page} of {totalPages} ({total} order
                 {total !== 1 ? "s" : ""})
               </span>

@@ -29,14 +29,14 @@ const STATUS_OPTIONS: BookingStatus[] = [
 const PAGE_SIZE = 10;
 
 const STATUS_BADGE: Record<BookingStatus, string> = {
-  pending: "bg-amber-50 text-amber-700 ring-amber-200",
-  confirmed: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  cancelled: "bg-rose-50 text-rose-700 ring-rose-200",
-  completed: "bg-blue-50 text-blue-700 ring-blue-200",
+  pending: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30",
+  confirmed: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-500/30",
+  cancelled: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-200 dark:ring-rose-500/30",
+  completed: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-500/30",
 };
 
 const inputClass =
-  "h-9 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-800 focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900";
+  "h-9 w-full rounded-md border border-input bg-card px-3 text-sm text-foreground focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring";
 
 const iconBtn =
   "inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors disabled:opacity-50";
@@ -218,10 +218,10 @@ export function AdminBookingsPage() {
       {/* ── Header ──────────────────────────────────────────────────── */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight text-gray-900">
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
             Bookings
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Review, confirm, and manage hall booking requests.
           </p>
         </div>
@@ -229,7 +229,7 @@ export function AdminBookingsPage() {
           <button
             onClick={() => openBulk("confirm")}
             disabled={bulkDisabled}
-            className="flex items-center gap-1.5 rounded-md border border-emerald-200 bg-white px-3 py-2 text-sm font-medium text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md border border-emerald-200 dark:border-emerald-500/30 bg-card px-3 py-2 text-sm font-medium text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20 disabled:opacity-50"
           >
             <CheckCircle2 className="h-4 w-4" />
             Confirm All
@@ -237,14 +237,14 @@ export function AdminBookingsPage() {
           <button
             onClick={() => openBulk("reject")}
             disabled={bulkDisabled}
-            className="flex items-center gap-1.5 rounded-md border border-rose-200 bg-white px-3 py-2 text-sm font-medium text-rose-700 hover:bg-rose-50 disabled:opacity-50"
+            className="flex items-center gap-1.5 rounded-md border border-rose-200 dark:border-rose-500/30 bg-card px-3 py-2 text-sm font-medium text-rose-700 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/20 disabled:opacity-50"
           >
             <XCircle className="h-4 w-4" />
             Reject All
           </button>
           <Link
             to="/book"
-            className="flex items-center gap-1.5 rounded-md bg-gray-900 px-3 py-2 text-sm font-medium text-white hover:bg-gray-800"
+            className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
             Book a Hall
@@ -253,9 +253,9 @@ export function AdminBookingsPage() {
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
-      <div className="mt-6 grid grid-cols-2 items-end gap-3 rounded-xl border border-gray-200 bg-white p-4 shadow-sm md:grid-cols-4 xl:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 items-end gap-3 rounded-xl border border-border bg-card p-4 shadow-sm md:grid-cols-4 xl:grid-cols-5">
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
             Status
           </label>
           <select
@@ -277,7 +277,7 @@ export function AdminBookingsPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
             Hall
           </label>
           <select
@@ -295,7 +295,7 @@ export function AdminBookingsPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
             From
           </label>
           <input
@@ -307,7 +307,7 @@ export function AdminBookingsPage() {
         </div>
 
         <div>
-          <label className="mb-1 block text-xs font-medium text-gray-500">
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
             To
           </label>
           <input
@@ -327,7 +327,7 @@ export function AdminBookingsPage() {
               setDateTo("");
               setOffset(0);
             }}
-            className="h-9 text-left text-sm text-gray-500 underline hover:text-gray-700"
+            className="h-9 text-left text-sm text-muted-foreground underline hover:text-foreground"
           >
             Clear filters
           </button>
@@ -335,16 +335,16 @@ export function AdminBookingsPage() {
       </div>
 
       {/* ── Table card (no horizontal scroll) ───────────────────────── */}
-      <div className="mt-4 overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+      <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
   {isLoading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
+          <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Loading bookings…
           </div>
         ) : error ? (
-          <div className="py-16 text-center text-sm text-red-600">{error}</div>
+          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
         ) : bookings.length === 0 ? (
-          <div className="py-16 text-center text-sm text-gray-400">
+          <div className="py-16 text-center text-sm text-muted-foreground">
             No bookings match these filters.
           </div>
         ) : (
@@ -359,8 +359,8 @@ export function AdminBookingsPage() {
           <col className="w-[12%]" />
           <col className="w-[17%]" />
         </colgroup>
-            <thead className="bg-gray-50">
-              <tr className="border-b border-gray-200 text-left text-xs font-semibold uppercase tracking-wide text-gray-500">
+            <thead className="bg-muted">
+              <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                 <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">Hall / Type</th>
                 <th className="px-4 py-3">Date &amp; Time</th>
@@ -370,50 +370,50 @@ export function AdminBookingsPage() {
                 <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {bookings.map((b) => (
                 <tr
                   key={b.booking_id}
-                  className="transition-colors hover:bg-gray-50/70"
+                  className="transition-colors hover:bg-muted/70"
                 >
                   <td className="px-4 py-3 align-top">
-                    <div className="truncate font-medium text-gray-900">
+                    <div className="truncate font-medium text-foreground">
                       {b.customer_name}
                     </div>
-                    <div className="truncate text-xs text-gray-500">
+                    <div className="truncate text-xs text-muted-foreground">
                       {b.customer_email}
                     </div>
-                    <div className="mt-0.5 truncate font-mono text-[11px] text-gray-400">
+                    <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
                       {b.booking_ref}
                     </div>
                   </td>
 
                   <td className="px-4 py-3 align-top">
-                    <div className="font-medium text-gray-800">
+                    <div className="font-medium text-foreground">
                       {b.second_hall_name
                         ? `${b.hall_name} + ${b.second_hall_name}`
                         : b.hall_name}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {b.event_type_label ?? b.event_type}
                     </div>
                   </td>
 
                   <td className="whitespace-nowrap px-4 py-3 align-top">
-                    <div className="font-medium text-gray-800">
+                    <div className="font-medium text-foreground">
                       {formatDate(b.event_date)}
                     </div>
-                    <div className="text-xs text-gray-500">
+                    <div className="text-xs text-muted-foreground">
                       {formatTime(b.event_start_time)}–
                       {formatTime(b.event_end_time)}
                     </div>
                   </td>
 
-                  <td className="px-4 py-3 text-right align-top tabular-nums text-gray-700">
+                  <td className="px-4 py-3 text-right align-top tabular-nums text-foreground">
                     {b.guest_count}
                   </td>
 
-                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-medium tabular-nums text-gray-800">
+                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-medium tabular-nums text-foreground">
                     {formatCurrency(b.total_amount)}
                   </td>
 
@@ -436,7 +436,7 @@ export function AdminBookingsPage() {
                             disabled={actionLoadingId === b.booking_id}
                             title="Confirm booking"
                             aria-label="Confirm booking"
-                            className={`${iconBtn} text-emerald-600 hover:bg-emerald-50`}
+                            className={`${iconBtn} text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20`}
                           >
                             {actionLoadingId === b.booking_id ? (
                               <Loader2 className="h-4 w-4 animate-spin" />
@@ -449,7 +449,7 @@ export function AdminBookingsPage() {
                             disabled={actionLoadingId === b.booking_id}
                             title="Reject booking"
                             aria-label="Reject booking"
-                            className={`${iconBtn} text-rose-600 hover:bg-rose-50`}
+                            className={`${iconBtn} text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/20`}
                           >
                             <X className="h-4 w-4" />
                           </button>
@@ -461,7 +461,7 @@ export function AdminBookingsPage() {
                           to={`/admin/bookings/${b.booking_id}/timeline`}
                           title="Event timeline"
                           aria-label="Event timeline"
-                          className={`${iconBtn} text-blue-600 hover:bg-blue-50`}
+                          className={`${iconBtn} text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20`}
                         >
                           <CalendarClock className="h-4 w-4" />
                         </Link>
@@ -473,7 +473,7 @@ export function AdminBookingsPage() {
                           <button
                             title="Assign organizer"
                             aria-label="Assign organizer"
-                            className={`${iconBtn} text-purple-600 hover:bg-purple-50`}
+                            className={`${iconBtn} text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/20`}
                           >
                             <UserPlus className="h-4 w-4" />
                           </button>
@@ -490,7 +490,7 @@ export function AdminBookingsPage() {
 
         {/* ── Pagination (inside the card) ──────────────────────────── */}
         {!isLoading && total > 0 && (
-          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-gray-200 bg-gray-50/60 px-4 py-3 text-sm text-gray-500">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border bg-muted/60 px-4 py-3 text-sm text-muted-foreground">
             <span>
               Showing {offset + 1}–{Math.min(offset + PAGE_SIZE, total)} of{" "}
               {total}
@@ -499,7 +499,7 @@ export function AdminBookingsPage() {
               <button
                 onClick={() => setOffset((o) => Math.max(0, o - PAGE_SIZE))}
                 disabled={offset === 0}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+                className="rounded-md border border-input bg-card px-3 py-1 hover:bg-muted disabled:opacity-40"
               >
                 Previous
               </button>
@@ -509,7 +509,7 @@ export function AdminBookingsPage() {
               <button
                 onClick={() => setOffset((o) => o + PAGE_SIZE)}
                 disabled={offset + PAGE_SIZE >= total}
-                className="rounded-md border border-gray-300 bg-white px-3 py-1 hover:bg-gray-50 disabled:opacity-40"
+                className="rounded-md border border-input bg-card px-3 py-1 hover:bg-muted disabled:opacity-40"
               >
                 Next
               </button>
@@ -521,27 +521,27 @@ export function AdminBookingsPage() {
       {/* ── Cancel/Reject Modal ─────────────────────────────────────── */}
       {cancelTarget && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+          <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
             <div className="flex items-start justify-between">
-              <h2 className="text-lg font-semibold text-gray-800">
+              <h2 className="text-lg font-semibold text-foreground">
                 {cancelTarget.status === "pending"
                   ? "Reject Booking"
                   : "Cancel Booking"}
               </h2>
               <button
                 onClick={() => setCancelTarget(null)}
-                className="rounded-md p-1 hover:bg-gray-100"
+                className="rounded-md p-1 hover:bg-muted"
               >
-                <X className="h-4 w-4 text-gray-400" />
+                <X className="h-4 w-4 text-muted-foreground" />
               </button>
             </div>
 
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               {cancelTarget.booking_ref} — {cancelTarget.customer_name},{" "}
               {formatDate(cancelTarget.event_date)}
             </p>
 
-            <label className="mb-1 mt-4 block text-xs font-medium text-gray-500">
+            <label className="mb-1 mt-4 block text-xs font-medium text-muted-foreground">
               Reason (optional)
             </label>
             <textarea
@@ -549,13 +549,13 @@ export function AdminBookingsPage() {
               onChange={(e) => setCancelReason(e.target.value)}
               rows={3}
               placeholder="e.g. Date conflict, customer requested cancellation…"
-              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+              className="w-full rounded-md border border-input px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
             />
 
             <div className="mt-4 flex justify-end gap-2">
               <button
                 onClick={() => setCancelTarget(null)}
-                className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100"
+                className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
               >
                 Back
               </button>
@@ -580,13 +580,13 @@ export function AdminBookingsPage() {
       {/* ── Bulk Confirm/Reject Modal ───────────────────────────────── */}
       {bulk && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm">
-          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
-            <h2 className="text-lg font-semibold text-gray-800">
+          <div className="w-full max-w-md rounded-xl bg-card p-5 shadow-xl">
+            <h2 className="text-lg font-semibold text-foreground">
               {bulk.action === "confirm" ? "Confirm All" : "Reject All"}
             </h2>
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-muted-foreground">
               This will {bulk.action === "confirm" ? "confirm" : "reject"}{" "}
-              <span className="font-medium text-gray-800">
+              <span className="font-medium text-foreground">
                 {bulk.items.length} pending booking
                 {bulk.items.length === 1 ? "" : "s"}
               </span>
@@ -597,14 +597,14 @@ export function AdminBookingsPage() {
 
             {bulk.action === "reject" && (
               <>
-                <label className="mb-1 mt-4 block text-xs font-medium text-gray-500">
+                <label className="mb-1 mt-4 block text-xs font-medium text-muted-foreground">
                   Reason (optional)
                 </label>
                 <textarea
                   value={bulkReason}
                   onChange={(e) => setBulkReason(e.target.value)}
                   rows={3}
-                  className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:border-gray-900 focus:outline-none focus:ring-1 focus:ring-gray-900"
+                  className="w-full rounded-md border border-input px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-ring"
                 />
               </>
             )}
@@ -613,7 +613,7 @@ export function AdminBookingsPage() {
               <button
                 onClick={() => setBulk(null)}
                 disabled={bulkRunning}
-                className="rounded-md px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 disabled:opacity-50"
+                className="rounded-md px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted disabled:opacity-50"
               >
                 Back
               </button>

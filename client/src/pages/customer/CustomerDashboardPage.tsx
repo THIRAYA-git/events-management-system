@@ -58,9 +58,9 @@ const lkr = (n: number) =>
   `LKR ${n.toLocaleString("en-LK", { maximumFractionDigits: 0 })}`;
 
 const CARD_TINTS = [
-  "bg-violet-50 border-violet-100",
+  "bg-violet-50 dark:bg-violet-500/10 border-violet-100 dark:border-violet-500/30",
   "bg-sky-50 border-sky-100",
-  "bg-orange-50 border-orange-100",
+  "bg-orange-50 dark:bg-orange-500/10 border-orange-100 dark:border-orange-500/30",
   "bg-teal-50 border-teal-100",
 ];
 
@@ -77,7 +77,7 @@ const MANUAL = "manual" as const;
 const EMPTY_MANUAL = { eventName: "", eventDate: "", hall: "" };
 
 const inputClass =
-  "w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm outline-none focus:border-violet-500";
+  "w-full rounded-lg border border-border bg-card px-3 py-2.5 text-sm outline-none focus:border-violet-500";
 
 function daysLeft(d: Date) {
   const today = new Date();
@@ -88,16 +88,16 @@ function daysLeft(d: Date) {
 
 const payment = (b: AdminBooking) =>
   b.status === "cancelled"
-    ? { label: "Cancelled", cls: "bg-gray-100 text-gray-600" }
+    ? { label: "Cancelled", cls: "bg-muted text-muted-foreground" }
     : b.status === "pending"
-    ? { label: "Pending", cls: "bg-amber-50 text-amber-700" }
-    : { label: "Paid", cls: "bg-emerald-50 text-emerald-700" };
+    ? { label: "Pending", cls: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400" }
+    : { label: "Paid", cls: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" };
 
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-gray-200! bg-white p-4 shadow-sm">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className="mt-1 text-xl font-bold text-gray-900">{value}</p>
+    <div className="rounded-2xl border border-border! bg-card p-4 shadow-sm">
+      <p className="text-sm text-muted-foreground">{label}</p>
+      <p className="mt-1 text-xl font-bold text-foreground">{value}</p>
     </div>
   );
 }
@@ -251,10 +251,10 @@ export default function CustomerDashboardPage() {
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-10 lg:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-foreground">
             Hello, {user?.name?.split(" ")[0] ?? "there"} – your dashboard
           </h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-muted-foreground">
             Events, payments and feedback in one place.
           </p>
         </div>
@@ -266,22 +266,22 @@ export default function CustomerDashboardPage() {
 
       {error && <p className={errorTextClass}>{error}</p>}
       {isLoading && (
-        <p className="text-sm text-gray-500">Loading your dashboard…</p>
+        <p className="text-sm text-muted-foreground">Loading your dashboard…</p>
       )}
 
       {!isLoading && !error && (
         <>
           {/* Upcoming events */}
           <section>
-            <h2 className="mb-3 text-lg font-semibold text-gray-900">
+            <h2 className="mb-3 text-lg font-semibold text-foreground">
               My upcoming events
             </h2>
             {data.upcoming.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-300! bg-white px-6 py-10 text-center text-sm text-gray-500">
+              <div className="rounded-2xl border border-dashed border-input! bg-card px-6 py-10 text-center text-sm text-muted-foreground">
                 No upcoming events.{" "}
                 <Link
                   to="/book"
-                  className="font-medium text-violet-600 hover:underline"
+                  className="font-medium text-violet-600 dark:text-violet-400 hover:underline"
                 >
                   Book a hall
                 </Link>
@@ -296,12 +296,12 @@ export default function CustomerDashboardPage() {
                     }`}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <p className="font-semibold text-gray-900">{f.type(b)}</p>
-                      <span className="whitespace-nowrap text-xs text-gray-500">
+                      <p className="font-semibold text-foreground">{f.type(b)}</p>
+                      <span className="whitespace-nowrap text-xs text-muted-foreground">
                         {daysLeft(f.date(b))}
                       </span>
                     </div>
-                    <div className="mt-3 space-y-1.5 text-sm text-gray-600">
+                    <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
                       <p className="flex items-center gap-2">
                         <Clock className="h-3.5 w-3.5" />
                         {fmtDate(f.date(b))}
@@ -348,10 +348,10 @@ export default function CustomerDashboardPage() {
           {/* Summary */}
           <section className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-lg font-semibold text-gray-900">Summary</h2>
+              <h2 className="text-lg font-semibold text-foreground">Summary</h2>
               <Link
                 to="/my-bookings"
-                className="text-sm font-medium text-violet-600 hover:underline"
+                className="text-sm font-medium text-violet-600 dark:text-violet-400 hover:underline"
               >
                 Full history in My Bookings
               </Link>
@@ -365,12 +365,12 @@ export default function CustomerDashboardPage() {
             </div>
 
             <div className="grid gap-4 lg:grid-cols-3">
-              <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
-                <h3 className="mb-3 text-sm font-medium text-gray-700">
+              <div className="rounded-2xl border border-border! bg-card p-5 shadow-sm">
+                <h3 className="mb-3 text-sm font-medium text-foreground">
                   Bookings by status
                 </h3>
                 {bookings.length === 0 ? (
-                  <p className="py-10 text-center text-sm text-gray-500">
+                  <p className="py-10 text-center text-sm text-muted-foreground">
                     No bookings yet.
                   </p>
                 ) : (
@@ -406,12 +406,12 @@ export default function CustomerDashboardPage() {
                 )}
               </div>
 
-              <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm lg:col-span-2">
-                <h3 className="mb-3 text-sm font-medium text-gray-700">
+              <div className="rounded-2xl border border-border! bg-card p-5 shadow-sm lg:col-span-2">
+                <h3 className="mb-3 text-sm font-medium text-foreground">
                   Spending by event month (LKR)
                 </h3>
                 {data.months.length === 0 ? (
-                  <p className="py-10 text-center text-sm text-gray-500">
+                  <p className="py-10 text-center text-sm text-muted-foreground">
                     No data to chart yet.
                   </p>
                 ) : (
@@ -456,49 +456,49 @@ export default function CustomerDashboardPage() {
 
           {/* Post-event feedback: pick a recent event or type one in */}
           <section>
-            <h2 className="mb-1 text-lg font-semibold text-gray-900">
+            <h2 className="mb-1 text-lg font-semibold text-foreground">
               Post-event feedback
             </h2>
-            <p className="mb-3 text-sm text-gray-500">
+            <p className="mb-3 text-sm text-muted-foreground">
               Choose one of your recent events, or enter an event yourself, and
               tell us how it went.
             </p>
             {replies.length > 0 && (
               <div className="mb-4 space-y-3">
-                <h3 className="flex items-center gap-2 text-sm font-semibold text-gray-900">
-                  <MessageSquare className="h-4 w-4 text-violet-600" />
+                <h3 className="flex items-center gap-2 text-sm font-semibold text-foreground">
+                  <MessageSquare className="h-4 w-4 text-violet-600 dark:text-violet-400" />
                   Replies from Aazath Plaza
-                  <span className="rounded-full bg-violet-100 px-2 py-0.5 text-xs text-violet-700">
+                  <span className="rounded-full bg-violet-100 dark:bg-violet-500/15 px-2 py-0.5 text-xs text-violet-700 dark:text-violet-400">
                     {replies.length}
                   </span>
                 </h3>
                 {replies.map((r) => (
                   <div
                     key={r.feedback_id}
-                    className="rounded-2xl border border-violet-100 bg-violet-50 p-4"
+                    className="rounded-2xl border border-violet-100 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 p-4"
                   >
                     <div className="flex flex-wrap items-start justify-between gap-2">
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className="font-medium text-foreground">
                           {r.title || r.event_type || "Your event"}
                           {r.booking_ref && (
-                            <span className="ml-2 text-xs font-normal text-gray-500">
+                            <span className="ml-2 text-xs font-normal text-muted-foreground">
                               {r.booking_ref}
                             </span>
                           )}
                         </p>
-                        <p className="mt-0.5 line-clamp-1 text-xs text-gray-500">
+                        <p className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">
                           Your review: {r.comment || "No comment"}
                         </p>
                       </div>
                       <button
                         onClick={() => handleMarkRead(r.feedback_id)}
-                        className="inline-flex items-center gap-1 rounded-lg border border-violet-200 bg-white px-3 py-1.5 text-xs font-medium text-violet-700 hover:bg-violet-100"
+                        className="inline-flex items-center gap-1 rounded-lg border border-violet-200 dark:border-violet-500/30 bg-card px-3 py-1.5 text-xs font-medium text-violet-700 dark:text-violet-400 hover:bg-violet-100 dark:hover:bg-violet-500/20"
                       >
                         <Check className="h-3.5 w-3.5" /> Mark as read
                       </button>
                     </div>
-                    <p className="mt-3 whitespace-pre-wrap rounded-xl bg-white p-3 text-sm text-gray-700">
+                    <p className="mt-3 whitespace-pre-wrap rounded-xl bg-card p-3 text-sm text-foreground">
                       {r.admin_reply}
                     </p>
                   </div>
@@ -506,19 +506,19 @@ export default function CustomerDashboardPage() {
               </div>
             )}
 
-            <div className="rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
+            <div className="rounded-2xl border border-border! bg-card p-5 shadow-sm">
               {notice && (
                 <p
                   className={`mb-4 rounded-lg px-3 py-2 text-sm ${
                     notice.type === "success"
-                      ? "bg-emerald-50 text-emerald-700"
-                      : "bg-red-50 text-red-700"
+                      ? "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400"
+                      : "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400"
                   }`}
                 >
                   {notice.text}
                 </p>
               )}
-              <label className="block text-sm font-medium text-gray-700">
+              <label className="block text-sm font-medium text-foreground">
                 Event
                 <select
                   value={feedbackId ?? ""}
@@ -546,28 +546,28 @@ export default function CustomerDashboardPage() {
               {/* Option 1: a listed booking */}
               {selected && (
                 <div className="mt-4 space-y-4">
-                  <div className="grid gap-3 rounded-xl bg-gray-50 p-4 text-sm sm:grid-cols-4">
+                  <div className="grid gap-3 rounded-xl bg-muted p-4 text-sm sm:grid-cols-4">
                     <div>
-                      <p className="text-gray-500">Event</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-muted-foreground">Event</p>
+                      <p className="font-medium text-foreground">
                         {f.type(selected)}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Date</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-muted-foreground">Date</p>
+                      <p className="font-medium text-foreground">
                         {fmtDate(f.date(selected))}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Hall</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-muted-foreground">Hall</p>
+                      <p className="font-medium text-foreground">
                         {f.hall(selected) || "–"}
                       </p>
                     </div>
                     <div>
-                      <p className="text-gray-500">Booking ref</p>
-                      <p className="font-medium text-gray-900">
+                      <p className="text-muted-foreground">Booking ref</p>
+                      <p className="font-medium text-foreground">
                         {selected.booking_ref}
                       </p>
                     </div>
@@ -590,7 +590,7 @@ export default function CustomerDashboardPage() {
               {feedbackId === MANUAL && (
                 <div className="mt-4 space-y-4">
                   <div className="grid gap-3 sm:grid-cols-3">
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Event name
                       <input
                         value={manual.eventName}
@@ -602,7 +602,7 @@ export default function CustomerDashboardPage() {
                         className={`${inputClass} mt-1`}
                       />
                     </label>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Event date
                       <input
                         type="date"
@@ -614,7 +614,7 @@ export default function CustomerDashboardPage() {
                         className={`${inputClass} mt-1`}
                       />
                     </label>
-                    <label className="block text-sm font-medium text-gray-700">
+                    <label className="block text-sm font-medium text-foreground">
                       Hall (optional)
                       <input
                         value={manual.hall}
@@ -646,7 +646,7 @@ export default function CustomerDashboardPage() {
                       }}
                     />
                   ) : (
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-muted-foreground">
                       Enter the event name and date to continue.
                     </p>
                   )}
@@ -654,7 +654,7 @@ export default function CustomerDashboardPage() {
               )}
 
               {feedbackId === null && (
-                <p className="mt-4 text-sm text-gray-500">
+                <p className="mt-4 text-sm text-muted-foreground">
                   {eligible.length === 0
                     ? "No completed events are waiting for feedback. You can still enter an event manually from the list above."
                     : "Pick an event above, or enter one manually, to leave feedback."}

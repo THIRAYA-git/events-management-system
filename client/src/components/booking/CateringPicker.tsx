@@ -15,7 +15,7 @@ const RESTAURANTS = [
 const lkr = (n: number) => `LKR ${n.toLocaleString()}`;
 
 // The app-wide border colour rule outranks Tailwind utilities, hence the "!".
-const CARD = "rounded-xl border border-gray-200! bg-white";
+const CARD = "rounded-xl border border-border! bg-card";
 
 function Photo({ src, alt, className }: { src: string | null; alt: string; className: string }) {
   const [failed, setFailed] = useState(false);
@@ -77,23 +77,23 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
             }}
             className={`${CARD} p-4 text-left transition hover:border-violet-400! hover:shadow-md`}
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 text-lg font-bold text-violet-700">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-500/15 text-lg font-bold text-violet-700 dark:text-violet-400">
               {r.name[0]}
             </div>
-            <p className="mt-3 font-semibold text-gray-900">{r.name}</p>
-            <p className="text-xs font-medium text-green-600">Available for your event</p>
+            <p className="mt-3 font-semibold text-foreground">{r.name}</p>
+            <p className="text-xs font-medium text-green-600 dark:text-green-400">Available for your event</p>
           </button>
         ) : (
           <div
             key={r.key}
             aria-disabled="true"
-            className="cursor-not-allowed rounded-xl border border-gray-200! bg-gray-50 p-4 opacity-60 grayscale"
+            className="cursor-not-allowed rounded-xl border border-border! bg-muted p-4 opacity-60 grayscale"
           >
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gray-200 text-lg font-bold text-gray-500">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-lg font-bold text-muted-foreground">
               {r.name[0]}
             </div>
-            <p className="mt-3 font-semibold text-gray-500">{r.name}</p>
-            <p className="text-xs font-medium text-gray-400">Not available yet</p>
+            <p className="mt-3 font-semibold text-muted-foreground">{r.name}</p>
+            <p className="text-xs font-medium text-muted-foreground">Not available yet</p>
           </div>
         )
       )}
@@ -107,16 +107,16 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
           setRestaurant(null);
           setCategory(null);
         }}
-        className="inline-flex items-center gap-1 text-gray-500 hover:text-violet-700"
+        className="inline-flex items-center gap-1 text-muted-foreground hover:text-violet-700"
       >
         <ChevronLeft className="h-4 w-4" /> Restaurants
       </button>
       {restaurant && (
         <>
-          <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
           <button
             onClick={() => setCategory(null)}
-            className={category ? "text-gray-500 hover:text-violet-700" : "font-semibold text-gray-900"}
+            className={category ? "text-muted-foreground hover:text-violet-700" : "font-semibold text-foreground"}
           >
             {restaurantName}
           </button>
@@ -124,8 +124,8 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
       )}
       {category && (
         <>
-          <ChevronRight className="h-3.5 w-3.5 text-gray-300" />
-          <span className="font-semibold text-gray-900">{category}</span>
+          <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
+          <span className="font-semibold text-foreground">{category}</span>
         </>
       )}
     </div>
@@ -133,31 +133,31 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
 
   // ── Selection summary ────────────────────────────────────────────────────
   const summary = selected.length > 0 && (
-    <div className="rounded-xl border border-violet-200! bg-violet-50 p-4">
+    <div className="rounded-xl border border-violet-200! dark:border-violet-500/30! bg-violet-50 dark:bg-violet-500/10 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-sm font-semibold text-violet-900">
+        <p className="text-sm font-semibold text-violet-900 dark:text-violet-200">
           Your selection · {selected.length} item{selected.length > 1 ? "s" : ""}
         </p>
-        <p className="text-sm font-semibold text-violet-900">{lkr(total)}</p>
+        <p className="text-sm font-semibold text-violet-900 dark:text-violet-200">{lkr(total)}</p>
       </div>
       <div className="mt-2 flex flex-wrap gap-2">
         {selected.map((i) => (
           <span
             key={i.item_id}
-            className="inline-flex items-center gap-1.5 rounded-full border border-violet-200! bg-white py-1 pl-3 pr-1.5 text-xs text-gray-700"
+            className="inline-flex items-center gap-1.5 rounded-full border border-violet-200! dark:border-violet-500/30! bg-card py-1 pl-3 pr-1.5 text-xs text-foreground"
           >
             {i.item_name} × {quantities[i.item_id]}
             <button
               onClick={() => onQuantityChange(i.item_id, 0)}
               aria-label={`Remove ${i.item_name}`}
-              className="rounded-full p-0.5 text-gray-400 hover:bg-gray-100 hover:text-gray-700"
+              className="rounded-full p-0.5 text-muted-foreground hover:bg-muted hover:text-foreground"
             >
               <X className="h-3 w-3" />
             </button>
           </span>
         ))}
       </div>
-      <p className="mt-2 text-xs text-violet-700">
+      <p className="mt-2 text-xs text-violet-700 dark:text-violet-400">
         Catering is billed and paid separately to the restaurant — not part of your hall payment.
       </p>
     </div>
@@ -183,8 +183,8 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
               )}
             </div>
             <div className="p-3">
-              <p className="font-semibold text-gray-900">{c.name}</p>
-              <p className="text-xs text-gray-500">
+              <p className="font-semibold text-foreground">{c.name}</p>
+              <p className="text-xs text-muted-foreground">
                 {c.items.length} item{c.items.length > 1 ? "s" : ""}
               </p>
             </div>
@@ -205,18 +205,18 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
             <div className="relative">
               <Photo src={item.image_url} alt={item.item_name} className="h-36 w-full" />
               {item.is_vegetarian && (
-                <span className="absolute left-2 top-2 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                <span className="absolute left-2 top-2 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
                   Veg
                 </span>
               )}
             </div>
             <div className="flex flex-1 flex-col p-3">
-              <p className="font-semibold text-gray-900">{item.item_name}</p>
+              <p className="font-semibold text-foreground">{item.item_name}</p>
               {item.description && (
-                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-gray-500">{item.description}</p>
+                <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-muted-foreground">{item.description}</p>
               )}
-              <p className="mt-2 text-sm font-semibold text-violet-800">
-                {lkr(Number(item.price))} <span className="font-normal text-gray-500">{item.unit}</span>
+              <p className="mt-2 text-sm font-semibold text-violet-800 dark:text-violet-200">
+                {lkr(Number(item.price))} <span className="font-normal text-muted-foreground">{item.unit}</span>
               </p>
 
               <div className="mt-auto pt-3">
@@ -225,11 +225,11 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
                     Add
                   </button>
                 ) : (
-                  <div className="flex items-center justify-between gap-2 rounded-md border border-violet-300! bg-violet-50 p-1">
+                  <div className="flex items-center justify-between gap-2 rounded-md border border-violet-300! dark:border-violet-500/30! bg-violet-50 dark:bg-violet-500/10 p-1">
                     <button
                       onClick={() => onQuantityChange(item.item_id, qty - 1)}
                       aria-label="Decrease quantity"
-                      className="flex h-8 w-8 items-center justify-center rounded bg-white text-violet-700 shadow-sm hover:bg-violet-100"
+                      className="flex h-8 w-8 items-center justify-center rounded bg-card text-violet-700 dark:text-violet-400 shadow-sm hover:bg-violet-100 dark:hover:bg-violet-500/20"
                     >
                       <Minus className="h-4 w-4" />
                     </button>
@@ -239,7 +239,7 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
                       value={qty}
                       onChange={(e) => onQuantityChange(item.item_id, Math.max(0, Number(e.target.value) || 0))}
                       aria-label={`${item.item_name} quantity`}
-                      className="w-full min-w-0 bg-transparent text-center text-sm font-semibold text-violet-900 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                      className="w-full min-w-0 bg-transparent text-center text-sm font-semibold text-violet-900 dark:text-violet-200 focus:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                     <button
                       onClick={() => onQuantityChange(item.item_id, qty + 1)}
@@ -263,13 +263,13 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
       {restaurant && crumb}
       {!restaurant && (
         <>
-          <p className="text-sm text-gray-500">Choose a restaurant to order from.</p>
+          <p className="text-sm text-muted-foreground">Choose a restaurant to order from.</p>
           {restaurantCards}
         </>
       )}
       {restaurant && !category && (
         <>
-          <p className="text-sm text-gray-500">Pick a category to see the dishes.</p>
+          <p className="text-sm text-muted-foreground">Pick a category to see the dishes.</p>
           {categoryGrid}
         </>
       )}

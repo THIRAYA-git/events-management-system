@@ -44,7 +44,7 @@ const timeAgo = (iso: string) => {
 };
 
 const NotificationBell = ({
-  buttonClassName = "text-white hover:bg-white/10",
+  buttonClassName = "text-white hover:bg-card/10",
 }: {
   buttonClassName?: string;
 }) => {
@@ -101,8 +101,8 @@ const NotificationBell = ({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <button className={`relative rounded-md p-2 ${buttonClassName}`}>
-          <Bell className="h-5 w-5" />
+<button aria-label="Notifications" className={`relative rounded-md p-2 ${buttonClassName}`}>
+            <Bell className="h-5 w-5" />
           {unread > 0 && (
             <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
               {unread > 9 ? "9+" : unread}
@@ -113,16 +113,16 @@ const NotificationBell = ({
 
       <PopoverContent
         align="end"
-        className="w-80 gap-0 border border-gray-200 bg-white p-0 shadow-lg ring-0"
+        className="w-80 gap-0 border border-border bg-card p-0 shadow-lg ring-0"
       >
-        <div className="flex items-center justify-between border-b border-gray-100 px-4 py-3">
-          <span className="text-sm font-semibold text-gray-900">
+        <div className="flex items-center justify-between border-b border-border px-4 py-3">
+          <span className="text-sm font-semibold text-foreground">
             Notifications
           </span>
           {unread > 0 && (
             <button
               onClick={handleReadAll}
-              className="text-xs font-medium text-violet-700 hover:underline"
+              className="text-xs font-medium text-violet-700 dark:text-violet-400 hover:underline"
             >
               Mark all as read
             </button>
@@ -131,7 +131,7 @@ const NotificationBell = ({
 
         <div className="max-h-96 overflow-y-auto">
           {items.length === 0 ? (
-            <p className="px-4 py-8 text-center text-sm text-gray-500">
+            <p className="px-4 py-8 text-center text-sm text-muted-foreground">
               No notifications yet.
             </p>
           ) : (
@@ -145,25 +145,25 @@ const NotificationBell = ({
                     handleRead(n);
                     setOpen(false);
                   }}
-                  className={`flex gap-3 border-b border-gray-50 px-4 py-3 hover:bg-gray-50 ${
-                    n.is_read ? "" : "bg-violet-50/60"
+                  className={`flex gap-3 border-b border-border px-4 py-3 hover:bg-muted ${
+                    n.is_read ? "" : "bg-violet-50/60 dark:bg-violet-500/10"
                   }`}
                 >
-                  <Icon className="mt-0.5 h-4 w-4 shrink-0 text-violet-700" />
+                  <Icon className="mt-0.5 h-4 w-4 shrink-0 text-violet-700 dark:text-violet-400" />
                   <div className="min-w-0 flex-1">
                     <p
                       className={`text-sm ${
                         n.is_read
-                          ? "text-gray-700"
-                          : "font-semibold text-gray-900"
+                          ? "text-foreground"
+                          : "font-semibold text-foreground"
                       }`}
                     >
                       {n.subject ?? "Notification"}
                     </p>
-                    <p className="mt-0.5 line-clamp-2 text-xs text-gray-500">
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                       {n.message}
                     </p>
-                    <p className="mt-1 text-[11px] text-gray-400">
+                    <p className="mt-1 text-[11px] text-muted-foreground">
                       {timeAgo(n.created_at)}
                     </p>
                   </div>

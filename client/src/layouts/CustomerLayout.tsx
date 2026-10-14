@@ -3,7 +3,7 @@ import CustomerNavbar from "@/components/customer/CustomerNavbar";
 
 const CustomerLayout = () => {
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted">
       <CustomerNavbar />
       <main>
         <Outlet />

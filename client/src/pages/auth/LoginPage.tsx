@@ -62,7 +62,7 @@ export default function LoginPage() {
       footer={
         <>
           Don&apos;t have an account?{" "}
-          <Link to="/register" className="font-medium text-violet-700 hover:underline">
+          <Link to="/register" className="font-medium text-violet-700 dark:text-violet-400 hover:underline">
             Register
           </Link>
         </>
@@ -87,12 +87,12 @@ export default function LoginPage() {
 
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium text-foreground">
               Password
             </label>
             <Link
               to="/forgot-password"
-              className="text-xs font-medium text-violet-700 hover:underline"
+              className="text-xs font-medium text-violet-700 dark:text-violet-400 hover:underline"
             >
               Forgot password?
             </Link>
@@ -114,9 +114,9 @@ export default function LoginPage() {
       </form>
 
       <div className="my-6 flex items-center gap-3">
-        <div className="h-px flex-1 bg-gray-200" />
-        <span className="text-xs text-gray-500">or</span>
-        <div className="h-px flex-1 bg-gray-200" />
+        <div className="h-px flex-1 bg-muted" />
+        <span className="text-xs text-muted-foreground">or</span>
+        <div className="h-px flex-1 bg-muted" />
       </div>
 
       <div className="flex justify-center">

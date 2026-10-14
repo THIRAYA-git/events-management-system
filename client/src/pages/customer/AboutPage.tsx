@@ -35,14 +35,14 @@ export default function AboutPage() {
       />
 
       <div className="mx-auto max-w-4xl px-4 pb-16 lg:px-6">
-        <div className="relative -mt-8 rounded-xl border border-gray-200 bg-white p-6 shadow-sm sm:p-8">
-          <p className="leading-relaxed text-gray-600">
+        <div className="relative -mt-8 rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8">
+          <p className="leading-relaxed text-muted-foreground">
             Aazath Plaza Reception Hall has been serving the Kalmunai community since
             2016, hosting weddings, engagements, birthday functions, political events,
             and school events. With a small, dedicated team, we help families and
             organisations bring their events to life.
           </p>
-          <p className="mt-4 leading-relaxed text-gray-600">
+          <p className="mt-4 leading-relaxed text-muted-foreground">
             This booking platform was built to make that experience easier — real-time
             hall availability, transparent pricing by event type, and a straightforward
             way to reserve accommodation, order catering, and connect with event
@@ -54,14 +54,14 @@ export default function AboutPage() {
           {FEATURES.map(({ icon: Icon, title, text }) => (
             <div
               key={title}
-              className="flex items-start gap-4 rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
+              className="flex items-start gap-4 rounded-xl border border-border bg-card p-5 shadow-sm"
             >
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
                 <Icon className="h-5 w-5" />
               </span>
               <div>
-                <p className="font-semibold text-gray-900">{title}</p>
-                <p className="mt-1 text-sm text-gray-500">{text}</p>
+                <p className="font-semibold text-foreground">{title}</p>
+                <p className="mt-1 text-sm text-muted-foreground">{text}</p>
               </div>
             </div>
           ))}
@@ -74,7 +74,7 @@ export default function AboutPage() {
           </p>
           <Link
             to="/book"
-            className="mt-5 inline-block rounded-md bg-white px-6 py-3 text-sm font-semibold text-violet-700 transition-colors hover:bg-violet-50"
+            className="mt-5 inline-block rounded-md bg-card px-6 py-3 text-sm font-semibold text-violet-700 dark:text-violet-400 transition-colors hover:bg-violet-50 dark:hover:bg-violet-500/20"
           >
             Book Your Event
           </Link>

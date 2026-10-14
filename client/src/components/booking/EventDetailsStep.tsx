@@ -165,18 +165,18 @@ export function EventDetailsStep({ onSubmit, onBack }: EventDetailsStepProps) {
       </div>
 
       {pricing && (
-        <div className="rounded-lg border border-violet-100 bg-violet-50 p-4 text-sm">
-          <div className="flex justify-between text-gray-700">
+        <div className="rounded-lg border border-violet-100 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 p-4 text-sm">
+          <div className="flex justify-between text-foreground">
             <span>Base price</span>
             <span>LKR {pricing.baseAmount.toLocaleString()}</span>
           </div>
           {pricing.roomCost > 0 && (
-            <div className="mt-1 flex justify-between text-gray-700">
+            <div className="mt-1 flex justify-between text-foreground">
               <span>Rooms ({pricing.roomCount})</span>
               <span>LKR {pricing.roomCost.toLocaleString()}</span>
             </div>
           )}
-          <div className="mt-2 flex justify-between border-t border-violet-200 pt-2 font-semibold text-violet-900">
+          <div className="mt-2 flex justify-between border-t border-violet-200 dark:border-violet-500/30 pt-2 font-semibold text-violet-900 dark:text-violet-200">
             <span>Total</span>
             <span>LKR {pricing.totalAmount.toLocaleString()}</span>
           </div>

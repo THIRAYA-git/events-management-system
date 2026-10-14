@@ -147,7 +147,7 @@ export default function MenuItemsPage() {
   if (loading) {
     return (
       <div className="flex justify-center py-16">
-        <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+        <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
       </div>
     );
   }
@@ -166,7 +166,7 @@ export default function MenuItemsPage() {
           />
           <button
             onClick={openCreate}
-            className="inline-flex items-center gap-2 rounded-md bg-black px-3 py-2 text-sm text-white hover:bg-gray-800"
+            className="inline-flex items-center gap-2 rounded-md bg-black px-3 py-2 text-sm text-white hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
             Add Item
@@ -175,22 +175,22 @@ export default function MenuItemsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {filtered.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {search
             ? "No menu items match your search."
             : "No menu items yet. Add your first one above."}
         </p>
       ) : (
         <>
-          <div className="overflow-x-auto rounded-md border border-gray-200 bg-white">
+          <div className="overflow-x-auto rounded-md border border-border bg-card">
             <table className="w-full text-sm">
-              <thead className="bg-gray-50 text-left text-xs uppercase text-gray-500">
+              <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
                 <tr>
                   <th className="px-4 py-3">Photo</th>
                   <th className="px-4 py-3">Item</th>
@@ -200,11 +200,11 @@ export default function MenuItemsPage() {
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {paginated.map((item) => (
                   <tr key={item.item_id}>
                     <td className="px-4 py-3">
-                      <div className="relative h-12 w-12 overflow-hidden rounded-md bg-gray-100">
+                      <div className="relative h-12 w-12 overflow-hidden rounded-md bg-muted">
                         {item.image_url ? (
                           <img
                             src={item.image_url}
@@ -212,7 +212,7 @@ export default function MenuItemsPage() {
                             className="h-full w-full object-cover"
                           />
                         ) : (
-                          <div className="flex h-full w-full items-center justify-center text-gray-400">
+                          <div className="flex h-full w-full items-center justify-center text-muted-foreground">
                             <Camera className="h-4 w-4" />
                           </div>
                         )}
@@ -240,7 +240,7 @@ export default function MenuItemsPage() {
                         onClick={() =>
                           fileInputRefs.current[item.item_id]?.click()
                         }
-                        className="mt-1 text-xs text-blue-600 hover:underline"
+                        className="mt-1 text-xs text-blue-600 dark:text-blue-400 hover:underline"
                       >
                         {item.image_url ? "Change" : "Add photo"}
                       </button>
@@ -248,20 +248,20 @@ export default function MenuItemsPage() {
                     <td className="px-4 py-3">
                       <div className="font-medium">{item.item_name}</div>
                       {item.is_vegetarian && (
-                        <span className="text-xs text-green-600">Vegetarian</span>
+                        <span className="text-xs text-green-600 dark:text-green-400">Vegetarian</span>
                       )}
                     </td>
                     <td className="px-4 py-3">{item.category}</td>
                     <td className="px-4 py-3">
                       LKR {Number(item.price).toFixed(2)}{" "}
-                      <span className="text-xs text-gray-400">/ {item.unit}</span>
+                      <span className="text-xs text-muted-foreground">/ {item.unit}</span>
                     </td>
                     <td className="px-4 py-3">
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs ${
                           item.is_available
-                            ? "bg-green-100 text-green-700"
-                            : "bg-gray-100 text-gray-500"
+                            ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400"
+                            : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {item.is_available ? "Available" : "Unavailable"}
@@ -270,13 +270,13 @@ export default function MenuItemsPage() {
                     <td className="px-4 py-3 text-right">
                       <button
                         onClick={() => openEdit(item)}
-                        className="mr-3 inline-flex items-center gap-1 text-blue-600 hover:underline"
+                        className="mr-3 inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
                       >
                         <Pencil className="h-3.5 w-3.5" /> Edit
                       </button>
                       <button
                         onClick={() => handleDelete(item.item_id)}
-                        className="inline-flex items-center gap-1 text-red-600 hover:underline"
+                        className="inline-flex items-center gap-1 text-red-600 dark:text-red-400 hover:underline"
                       >
                         <Trash2 className="h-3.5 w-3.5" /> Delete
                       </button>
@@ -289,7 +289,7 @@ export default function MenuItemsPage() {
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
+              <span className="text-muted-foreground">
                 Page {currentPage} of {totalPages} ({filtered.length} item
                 {filtered.length !== 1 ? "s" : ""})
               </span>
@@ -316,14 +316,14 @@ export default function MenuItemsPage() {
 
       {formOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-5">
+          <div className="w-full max-w-md rounded-lg bg-card p-5">
             <h2 className="mb-4 text-lg font-semibold">
               {editingId ? "Edit Menu Item" : "Add Menu Item"}
             </h2>
 
             <div className="space-y-3">
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
                   Item name
                 </label>
                 <input
@@ -335,7 +335,7 @@ export default function MenuItemsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
                   Category
                 </label>
                 <input
@@ -348,7 +348,7 @@ export default function MenuItemsPage() {
                 />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-gray-600">
+                <label className="mb-1 block text-xs font-medium text-muted-foreground">
                   Description
                 </label>
                 <textarea
@@ -362,7 +362,7 @@ export default function MenuItemsPage() {
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
                     Price (LKR)
                   </label>
                   <input
@@ -376,7 +376,7 @@ export default function MenuItemsPage() {
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-xs font-medium text-gray-600">
+                  <label className="mb-1 block text-xs font-medium text-muted-foreground">
                     Unit
                   </label>
                   <input
@@ -413,14 +413,14 @@ export default function MenuItemsPage() {
             <div className="mt-5 flex justify-end gap-2">
               <button
                 onClick={() => setFormOpen(false)}
-                className="rounded-md border px-3 py-2 text-sm hover:bg-gray-50"
+                className="rounded-md border px-3 py-2 text-sm hover:bg-muted"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving}
-                className="inline-flex items-center gap-2 rounded-md bg-black px-3 py-2 text-sm text-white hover:bg-gray-800 disabled:opacity-50"
+                className="inline-flex items-center gap-2 rounded-md bg-black px-3 py-2 text-sm text-white hover:bg-primary/90 disabled:opacity-50"
               >
                 {saving && <Loader2 className="h-4 w-4 animate-spin" />}
                 Save

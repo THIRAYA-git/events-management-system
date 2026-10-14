@@ -97,27 +97,27 @@ const submitOffer = async () => {
         />
       </div>
 
-     <p className="mb-4 text-sm text-gray-500">
+     <p className="mb-4 text-sm text-muted-foreground">
   Upcoming confirmed events at Aazath Plaza. Send an offer to sponsor one.
 </p>
 {success && (
-  <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700">
+  <div className="mb-4 rounded-md border border-green-200 dark:border-green-500/30 bg-green-50 dark:bg-green-500/10 px-3 py-2 text-sm text-green-700 dark:text-green-400">
     {success}
   </div>
 )}
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-muted-foreground">
           {search ? "No events match your search." : "No upcoming confirmed events."}
         </p>
       ) : (
@@ -126,20 +126,20 @@ const submitOffer = async () => {
             {paginated.map((e) => (
               <div
                 key={e.booking_id}
-                className="flex items-center justify-between rounded-md border border-gray-200 bg-white p-4"
+                className="flex items-center justify-between rounded-md border border-border bg-card p-4"
               >
                 <div>
                   <span className="font-medium">{e.event_type}</span>
-                  <span className="ml-2 text-sm text-gray-500">{e.hall_name}</span>
+                  <span className="ml-2 text-sm text-muted-foreground">{e.hall_name}</span>
                 </div>
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
 <div className="flex items-center gap-4">
-  <div className="text-sm text-gray-600">
+  <div className="text-sm text-muted-foreground">
     {new Date(e.event_date).toLocaleDateString()} · {e.guest_count} guests
   </div>
   <button
     onClick={() => { setSuccess(null); setOfferFor(e); }}
-    className="rounded-md border px-3 py-1 text-sm hover:bg-gray-50"
+    className="rounded-md border px-3 py-1 text-sm hover:bg-muted"
   >
     Offer to sponsor
   </button>
@@ -150,7 +150,7 @@ const submitOffer = async () => {
 
           {totalPages > 1 && (
             <div className="mt-4 flex items-center justify-between text-sm">
-              <span className="text-gray-500">
+              <span className="text-muted-foreground">
                 Page {page} of {totalPages} ({filtered.length} event
                 {filtered.length !== 1 ? "s" : ""})
               </span>
@@ -176,9 +176,9 @@ const submitOffer = async () => {
       )}
       {offerFor && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-    <div className="w-full max-w-md rounded-lg bg-white p-6">
+    <div className="w-full max-w-md rounded-lg bg-card p-6">
       <h2 className="text-lg font-semibold">Offer to sponsor</h2>
-      <p className="mb-4 text-sm text-gray-500">
+      <p className="mb-4 text-sm text-muted-foreground">
         {offerFor.event_type} · {offerFor.hall_name} ·{" "}
         {new Date(offerFor.event_date).toLocaleDateString()}
       </p>
@@ -198,7 +198,7 @@ const submitOffer = async () => {
         rows={3}
         className="mb-3 w-full rounded-md border px-3 py-2 text-sm"
       />
-      {offerError && <p className="mb-3 text-sm text-red-600">{offerError}</p>}
+      {offerError && <p className="mb-3 text-sm text-red-600 dark:text-red-400">{offerError}</p>}
       <div className="flex justify-end gap-2">
         <button onClick={closeOffer} className="rounded-md border px-3 py-1.5 text-sm">
           Cancel

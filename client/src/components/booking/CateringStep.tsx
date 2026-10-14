@@ -76,7 +76,7 @@ export function CateringStep({ onSubmit, onBack, guestCount }: CateringStepProps
       }
     >
       {loading ? (
-        <p className="text-sm text-gray-500">Loading menu…</p>
+        <p className="text-sm text-muted-foreground">Loading menu…</p>
       ) : error ? (
         <p className={errorTextClass}>{error}</p>
       ) : (

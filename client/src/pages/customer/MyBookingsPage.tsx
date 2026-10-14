@@ -54,13 +54,13 @@ function bookingHaystack(b: AdminBooking): string {
 
 function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
+    <div className="animate-pulse rounded-2xl border border-border! bg-card p-5 shadow-sm">
       <div className="flex gap-4">
-        <div className="h-16 w-16 rounded-xl bg-gray-100" />
+        <div className="h-16 w-16 rounded-xl bg-muted" />
         <div className="flex-1 space-y-3">
-          <div className="h-4 w-1/2 rounded bg-gray-100" />
-          <div className="h-3 w-1/3 rounded bg-gray-100" />
-          <div className="h-3 w-2/3 rounded bg-gray-100" />
+          <div className="h-4 w-1/2 rounded bg-muted" />
+          <div className="h-3 w-1/3 rounded bg-muted" />
+          <div className="h-3 w-2/3 rounded bg-muted" />
         </div>
       </div>
     </div>
@@ -209,8 +209,8 @@ export default function MyBookingsPage() {
     <div className="mx-auto max-w-3xl px-4 py-10">
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">My Bookings</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-bold text-foreground">My Bookings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Track your events, complete payments and download invoices.
           </p>
         </div>
@@ -224,21 +224,21 @@ export default function MyBookingsPage() {
         <>
           {/* Search bar */}
           <div className="relative mb-4">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
               placeholder="Search by booking ref, event type, hall, date or guests…"
               aria-label="Search bookings"
-              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-10 text-sm text-gray-900 shadow-sm outline-none transition placeholder:text-gray-400 focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+              className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-10 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
             />
             {searchInput && (
               <button
                 type="button"
                 onClick={() => setSearchInput("")}
                 aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-muted-foreground"
               >
                 <X className="h-4 w-4" />
               </button>
@@ -256,13 +256,13 @@ export default function MyBookingsPage() {
                 className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
                   filter === t.key
                     ? "bg-violet-600 text-white"
-                    : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:bg-gray-50"
+                    : "bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted"
                 }`}
               >
                 {t.label}
                 <span
                   className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${
-                    filter === t.key ? "bg-white/20" : "bg-gray-100 text-gray-500"
+                    filter === t.key ? "bg-card/20" : "bg-muted text-muted-foreground"
                   }`}
                 >
                   {counts[t.key]}
@@ -284,12 +284,12 @@ export default function MyBookingsPage() {
       {error && <p className={errorTextClass}>{error}</p>}
 
       {!isLoading && !error && bookings.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-gray-300! bg-white px-6 py-14 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-600">
+        <div className="rounded-2xl border border-dashed border-input! bg-card px-6 py-14 text-center">
+          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
             <CalendarPlus className="h-7 w-7" />
           </div>
-          <h2 className="mt-4 text-lg font-semibold text-gray-900">No bookings yet</h2>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-gray-500">
+          <h2 className="mt-4 text-lg font-semibold text-foreground">No bookings yet</h2>
+          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
             Pick a date, choose your hall and confirm your event in a few simple steps.
           </p>
           <Link to="/book" className={`${primaryBtnClass} mt-5`}>
@@ -299,13 +299,13 @@ export default function MyBookingsPage() {
       )}
 
       {!isLoading && bookings.length > 0 && filtered.length === 0 && (
-        <div className="rounded-2xl border border-gray-200! bg-white px-6 py-10 text-center text-sm text-gray-500">
+        <div className="rounded-2xl border border-border! bg-card px-6 py-10 text-center text-sm text-muted-foreground">
           {search ? (
             <>
               No bookings match “{searchInput.trim()}”.{" "}
               <button
                 onClick={() => setSearchInput("")}
-                className="font-medium text-violet-600 hover:underline"
+                className="font-medium text-violet-600 dark:text-violet-400 hover:underline"
               >
                 Clear search
               </button>
@@ -343,7 +343,7 @@ export default function MyBookingsPage() {
                   )}
                   {booking.status === "completed" &&
                     (booking.has_feedback ? (
-                      <span className="text-sm text-green-700">✓ Thanks for your feedback</span>
+                      <span className="text-sm text-green-700 dark:text-green-400">✓ Thanks for your feedback</span>
                     ) : (
                       feedbackOpenFor !== booking.booking_id && (
                         <button
@@ -374,7 +374,7 @@ export default function MyBookingsPage() {
             {booking.status === "completed" &&
               !booking.has_feedback &&
               feedbackOpenFor === booking.booking_id && (
-                <div className="mt-2 rounded-2xl border border-gray-200! bg-white p-5 shadow-sm">
+                <div className="mt-2 rounded-2xl border border-border! bg-card p-5 shadow-sm">
                   <FeedbackForm
                     bookingId={booking.booking_id}
                     onSubmitted={() => {
@@ -395,20 +395,20 @@ export default function MyBookingsPage() {
       {/* Pagination */}
       {!isLoading && filtered.length > 0 && (
         <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>
               Showing{" "}
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-foreground">
                 {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
               </span>{" "}
-              of <span className="font-medium text-gray-900">{filtered.length}</span>
+              of <span className="font-medium text-foreground">{filtered.length}</span>
             </span>
             <label className="flex items-center gap-1.5">
               <span className="sr-only">Bookings per page</span>
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="rounded-lg border border-gray-200 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-violet-500"
+                className="rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground outline-none focus:border-violet-500"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>
@@ -425,14 +425,14 @@ export default function MyBookingsPage() {
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 aria-label="Previous page"
-                className={`${pageBtn} bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40`}
+                className={`${pageBtn} bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
 
               {getPageItems(currentPage, totalPages).map((item, i) =>
                 item === "…" ? (
-                  <span key={`gap-${i}`} className="px-1.5 text-gray-400">
+                  <span key={`gap-${i}`} className="px-1.5 text-muted-foreground">
                     …
                   </span>
                 ) : (
@@ -443,7 +443,7 @@ export default function MyBookingsPage() {
                     className={`${pageBtn} ${
                       item === currentPage
                         ? "bg-violet-600 text-white"
-                        : "bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:bg-gray-50"
+                        : "bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted"
                     }`}
                   >
                     {item}
@@ -455,7 +455,7 @@ export default function MyBookingsPage() {
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 aria-label="Next page"
-                className={`${pageBtn} bg-white text-gray-600 ring-1 ring-inset ring-gray-200 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40`}
+                className={`${pageBtn} bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 <ChevronRight className="h-4 w-4" />
               </button>

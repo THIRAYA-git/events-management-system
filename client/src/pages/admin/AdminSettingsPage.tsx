@@ -64,16 +64,16 @@ export function AdminSettingsPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-gray-800">Settings</h1>
-      <p className="mt-1 text-sm text-gray-500">Manage your account details and password.</p>
+      <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+      <p className="mt-1 text-sm text-muted-foreground">Manage your account details and password.</p>
 
       <div className="mt-6 grid max-w-2xl gap-6">
         {/* Profile section */}
         <form
           onSubmit={handleProfileSubmit}
-          className="rounded-lg border border-gray-200 bg-white p-5"
+          className="rounded-lg border border-border bg-card p-5"
         >
-          <h2 className="text-base font-medium text-gray-800">Profile</h2>
+          <h2 className="text-base font-medium text-foreground">Profile</h2>
 
           <div className="mt-4">
             <AvatarUploader
@@ -85,39 +85,39 @@ export function AdminSettingsPage() {
 
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm text-gray-600">Full name</label>
+              <label className="block text-sm text-muted-foreground">Full name</label>
               <input
                 type="text"
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600">Phone</label>
+              <label className="block text-sm text-muted-foreground">Phone</label>
               <input
                 type="tel"
                 value={phone ?? ""}
                 onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600">Email</label>
+              <label className="block text-sm text-muted-foreground">Email</label>
               <input
                 type="email"
                 value={user?.email ?? ""}
                 disabled
-                className="mt-1 w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-sm text-gray-400"
+                className="mt-1 w-full rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-muted-foreground"
               />
-              <p className="mt-1 text-xs text-gray-400">Email cannot be changed here.</p>
+              <p className="mt-1 text-xs text-muted-foreground">Email cannot be changed here.</p>
             </div>
           </div>
 
-          {profileError && <p className="mt-3 text-sm text-red-600">{profileError}</p>}
+          {profileError && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{profileError}</p>}
           {profileMessage && (
-            <p className="mt-3 flex items-center gap-1 text-sm text-green-600">
+            <p className="mt-3 flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
               <CheckCircle2 className="h-4 w-4" /> {profileMessage}
             </p>
           )}
@@ -125,7 +125,7 @@ export function AdminSettingsPage() {
           <button
             type="submit"
             disabled={profileSaving}
-            className="mt-4 flex items-center gap-2 rounded-md bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            className="mt-4 flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             {profileSaving && <Loader2 className="h-4 w-4 animate-spin" />}
             Save Profile
@@ -135,54 +135,54 @@ export function AdminSettingsPage() {
         {/* Password section */}
         <form
           onSubmit={handlePasswordSubmit}
-          className="rounded-lg border border-gray-200 bg-white p-5"
+          className="rounded-lg border border-border bg-card p-5"
         >
-          <h2 className="text-base font-medium text-gray-800">Change Password</h2>
-          <p className="mt-1 text-xs text-gray-400">
+          <h2 className="text-base font-medium text-foreground">Change Password</h2>
+          <p className="mt-1 text-xs text-muted-foreground">
             You'll be signed out after changing your password.
           </p>
 
           <div className="mt-4 space-y-4">
             <div>
-              <label className="block text-sm text-gray-600">Current password</label>
+              <label className="block text-sm text-muted-foreground">Current password</label>
               <input
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600">New password</label>
+              <label className="block text-sm text-muted-foreground">New password</label>
               <input
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={8}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
               />
             </div>
             <div>
-              <label className="block text-sm text-gray-600">Confirm new password</label>
+              <label className="block text-sm text-muted-foreground">Confirm new password</label>
               <input
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={8}
-                className="mt-1 w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
               />
             </div>
           </div>
 
-          {passwordError && <p className="mt-3 text-sm text-red-600">{passwordError}</p>}
+          {passwordError && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{passwordError}</p>}
 
           <button
             type="submit"
             disabled={passwordSaving}
-            className="mt-4 flex items-center gap-2 rounded-md bg-gray-900 px-4 py-1.5 text-sm font-medium text-white hover:bg-gray-800 disabled:opacity-50"
+            className="mt-4 flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
           >
             {passwordSaving && <Loader2 className="h-4 w-4 animate-spin" />}
             Change Password

@@ -80,7 +80,7 @@ export default function HomePage() {
       >
         <Link
           to="/book"
-          className="inline-block rounded-md bg-white px-6 py-3 text-sm font-semibold text-violet-700 shadow-sm transition-colors hover:bg-violet-50"
+          className="inline-block rounded-md bg-card px-6 py-3 text-sm font-semibold text-violet-700 dark:text-violet-400 shadow-sm transition-colors hover:bg-violet-50 dark:hover:bg-violet-500/20"
         >
           Book Now
         </Link>
@@ -95,23 +95,23 @@ export default function HomePage() {
           <>
             {/* ── Upcoming event card (customer only) ─────────── */}
             {upcoming && (
-              <div className="mb-12 rounded-xl border border-violet-200 bg-violet-50 p-5">
-                <p className="text-xs font-semibold uppercase tracking-wide text-violet-700">
+              <div className="mb-12 rounded-xl border border-violet-200 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 p-5">
+                <p className="text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-400">
                   Your Upcoming Event
                 </p>
                 <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <span className="font-medium text-gray-900">{upcoming.booking_ref}</span>
-                    <span className="ml-2 text-sm text-gray-600">{upcoming.event_type}</span>
-                    <span className="ml-2 text-sm text-gray-500">{upcoming.hall_name}</span>
+                    <span className="font-medium text-foreground">{upcoming.booking_ref}</span>
+                    <span className="ml-2 text-sm text-muted-foreground">{upcoming.event_type}</span>
+                    <span className="ml-2 text-sm text-muted-foreground">{upcoming.hall_name}</span>
                   </div>
                   <div className="flex items-center gap-3">
-                    <span className="text-sm text-gray-600">
+                    <span className="text-sm text-muted-foreground">
                       {new Date(upcoming.event_date).toLocaleDateString()}
                     </span>
                     <Link
                       to="/my-bookings"
-                      className="text-sm font-medium text-violet-700 hover:underline"
+                      className="text-sm font-medium text-violet-700 dark:text-violet-400 hover:underline"
                     >
                       View details →
                     </Link>
@@ -121,15 +121,15 @@ export default function HomePage() {
             )}
 
             {/* ── Hall showcase ────────────────────────────────── */}
-            <h2 className="text-2xl font-semibold text-gray-900">Our Halls</h2>
-            <p className="mt-1 text-sm text-gray-500">
+            <h2 className="text-2xl font-semibold text-foreground">Our Halls</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
               Choose the space that fits your celebration.
             </p>
             <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
               {halls.map((hall) => (
                 <div
                   key={hall.hall_id}
-                  className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm transition-shadow hover:shadow-md"
+                  className="overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
                 >
                   {hall.image_url ? (
                     <img
@@ -138,20 +138,20 @@ export default function HomePage() {
                       className="h-52 w-full object-cover"
                     />
                   ) : (
-                    <div className="flex h-52 w-full items-center justify-center bg-gray-100 text-sm text-gray-400">
+                    <div className="flex h-52 w-full items-center justify-center bg-muted text-sm text-muted-foreground">
                       No photo yet
                     </div>
                   )}
                   <div className="p-5">
-                    <h3 className="text-lg font-semibold text-gray-900">{hall.hall_name}</h3>
+                    <h3 className="text-lg font-semibold text-foreground">{hall.hall_name}</h3>
                     {hall.description && (
-                      <p className="mt-1 text-sm text-gray-500">{hall.description}</p>
+                      <p className="mt-1 text-sm text-muted-foreground">{hall.description}</p>
                     )}
-                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-violet-700">
-                      <span className="flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1">
+                    <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-violet-700 dark:text-violet-400">
+                      <span className="flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-500/10 px-2.5 py-1">
                         <Users className="h-3.5 w-3.5" /> {hall.capacity} guests
                       </span>
-                      <span className="flex items-center gap-1 rounded-full bg-violet-50 px-2.5 py-1">
+                      <span className="flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-500/10 px-2.5 py-1">
                         <MapPin className="h-3.5 w-3.5" /> Floor {hall.floor_number}
                       </span>
                     </div>
@@ -163,30 +163,30 @@ export default function HomePage() {
             {/* ── Testimonials ─────────────────────────────────── */}
             {testimonials.length > 0 && (
               <div className="mt-14">
-                <h2 className="text-2xl font-semibold text-gray-900">What Our Customers Say</h2>
-                <p className="mt-1 text-sm text-gray-500">
+                <h2 className="text-2xl font-semibold text-foreground">What Our Customers Say</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
                   Reviews from families and organisations who celebrated with us.
                 </p>
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
                   {testimonials.map((t) => (
                     <div
                       key={t.feedback_id}
-                      className="rounded-xl border border-gray-200 border-l-4 border-l-violet-500 bg-white p-5 shadow-sm"
+                      className="rounded-xl border border-border border-l-4 border-l-violet-500 bg-card p-5 shadow-sm"
                     >
                       <div className="flex items-center gap-1">
                         {Array.from({ length: 5 }).map((_, i) => (
                           <Star
                             key={i}
                             className={`h-4 w-4 ${
-                              i < t.rating ? "fill-yellow-400 text-yellow-400" : "text-gray-200"
+                              i < t.rating ? "fill-yellow-400 text-yellow-400" : "text-muted-foreground/40"
                             }`}
                           />
                         ))}
                       </div>
                       {t.comment && (
-                        <p className="mt-3 text-sm text-gray-700">"{t.comment}"</p>
+                        <p className="mt-3 text-sm text-foreground">"{t.comment}"</p>
                       )}
-                      <p className="mt-3 text-xs font-medium text-gray-400">
+                      <p className="mt-3 text-xs font-medium text-muted-foreground">
                         {t.customer_name} · {t.event_type}
                       </p>
                     </div>
@@ -197,28 +197,28 @@ export default function HomePage() {
 
             {/* ── Partner call-to-action ───────────────────────── */}
             <div className="mt-14">
-              <h2 className="text-2xl font-semibold text-gray-900">Grow with Aazath Plaza</h2>
-              <p className="mt-1 text-sm text-gray-500">
+              <h2 className="text-2xl font-semibold text-foreground">Grow with Aazath Plaza</h2>
+              <p className="mt-1 text-sm text-muted-foreground">
                 Partner with us and put your business in front of every event we host.
               </p>
               <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
                 {PARTNER_CARDS.map(({ icon: Icon, ...card }) => (
                   <div
                     key={card.eyebrow}
-                    className="flex flex-col rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md"
+                    className="flex flex-col rounded-xl border border-border bg-card p-5 shadow-sm transition-shadow hover:shadow-md"
                   >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 text-violet-700">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400">
                       <Icon className="h-5 w-5" />
                     </div>
-                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-700">
+                    <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-400">
                       {card.eyebrow}
                     </p>
-                    <h3 className="mt-1 text-lg font-semibold text-gray-900">{card.title}</h3>
-                    <p className="mt-1 text-sm text-gray-500">{card.description}</p>
-                    <ul className="mt-4 space-y-2 text-sm text-gray-700">
+                    <h3 className="mt-1 text-lg font-semibold text-foreground">{card.title}</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">{card.description}</p>
+                    <ul className="mt-4 space-y-2 text-sm text-foreground">
                       {card.points.map((p) => (
                         <li key={p} className="flex items-start gap-2">
-                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-600" />
+                          <Check className="mt-0.5 h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" />
                           <span>{p}</span>
                         </li>
                       ))}

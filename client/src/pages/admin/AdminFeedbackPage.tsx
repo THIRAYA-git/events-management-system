@@ -35,7 +35,7 @@ const Stars = ({ value }: { value: number }) => (
       <Star
         key={n}
         className={`h-4 w-4 ${
-          n <= value ? "fill-amber-400 text-amber-400" : "text-gray-300"
+          n <= value ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"
         }`}
       />
     ))}
@@ -197,55 +197,55 @@ const AdminFeedbackPage = () => {
 
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE));
   const selectClass =
-    "h-10 rounded-md border border-gray-300 bg-white px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
+    "h-10 rounded-md border border-input bg-card px-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500";
 
   return (
     <div className="p-6 md:p-8">
-      <h1 className="text-3xl font-bold text-gray-900">Customer Feedback</h1>
-      <p className="mt-1 text-gray-600">
+      <h1 className="text-3xl font-bold text-foreground">Customer Feedback</h1>
+      <p className="mt-1 text-muted-foreground">
         Review ratings for hall events and room stays, hide inappropriate
         reviews and reply to customers.
       </p>
 
       {/* Summary */}
       <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
-        <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">
+        <div className="rounded-xl border bg-card p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
             Average rating
           </p>
-          <p className="mt-1 flex items-center gap-2 text-3xl font-bold text-gray-900">
+          <p className="mt-1 flex items-center gap-2 text-3xl font-bold text-foreground">
             {summary ? summary.avg_rating.toFixed(1) : "–"}
             <Star className="h-6 w-6 fill-amber-400 text-amber-400" />
           </p>
         </div>
-        <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">
+        <div className="rounded-xl border bg-card p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
             Total reviews
           </p>
-          <p className="mt-1 text-3xl font-bold text-gray-900">
+          <p className="mt-1 text-3xl font-bold text-foreground">
             {summary?.total ?? "–"}
           </p>
         </div>
-        <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">
+        <div className="rounded-xl border bg-card p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">
             Awaiting reply
           </p>
-          <p className="mt-1 text-3xl font-bold text-orange-600">
+          <p className="mt-1 text-3xl font-bold text-orange-600 dark:text-orange-400">
             {summary?.awaiting_reply ?? "–"}
           </p>
         </div>
-        <div className="rounded-xl border bg-white p-5">
-          <p className="text-xs font-medium uppercase text-gray-500">Hidden</p>
-          <p className="mt-1 text-3xl font-bold text-gray-700">
+        <div className="rounded-xl border bg-card p-5">
+          <p className="text-xs font-medium uppercase text-muted-foreground">Hidden</p>
+          <p className="mt-1 text-3xl font-bold text-foreground">
             {summary?.hidden ?? "–"}
           </p>
         </div>
       </div>
 
       {/* Filters */}
-      <div className="mt-6 flex flex-wrap items-end gap-4 rounded-xl border bg-white p-5">
+      <div className="mt-6 flex flex-wrap items-end gap-4 rounded-xl border bg-card p-5">
         <div>
-          <label className="mb-1 block text-xs text-gray-500">Rating</label>
+          <label className="mb-1 block text-xs text-muted-foreground">Rating</label>
           <select
             className={selectClass}
             value={filters.rating}
@@ -260,7 +260,7 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-gray-500">Visibility</label>
+          <label className="mb-1 block text-xs text-muted-foreground">Visibility</label>
           <select
             className={selectClass}
             value={filters.visibility}
@@ -272,7 +272,7 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-gray-500">Reply</label>
+          <label className="mb-1 block text-xs text-muted-foreground">Reply</label>
           <select
             className={selectClass}
             value={filters.reply}
@@ -284,7 +284,7 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-gray-500">
+          <label className="mb-1 block text-xs text-muted-foreground">
             Booking type
           </label>
           <select
@@ -298,11 +298,11 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div className="ml-auto w-full sm:w-72">
-          <label className="mb-1 block text-xs text-gray-500">Search</label>
+          <label className="mb-1 block text-xs text-muted-foreground">Search</label>
           <div className="relative">
-            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
-              className="h-10 w-full rounded-md border border-gray-300 pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="h-10 w-full rounded-md border border-input pl-9 pr-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Customer, booking ref or text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
@@ -312,9 +312,9 @@ const AdminFeedbackPage = () => {
       </div>
 
       {/* Table */}
-      <div className="mt-6 overflow-x-auto rounded-xl border bg-white">
+      <div className="mt-6 overflow-x-auto rounded-xl border bg-card">
         <table className="w-full text-left text-sm">
-          <thead className="border-b bg-gray-50 text-xs uppercase text-gray-500">
+          <thead className="border-b bg-muted text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Submitted</th>
               <th className="px-4 py-3">Customer</th>
@@ -330,7 +330,7 @@ const AdminFeedbackPage = () => {
               <tr>
                 <td
                   colSpan={7}
-                  className="px-4 py-10 text-center text-gray-500"
+                  className="px-4 py-10 text-center text-muted-foreground"
                 >
                   Loading feedback…
                 </td>
@@ -338,7 +338,7 @@ const AdminFeedbackPage = () => {
             )}
             {!loading && error && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-red-600">
+                <td colSpan={7} className="px-4 py-10 text-center text-red-600 dark:text-red-400">
                   {error}
                 </td>
               </tr>
@@ -347,7 +347,7 @@ const AdminFeedbackPage = () => {
               <tr>
                 <td
                   colSpan={7}
-                  className="px-4 py-10 text-center text-gray-500"
+                  className="px-4 py-10 text-center text-muted-foreground"
                 >
                   No feedback matches these filters.
                 </td>
@@ -360,17 +360,17 @@ const AdminFeedbackPage = () => {
                   key={f.feedback_id}
                   className="border-b last:border-0 align-top"
                 >
-                  <td className="whitespace-nowrap px-4 py-3 text-gray-600">
+                  <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                     {new Date(f.created_at).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">
+                  <td className="px-4 py-3 font-medium text-foreground">
                     {f.customer_name}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="text-gray-900">{f.event_type}</div>
-                    <div className="text-xs text-gray-500">{f.booking_ref}</div>
+                    <div className="text-foreground">{f.event_type}</div>
+                    <div className="text-xs text-muted-foreground">{f.booking_ref}</div>
                     {f.room_count > 0 && (
-                      <span className="mt-1 inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs text-blue-700">
+                      <span className="mt-1 inline-block rounded-full bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 text-xs text-blue-700 dark:text-blue-400">
                         + {f.room_count} room{f.room_count > 1 ? "s" : ""}
                       </span>
                     )}
@@ -380,11 +380,11 @@ const AdminFeedbackPage = () => {
                   </td>
                   <td className="max-w-xs px-4 py-3">
                     {f.title && (
-                      <div className="font-medium text-gray-900">{f.title}</div>
+                      <div className="font-medium text-foreground">{f.title}</div>
                     )}
-                    <div className="line-clamp-2 text-gray-600">
+                    <div className="line-clamp-2 text-muted-foreground">
                       {f.comment || (
-                        <span className="italic text-gray-400">No comment</span>
+                        <span className="italic text-muted-foreground">No comment</span>
                       )}
                     </div>
                   </td>
@@ -393,8 +393,8 @@ const AdminFeedbackPage = () => {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           f.is_public
-                            ? "bg-green-50 text-green-700"
-                            : "bg-gray-100 text-gray-600"
+                            ? "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400"
+                            : "bg-muted text-muted-foreground"
                         }`}
                       >
                         {f.is_public ? "Public" : "Hidden"}
@@ -402,8 +402,8 @@ const AdminFeedbackPage = () => {
                       <span
                         className={`rounded-full px-2 py-0.5 text-xs font-medium ${
                           f.admin_reply
-                            ? "bg-blue-50 text-blue-700"
-                            : "bg-orange-50 text-orange-700"
+                            ? "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                            : "bg-orange-50 dark:bg-orange-500/10 text-orange-700 dark:text-orange-400"
                         }`}
                       >
                         {f.admin_reply ? "Replied" : "Awaiting reply"}
@@ -426,7 +426,7 @@ const AdminFeedbackPage = () => {
       </div>
 
       {/* Pagination */}
-      <div className="mt-4 flex items-center justify-between text-sm text-gray-600">
+      <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
         <span>
           {total} review{total === 1 ? "" : "s"} · page {page + 1} of{" "}
           {totalPages}
@@ -456,14 +456,14 @@ const AdminFeedbackPage = () => {
         open={selected !== null}
         onOpenChange={(open) => !open && setSelected(null)}
       >
-        <DialogContent className="max-h-[90vh] overflow-y-auto bg-white text-gray-900 ring-gray-200 sm:max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto bg-card text-foreground ring-gray-200 sm:max-w-lg">
           {selected && (
             <>
               <DialogHeader>
                 <DialogTitle>
                   {selected.customer_name} · {selected.booking_ref}
                 </DialogTitle>
-                <DialogDescription className="text-gray-500">
+                <DialogDescription className="text-muted-foreground">
                   Review the feedback, then reply or change its visibility.
                 </DialogDescription>
               </DialogHeader>
@@ -471,19 +471,19 @@ const AdminFeedbackPage = () => {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <Stars value={selected.rating} />
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-muted-foreground">
                     {new Date(selected.created_at).toLocaleString()}
                   </span>
                 </div>
                 {selected.title && (
-                  <p className="font-medium text-gray-900">{selected.title}</p>
+                  <p className="font-medium text-foreground">{selected.title}</p>
                 )}
-                <p className="whitespace-pre-wrap text-sm text-gray-700">
+                <p className="whitespace-pre-wrap text-sm text-foreground">
                   {selected.comment || "No comment provided."}
                 </p>
 
                 <div>
-                  <label className="mb-1 block text-sm font-medium text-gray-700">
+                  <label className="mb-1 block text-sm font-medium text-foreground">
                     Admin reply
                   </label>
                   <Textarea
@@ -493,16 +493,16 @@ const AdminFeedbackPage = () => {
                     value={replyText}
                     onChange={(e) => setReplyText(e.target.value)}
                   />
-                  <p className="mt-1 text-right text-xs text-gray-400">
+                  <p className="mt-1 text-right text-xs text-muted-foreground">
                     {replyText.length}/1000
                   </p>
                 </div>
 
                 {dialogError && (
-                  <p className="text-sm text-red-600">{dialogError}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">{dialogError}</p>
                 )}
                 {dialogSuccess && (
-                  <p className="text-sm text-emerald-600">{dialogSuccess}</p>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400">{dialogSuccess}</p>
                 )}
               </div>
 

@@ -66,25 +66,25 @@ export function OrganizerPicker({ bookingId, onAssigned, onCancel }: Props) {
   return (
     <div className="mt-3 space-y-3">
       <div className="relative">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <input
           type="text"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search by name or specialty…"
           aria-label="Search organizers"
-          className="w-full rounded-lg border border-gray-200 bg-white py-2 pl-9 pr-3 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+          className="w-full rounded-lg border border-border bg-card py-2 pl-9 pr-3 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
         />
       </div>
 
       {loading && (
         <div className="flex justify-center py-6">
-          <Loader2 className="h-5 w-5 animate-spin text-gray-400" />
+          <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
         </div>
       )}
-      {error && <p className="text-sm text-red-600">{error}</p>}
+      {error && <p className="text-sm text-red-600 dark:text-red-400">{error}</p>}
       {!loading && !error && filtered.length === 0 && (
-        <p className="py-4 text-center text-sm text-gray-500">No organizers available.</p>
+        <p className="py-4 text-center text-sm text-muted-foreground">No organizers available.</p>
       )}
 
       <ul className="max-h-72 space-y-2 overflow-y-auto pr-1">
@@ -99,27 +99,27 @@ export function OrganizerPicker({ bookingId, onAssigned, onCancel }: Props) {
                 aria-pressed={active}
                 className={`w-full rounded-xl border px-3 py-2.5 text-left transition ${
                   active
-                    ? "border-violet-500 bg-violet-50 ring-1 ring-violet-500"
-                    : "border-gray-200 bg-white hover:bg-gray-50"
+                    ? "border-violet-500 bg-violet-50 dark:bg-violet-500/10 ring-1 ring-violet-500"
+                    : "border-border bg-card hover:bg-muted"
                 }`}
               >
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-gray-900">{o.business_name}</p>
-                    <p className="text-xs text-gray-500">
+                    <p className="truncate text-sm font-medium text-foreground">{o.business_name}</p>
+                    <p className="text-xs text-muted-foreground">
                       {o.specialty}
                       {o.experience_years ? ` · ${o.experience_years} yrs` : ""}
                       {o.price_range ? ` · ${o.price_range}` : ""}
                     </p>
                   </div>
                   {!Number.isNaN(rating) && (
-                    <span className="inline-flex shrink-0 items-center gap-0.5 text-xs text-amber-600">
+                    <span className="inline-flex shrink-0 items-center gap-0.5 text-xs text-amber-600 dark:text-amber-400">
                       <Star className="h-3 w-3 fill-current" />
                       {rating.toFixed(1)}
                     </span>
                   )}
                 </div>
-                {o.bio && <p className="mt-1 line-clamp-2 text-xs text-gray-500">{o.bio}</p>}
+                {o.bio && <p className="mt-1 line-clamp-2 text-xs text-muted-foreground">{o.bio}</p>}
               </button>
             </li>
           );
@@ -128,7 +128,7 @@ export function OrganizerPicker({ bookingId, onAssigned, onCancel }: Props) {
 
       {selected && (
         <div>
-          <label htmlFor={`org-note-${bookingId}`} className="mb-1 block text-xs font-medium text-gray-700">
+          <label htmlFor={`org-note-${bookingId}`} className="mb-1 block text-xs font-medium text-foreground">
             Message to {selected.business_name} (optional)
           </label>
           <textarea
@@ -138,7 +138,7 @@ export function OrganizerPicker({ bookingId, onAssigned, onCancel }: Props) {
             maxLength={300}
             rows={2}
             placeholder="e.g. Pink and gold theme, stage decoration needed"
-            className="w-full rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200"
+            className="w-full rounded-lg border border-border px-3 py-2 text-sm outline-none focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
           />
         </div>
       )}

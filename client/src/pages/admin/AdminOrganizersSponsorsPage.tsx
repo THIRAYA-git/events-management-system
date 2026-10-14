@@ -18,7 +18,7 @@ import type { Sponsor } from "@/types/sponsor.types";
 type Tab = "organizers" | "sponsors";
 
 const fieldClass =
-  "h-10 w-full rounded-md border border-gray-300 bg-white px-3 text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-gray-900/20";
+  "h-10 w-full rounded-md border border-input bg-card px-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring/20";
 
 const EMPTY_FORM = {
   full_name: "",
@@ -54,7 +54,7 @@ function Field({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <label className="text-xs text-gray-500">
+      <label className="text-xs text-muted-foreground">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </label>
@@ -174,16 +174,16 @@ export function AdminOrganizersSponsorsPage() {
   };
 
   const primaryBtn =
-    "inline-flex items-center gap-2 rounded-md bg-gray-900 px-4 py-2.5 text-sm font-semibold text-white hover:bg-gray-800";
+    "inline-flex items-center gap-2 rounded-md bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground hover:bg-primary/90";
   const outlineBtn =
-    "inline-flex items-center gap-2 rounded-md border border-gray-300 bg-white px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-50";
+    "inline-flex items-center gap-2 rounded-md border border-input bg-card px-4 py-2.5 text-sm font-semibold text-foreground hover:bg-muted";
 
   return (
     <div>
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Organizers & Sponsors</h1>
-          <p className="mt-1 text-sm text-gray-500">
+          <h1 className="text-2xl font-semibold text-foreground">Organizers & Sponsors</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             Browse registered event organizers and sponsors available to customers.
           </p>
         </div>
@@ -204,15 +204,15 @@ export function AdminOrganizersSponsorsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="mt-6 flex gap-1 border-b border-gray-200">
+      <div className="mt-6 flex gap-1 border-b border-border">
         {(["organizers", "sponsors"] as Tab[]).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-4 py-2 text-sm font-medium capitalize ${
               tab === t
-                ? "border-b-2 border-blue-600 text-blue-600"
-                : "text-gray-500 hover:text-gray-700"
+                ? "border-b-2 border-blue-600 text-blue-600 dark:text-blue-400"
+                : "text-muted-foreground hover:text-foreground"
             }`}
           >
             {t}
@@ -231,28 +231,28 @@ export function AdminOrganizersSponsorsPage() {
               ? "Search by business name or specialty…"
               : "Search by company name or industry…"
           }
-          className="w-full max-w-sm rounded-md border border-gray-300 px-3 py-1.5 text-sm"
+          className="w-full max-w-sm rounded-md border border-input px-3 py-1.5 text-sm"
         />
       </div>
 
       {/* Table */}
-      <div className="mt-4 overflow-x-auto rounded-lg border border-gray-200 bg-white">
+      <div className="mt-4 overflow-x-auto rounded-lg border border-border bg-card">
         {isLoading ? (
-          <div className="flex items-center justify-center py-16 text-gray-400">
+          <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="w-5 h-5 animate-spin mr-2" />
             Loading {tab}…
           </div>
         ) : error ? (
-          <div className="py-16 text-center text-sm text-red-600">{error}</div>
+          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
         ) : tab === "organizers" ? (
           filteredOrganizers.length === 0 ? (
-            <div className="py-16 text-center text-sm text-gray-400">
+            <div className="py-16 text-center text-sm text-muted-foreground">
               No organizers match this search.
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase">
+                <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground uppercase">
                   <th className="px-4 py-3">Business Name</th>
                   <th className="px-4 py-3">Specialty</th>
                   <th className="px-4 py-3">Experience</th>
@@ -262,34 +262,34 @@ export function AdminOrganizersSponsorsPage() {
                   <th className="px-4 py-3">Available</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-border">
                 {filteredOrganizers.map((o) => (
-                  <tr key={o.organizer_id} className="hover:bg-gray-50">
-                    <td className="px-4 py-3 font-medium text-gray-800">{o.business_name}</td>
-                    <td className="px-4 py-3 text-gray-600">{o.specialty}</td>
-                    <td className="px-4 py-3 text-gray-600">{o.experience_years} yrs</td>
-                    <td className="px-4 py-3 text-gray-600">{o.price_range ?? "—"}</td>
-                    <td className="px-4 py-3 text-gray-600">
+                  <tr key={o.organizer_id} className="hover:bg-muted">
+                    <td className="px-4 py-3 font-medium text-foreground">{o.business_name}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{o.specialty}</td>
+                    <td className="px-4 py-3 text-muted-foreground">{o.experience_years} yrs</td>
+                    <td className="px-4 py-3 text-muted-foreground">{o.price_range ?? "—"}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
                       {o.avg_rating != null ? `★ ${o.avg_rating} (${o.total_reviews})` : "—"}
                     </td>
                     <td className="px-4 py-3">
                       {o.is_verified ? (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
                           <ShieldCheck className="w-3 h-3" /> Verified
                         </span>
                       ) : (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                           <ShieldOff className="w-3 h-3" /> Unverified
                         </span>
                       )}
                     </td>
                     <td className="px-4 py-3">
                       {o.is_available ? (
-                        <span className="rounded-full bg-green-100 px-2 py-0.5 text-xs font-medium text-green-700">
+                        <span className="rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
                           Available
                         </span>
                       ) : (
-                        <span className="rounded-full bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500">
+                        <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
                           Unavailable
                         </span>
                       )}
@@ -300,13 +300,13 @@ export function AdminOrganizersSponsorsPage() {
             </table>
           )
         ) : filteredSponsors.length === 0 ? (
-          <div className="py-16 text-center text-sm text-gray-400">
+          <div className="py-16 text-center text-sm text-muted-foreground">
             No sponsors match this search.
           </div>
         ) : (
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-gray-200 text-left text-xs font-medium text-gray-500 uppercase">
+              <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground uppercase">
                 <th className="px-4 py-3">Company</th>
                 <th className="px-4 py-3">Industry</th>
                 <th className="px-4 py-3">Budget Range</th>
@@ -315,20 +315,20 @@ export function AdminOrganizersSponsorsPage() {
                 <th className="px-4 py-3">Status</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100">
+            <tbody className="divide-y divide-border">
               {filteredSponsors.map((s) => (
-                <tr key={s.sponsor_id} className="hover:bg-gray-50">
-                  <td className="px-4 py-3 font-medium text-gray-800">{s.company_name}</td>
-                  <td className="px-4 py-3 text-gray-600">{s.industry}</td>
-                  <td className="px-4 py-3 text-gray-600">{s.budget_range ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">{s.preferred_events ?? "—"}</td>
-                  <td className="px-4 py-3 text-gray-600">
+                <tr key={s.sponsor_id} className="hover:bg-muted">
+                  <td className="px-4 py-3 font-medium text-foreground">{s.company_name}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{s.industry}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{s.budget_range ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">{s.preferred_events ?? "—"}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
                     {s.website_url ? (
                       <a
                         href={s.website_url}
                         target="_blank"
                         rel="noreferrer"
-                        className="inline-flex items-center gap-1 text-blue-600 hover:underline"
+                        className="inline-flex items-center gap-1 text-blue-600 dark:text-blue-400 hover:underline"
                       >
                         Visit <ExternalLink className="w-3 h-3" />
                       </a>
@@ -340,8 +340,8 @@ export function AdminOrganizersSponsorsPage() {
                     <span
                       className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
                         s.status === "active"
-                          ? "bg-green-100 text-green-700"
-                          : "bg-gray-100 text-gray-500"
+                          ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {s.status}
@@ -356,19 +356,19 @@ export function AdminOrganizersSponsorsPage() {
 
       {/* Add dialog */}
       <Dialog open={dialogType !== null} onOpenChange={(o) => !o && setDialogType(null)}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto bg-white text-gray-900 ring-gray-200 sm:max-w-lg">
+        <DialogContent className="max-h-[90vh] overflow-y-auto bg-card text-foreground ring-gray-200 sm:max-w-lg">
           <DialogHeader className="pr-8">
             <DialogTitle className="text-lg font-semibold">
               {dialogType === "organizers" ? "Add organizer" : "Add sponsor"}
             </DialogTitle>
-            <DialogDescription className="text-gray-500">
+            <DialogDescription className="text-muted-foreground">
               Creates a login for the partner and their public profile. They can sign in
               immediately with the temporary password.
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-4 py-2">
-            <p className="text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               Login account
             </p>
             <Field label="Contact name" required>
@@ -390,7 +390,7 @@ export function AdminOrganizersSponsorsPage() {
               />
             </Field>
 
-            <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-gray-400">
+            <p className="pt-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
               {dialogType === "organizers" ? "Business details" : "Company details"}
             </p>
 
@@ -482,17 +482,17 @@ export function AdminOrganizersSponsorsPage() {
             )}
           </div>
 
-          <DialogFooter className="bg-gray-50">
+          <DialogFooter className="bg-muted">
             <button
               onClick={() => setDialogType(null)}
-              className="rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+              className="rounded-md border border-input bg-card px-4 py-2 text-sm font-medium text-foreground hover:bg-muted"
             >
               Cancel
             </button>
             <button
               onClick={handleCreate}
               disabled={saving}
-              className="rounded-md bg-gray-900 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-800 disabled:opacity-60"
+              className="rounded-md bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-60"
             >
               {saving ? "Creating…" : "Create account"}
             </button>

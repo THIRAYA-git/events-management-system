@@ -33,13 +33,13 @@ export default function ForgotPasswordPage() {
       title="Reset your password"
       subtitle="Enter your account email and we'll send you a reset link."
       footer={
-        <Link to="/login" className="font-medium text-violet-700 hover:underline">
+        <Link to="/login" className="font-medium text-violet-700 dark:text-violet-400 hover:underline">
           Back to sign in
         </Link>
       }
     >
       {submitted ? (
-        <div className="rounded-md border border-violet-200 bg-violet-50 px-4 py-3 text-sm text-violet-900">
+        <div className="rounded-md border border-violet-200 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 px-4 py-3 text-sm text-violet-900 dark:text-violet-200">
           If that email is registered, a reset link has been sent. Check your inbox (and
           spam folder) for a message from Aazath Plaza.
         </div>

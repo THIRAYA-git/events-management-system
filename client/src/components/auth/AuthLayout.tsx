@@ -34,7 +34,9 @@ export default function AuthLayout({
         <div className="absolute inset-0 bg-gradient-to-br from-violet-900/90 via-violet-800/80 to-indigo-700/70" />
 
         <div className="relative z-10 flex w-full flex-col justify-between p-12">
-          <span className="text-xl font-semibold tracking-tight">Aazath Plaza</span>
+          <span className="text-xl font-semibold tracking-tight">
+            Aazath Plaza
+          </span>
 
           <div>
             <h2 className="text-4xl font-semibold leading-tight">
@@ -43,8 +45,8 @@ export default function AuthLayout({
               Remember.
             </h2>
             <p className="mt-4 max-w-md text-violet-100">
-              Weddings, engagements, birthdays and more. Book your event at Aazath Plaza in
-              a few minutes.
+              Weddings, engagements, birthdays and more. Book your event at
+              Aazath Plaza in a few minutes.
             </p>
             <ul className="mt-6 space-y-2 text-sm text-violet-50">
               {HIGHLIGHTS.map((item) => (
@@ -63,13 +65,21 @@ export default function AuthLayout({
       </aside>
 
       {/* Form panel */}
-      <main className="flex items-center justify-center bg-white px-6 py-12">
-        <div className={`w-full ${formWidthClass}`}>
-          <p className="mb-8 text-lg font-semibold text-violet-700 lg:hidden">Aazath Plaza</p>
-          <h1 className="text-2xl font-semibold text-gray-900">{title}</h1>
-          <p className="mt-1 text-sm text-gray-500">{subtitle}</p>
-          <div className="mt-8">{children}</div>
-          <div className="mt-6 text-center text-sm text-gray-500">{footer}</div>
+      <main className="flex items-center justify-center bg-card px-6 py-12">
+        <div
+          className={`auth-shine w-full rounded-2xl p-[2px] ${formWidthClass}`}
+        >
+          <div className="rounded-2xl bg-card p-8">
+            <p className="mb-8 text-lg font-semibold text-violet-700 dark:text-violet-400 lg:hidden">
+              Aazath Plaza
+            </p>
+            <h1 className="text-2xl font-semibold text-foreground">{title}</h1>
+            <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p>
+            <div className="mt-8">{children}</div>
+            <div className="mt-6 text-center text-sm text-muted-foreground">
+              {footer}
+            </div>
+          </div>
         </div>
       </main>
     </div>

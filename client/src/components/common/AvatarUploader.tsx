@@ -56,11 +56,11 @@ export default function AvatarUploader({ currentUrl, name, onUploaded }: Props) 
 
   return (
     <div className="flex items-center gap-4">
-      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-gray-200">
+      <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-full bg-muted">
         {src ? (
           <img src={src} alt="Profile" className="h-full w-full object-cover" />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-gray-600">
+          <div className="flex h-full w-full items-center justify-center text-xl font-semibold text-muted-foreground">
             {initials}
           </div>
         )}
@@ -77,13 +77,13 @@ export default function AvatarUploader({ currentUrl, name, onUploaded }: Props) 
           type="button"
           disabled={uploading}
           onClick={() => inputRef.current?.click()}
-          className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-gray-50 disabled:opacity-50"
+          className="inline-flex items-center gap-2 rounded-md border px-3 py-2 text-sm hover:bg-muted disabled:opacity-50"
         >
           <Camera className="h-4 w-4" />
           {currentUrl ? "Change photo" : "Upload photo"}
         </button>
-        <p className="mt-1 text-xs text-gray-500">JPG, PNG or WEBP, up to 5 MB.</p>
-        {error && <p className="mt-1 text-xs text-red-600">{error}</p>}
+        <p className="mt-1 text-xs text-muted-foreground">JPG, PNG or WEBP, up to 5 MB.</p>
+        {error && <p className="mt-1 text-xs text-red-600 dark:text-red-400">{error}</p>}
       </div>
     </div>
   );

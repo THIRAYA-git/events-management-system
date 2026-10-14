@@ -1,7 +1,9 @@
+import { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { X } from "lucide-react";
+import { X, PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { adminNavItems } from "../../config/adminNav.config";
 import { useAuth } from "../../context/AuthContext";
+import UserAvatar from "@/components/common/UserAvatar";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -9,15 +11,17 @@ interface AdminSidebarProps {
 }
 
 const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+  const [collapsed, setCollapsed] = useState(false); // desktop only
 
   const visibleItems = adminNavItems.filter((item) =>
     user?.role ? item.roles.includes(user.role as any) : false
   );
 
+  const hideWhenCollapsed = collapsed ? "lg:hidden" : "";
+
   return (
     <>
-      {/* Mobile overlay */}
       {isOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/40 lg:hidden"
@@ -25,24 +29,36 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
           aria-hidden="true"
         />
       )}
+
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-violet-800 border-r border-white/15
-  transition-transform duration-200 ease-in-out
-  lg:static lg:translate-x-0 lg:z-auto
-  ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
+        className={`fixed inset-y-0 left-0 z-50 flex w-64 transform flex-col border-r border-white/15
+        bg-violet-700 text-white transition-[transform,width] duration-200 ease-in-out dark:bg-slate-900
+        lg:static lg:z-auto lg:translate-x-0 ${collapsed ? "lg:w-[72px]" : "lg:w-64"}
+        ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
-        <div className="flex items-center justify-between h-16 px-4 border-b border-white/15">
-          <span className="text-lg font-semibold text-white">Aazath Plaza</span>
+        {/* Brand */}
+        <div
+          className={`flex h-16 shrink-0 items-center justify-between border-b border-white/15 px-4 ${
+            collapsed ? "lg:justify-center" : ""
+          }`}
+        >
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card/15 text-sm font-bold">
+              AP
+            </div>
+            <span className={`text-lg font-semibold ${hideWhenCollapsed}`}>Aazath Plaza</span>
+          </div>
           <button
             onClick={onClose}
-            className="lg:hidden p-1 rounded-md hover:bg-white/10"
+            className="rounded-md p-1 hover:bg-card/10 lg:hidden"
             aria-label="Close sidebar"
           >
-            <X className="w-5 h-5 text-white/70" />
+            <X className="h-5 w-5 text-white/70" />
           </button>
         </div>
 
-        <nav className="px-2 py-4 space-y-1 overflow-y-auto">
+        {/* Navigation */}
+        <nav className="flex-1 space-y-1 overflow-y-auto px-3 py-4">
           {visibleItems.map((item) => {
             const Icon = item.icon;
             return (
@@ -51,21 +67,60 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
                 to={item.path}
                 end={item.path === "/admin"}
                 onClick={onClose}
+                title={collapsed ? item.label : undefined}
                 className={({ isActive }) =>
-                  `flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors
-  ${
-    isActive
-      ? "bg-white/15 text-white"
-      : "text-white/70 hover:bg-white/10 hover:text-white"
-  }`
+                  `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors
+                  ${collapsed ? "lg:justify-center lg:px-0" : ""}
+                  ${
+                    isActive
+                      ? "bg-card/15 text-white"
+                      : "text-white/70 hover:bg-card/10 hover:text-white"
+                  }`
                 }
               >
-                <Icon className="w-4 h-4 flex-shrink-0" />
-                <span>{item.label}</span>
+                <Icon className="h-5 w-5 shrink-0" />
+                <span className={hideWhenCollapsed}>{item.label}</span>
               </NavLink>
             );
           })}
         </nav>
+
+        {/* Footer: collapse toggle + user card */}
+        <div className="shrink-0 space-y-2 border-t border-white/15 p-3">
+          <button
+            onClick={() => setCollapsed((c) => !c)}
+            className={`hidden w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-white/70
+            hover:bg-card/10 hover:text-white lg:flex ${collapsed ? "lg:justify-center lg:px-0" : ""}`}
+            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            title={collapsed ? "Expand sidebar" : undefined}
+          >
+            {collapsed ? (
+              <PanelLeftOpen className="h-5 w-5 shrink-0" />
+            ) : (
+              <PanelLeftClose className="h-5 w-5 shrink-0" />
+            )}
+            <span className={hideWhenCollapsed}>Collapse</span>
+          </button>
+
+          <div
+            className={`flex items-center gap-3 rounded-md bg-card/10 p-2 ${
+              collapsed ? "lg:justify-center lg:bg-transparent lg:p-0" : ""
+            }`}
+          >
+            <UserAvatar src={user?.profile_image} name={user?.name} size={36} />
+            <div className={`min-w-0 flex-1 ${hideWhenCollapsed}`}>
+              <p className="truncate text-sm font-medium">{user?.name ?? "User"}</p>
+              <p className="truncate text-xs text-white/60">{user?.email}</p>
+            </div>
+            <button
+              onClick={logout}
+              className={`rounded-md p-1.5 text-white/70 hover:bg-card/10 hover:text-white ${hideWhenCollapsed}`}
+              aria-label="Log out"
+            >
+              <LogOut className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
       </aside>
     </>
   );

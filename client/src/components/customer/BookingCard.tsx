@@ -3,10 +3,10 @@ import { CalendarDays, Clock, Hash, Users } from "lucide-react";
 import type { AdminBooking } from "@/types/booking.types";
 
 const STATUS: Record<string, { label: string; pill: string; date: string }> = {
-  pending: { label: "Awaiting payment", pill: "bg-amber-50 text-amber-700 ring-amber-200", date: "bg-amber-50 text-amber-700" },
-  confirmed: { label: "Confirmed", pill: "bg-green-50 text-green-700 ring-green-200", date: "bg-violet-50 text-violet-700" },
-  completed: { label: "Completed", pill: "bg-blue-50 text-blue-700 ring-blue-200", date: "bg-gray-100 text-gray-600" },
-  cancelled: { label: "Cancelled", pill: "bg-red-50 text-red-700 ring-red-200", date: "bg-gray-100 text-gray-400" },
+  pending: { label: "Awaiting payment", pill: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30", date: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400" },
+  confirmed: { label: "Confirmed", pill: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400 ring-green-200 dark:ring-green-500/30", date: "bg-violet-50 dark:bg-violet-500/10 text-violet-700 dark:text-violet-400" },
+  completed: { label: "Completed", pill: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-500/30", date: "bg-muted text-muted-foreground" },
+  cancelled: { label: "Cancelled", pill: "bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400 ring-red-200 dark:ring-red-500/30", date: "bg-muted text-muted-foreground" },
 };
 
 export const statusLabel = (s: string) => STATUS[s]?.label ?? s;
@@ -44,7 +44,7 @@ export function BookingCard({ booking, actions }: BookingCardProps) {
 
   return (
     <article
-      className={`overflow-hidden rounded-2xl border border-gray-200! bg-white shadow-sm transition hover:shadow-md ${
+      className={`overflow-hidden rounded-2xl border border-border! bg-card shadow-sm transition hover:shadow-md ${
         dimmed ? "opacity-75" : ""
       }`}
     >
@@ -60,10 +60,10 @@ export function BookingCard({ booking, actions }: BookingCardProps) {
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-2">
             <div className="min-w-0">
-              <h2 className="truncate text-base font-semibold text-gray-900">
+              <h2 className="truncate text-base font-semibold text-foreground">
                 {booking.event_type_label ?? booking.event_type}
               </h2>
-              <p className="text-sm text-gray-500">{halls}</p>
+              <p className="text-sm text-muted-foreground">{halls}</p>
             </div>
             <span
               className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${s.pill}`}
@@ -72,28 +72,28 @@ export function BookingCard({ booking, actions }: BookingCardProps) {
             </span>
           </div>
 
-          <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-gray-600 sm:grid-cols-2">
+          <dl className="mt-3 grid grid-cols-1 gap-x-6 gap-y-1.5 text-sm text-muted-foreground sm:grid-cols-2">
             <div className="flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-gray-400" />
+              <CalendarDays className="h-4 w-4 text-muted-foreground" />
               <dt className="sr-only">Date</dt>
               <dd>
                 {d.weekday}, {d.day} {d.month.charAt(0) + d.month.slice(1).toLowerCase()} {d.year}
               </dd>
             </div>
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-gray-400" />
+              <Clock className="h-4 w-4 text-muted-foreground" />
               <dt className="sr-only">Time</dt>
               <dd>
                 {fmtClock(booking.event_start_time)} – {fmtClock(booking.event_end_time)}
               </dd>
             </div>
             <div className="flex items-center gap-2">
-              <Users className="h-4 w-4 text-gray-400" />
+              <Users className="h-4 w-4 text-muted-foreground" />
               <dt className="sr-only">Guests</dt>
               <dd>{booking.guest_count.toLocaleString()} guests</dd>
             </div>
             <div className="flex items-center gap-2">
-              <Hash className="h-4 w-4 text-gray-400" />
+              <Hash className="h-4 w-4 text-muted-foreground" />
               <dt className="sr-only">Reference</dt>
               <dd className="font-mono text-xs">{booking.booking_ref}</dd>
             </div>
@@ -101,10 +101,10 @@ export function BookingCard({ booking, actions }: BookingCardProps) {
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-gray-100! bg-gray-50 px-5 py-3">
-        <p className="text-sm text-gray-500">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border! bg-muted px-5 py-3">
+        <p className="text-sm text-muted-foreground">
           Total{" "}
-          <span className="text-base font-semibold text-gray-900">
+          <span className="text-base font-semibold text-foreground">
             LKR{" "}
             {Number(booking.total_amount).toLocaleString("en-LK", {
               minimumFractionDigits: 2,

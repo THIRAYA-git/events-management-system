@@ -5,10 +5,10 @@ import { getMyBookingAssignments, respondToAssignment } from "@/api/organizer.ap
 import type { OrganizerAssignment, RespondAction } from "@/types/organizer.types";
 
 const STATUS_STYLES: Record<string, string> = {
-  assigned: "bg-yellow-100 text-yellow-700",
-  confirmed: "bg-blue-100 text-blue-700",
-  completed: "bg-green-100 text-green-700",
-  declined: "bg-red-100 text-red-700",
+  assigned: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  completed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  declined: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
 };
 
 const STATUS_LABELS: Record<string, string> = {
@@ -177,7 +177,7 @@ export default function OrganizerEventRequestsPage() {
         <div>
           <h1 className="text-xl font-semibold">Event Requests</h1>
           {pendingCount > 0 && (
-            <p className="mt-0.5 text-sm text-yellow-700">
+            <p className="mt-0.5 text-sm text-yellow-700 dark:text-yellow-400">
               {pendingCount} request{pendingCount === 1 ? "" : "s"} waiting for your response
             </p>
           )}
@@ -203,9 +203,9 @@ export default function OrganizerEventRequestsPage() {
             className={`rounded-full border px-4 py-1.5 text-sm transition ${
               dateFilter === t.key
                 ? t.key === "overdue"
-                  ? "border-red-500 bg-red-50 text-red-700"
-                  : "border-blue-600 bg-blue-50 text-blue-700"
-                : "border-gray-300 text-gray-600 hover:bg-gray-50"
+                  ? "border-red-500 bg-red-50 dark:bg-red-500/10 text-red-700 dark:text-red-400"
+                  : "border-blue-600 bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400"
+                : "border-input text-muted-foreground hover:bg-muted"
             }`}
           >
             {t.label} ({counts[t.key]})
@@ -214,17 +214,17 @@ export default function OrganizerEventRequestsPage() {
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
           {error}
         </div>
       )}
 
       {loading ? (
         <div className="flex justify-center py-16">
-          <Loader2 className="h-6 w-6 animate-spin text-gray-400" />
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-gray-500">No event assignments match these filters.</p>
+        <p className="text-sm text-muted-foreground">No event assignments match these filters.</p>
       ) : (
         <div className="space-y-3">
           {visible.map((a) => {
@@ -232,27 +232,27 @@ export default function OrganizerEventRequestsPage() {
             const busy = busyId === a.id;
             const declining = decliningId === a.id;
             return (
-              <div key={a.id} className="rounded-md border border-gray-200 bg-white p-4">
+              <div key={a.id} className="rounded-md border border-border bg-card p-4">
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="font-medium">{a.booking_ref}</span>{" "}
-                    <span className="text-gray-500">— {a.customer_name}</span>
-                    <span className="ml-2 text-xs text-gray-400">{a.event_type}</span>
+                    <span className="text-muted-foreground">— {a.customer_name}</span>
+                    <span className="ml-2 text-xs text-muted-foreground">{a.event_type}</span>
                   </div>
                   <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[a.status] ?? ""}`}>
                     {STATUS_LABELS[a.status] ?? a.status}
                   </span>
                 </div>
 
-                <div className="mb-2 flex items-center gap-2 text-sm text-gray-600">
+                <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                   {new Date(a.event_date).toLocaleDateString()}
                   {bucket === "overdue" && (
-                    <span className="rounded-full bg-red-100 px-2 py-0.5 text-xs text-red-700">
+                    <span className="rounded-full bg-red-100 dark:bg-red-500/15 px-2 py-0.5 text-xs text-red-700 dark:text-red-400">
                       Overdue
                     </span>
                   )}
                   {bucket === "today" && (
-                    <span className="rounded-full bg-orange-100 px-2 py-0.5 text-xs text-orange-700">
+                    <span className="rounded-full bg-orange-100 dark:bg-orange-500/15 px-2 py-0.5 text-xs text-orange-700 dark:text-orange-400">
                       Today
                     </span>
                   )}
@@ -262,20 +262,20 @@ export default function OrganizerEventRequestsPage() {
                   <span className="font-medium">{a.role_in_event}</span>
                 </div>
 
-                <div className="text-sm text-gray-600">
+                <div className="text-sm text-muted-foreground">
                   {Number(a.agreed_fee) > 0 ? (
                     <>
                       Agreed fee: <span className="font-medium">LKR {Number(a.agreed_fee).toFixed(2)}</span>
                     </>
                   ) : (
-                    <span className="italic text-gray-500">Fee to be agreed</span>
+                    <span className="italic text-muted-foreground">Fee to be agreed</span>
                   )}
                 </div>
 
-                {a.notes && <p className="mt-2 text-xs italic text-gray-500">Note: {a.notes}</p>}
+                {a.notes && <p className="mt-2 text-xs italic text-muted-foreground">Note: {a.notes}</p>}
 
                 {a.status === "declined" && a.decline_reason && (
-                  <p className="mt-2 text-xs text-red-600">Your reason: {a.decline_reason}</p>
+                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">Your reason: {a.decline_reason}</p>
                 )}
 
                 {a.status === "assigned" && !declining && (
@@ -294,7 +294,7 @@ export default function OrganizerEventRequestsPage() {
                         setReason("");
                       }}
                       disabled={busy}
-                      className="inline-flex items-center gap-1.5 rounded-md border border-red-300 px-3 py-1.5 text-sm font-medium text-red-700 transition hover:bg-red-50 disabled:opacity-50"
+                      className="inline-flex items-center gap-1.5 rounded-md border border-red-300 dark:border-red-500/30 px-3 py-1.5 text-sm font-medium text-red-700 dark:text-red-400 transition hover:bg-red-50 dark:hover:bg-red-500/20 disabled:opacity-50"
                     >
                       <X className="h-4 w-4" />
                       Decline
@@ -303,8 +303,8 @@ export default function OrganizerEventRequestsPage() {
                 )}
 
                 {a.status === "assigned" && declining && (
-                  <div className="mt-3 rounded-md border border-red-200 bg-red-50/50 p-3">
-                    <label className="mb-1 block text-xs font-medium text-gray-700" htmlFor={`reason-${a.id}`}>
+                  <div className="mt-3 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-500/10 p-3">
+                    <label className="mb-1 block text-xs font-medium text-foreground" htmlFor={`reason-${a.id}`}>
                       Reason for declining (optional)
                     </label>
                     <textarea
@@ -314,7 +314,7 @@ export default function OrganizerEventRequestsPage() {
                       maxLength={500}
                       rows={2}
                       placeholder="e.g. Already booked on that date"
-                      className="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm outline-none focus:border-red-400"
+                      className="w-full rounded-md border border-input bg-card px-3 py-2 text-sm outline-none focus:border-red-400"
                     />
                     <div className="mt-2 flex gap-2">
                       <button
@@ -328,7 +328,7 @@ export default function OrganizerEventRequestsPage() {
                       <button
                         onClick={() => setDecliningId(null)}
                         disabled={busy}
-                        className="rounded-md border border-gray-300 px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-50"
+                        className="rounded-md border border-input px-3 py-1.5 text-sm text-muted-foreground hover:bg-muted"
                       >
                         Cancel
                       </button>
@@ -344,20 +344,20 @@ export default function OrganizerEventRequestsPage() {
       {/* Pagination */}
       {!loading && filtered.length > 0 && (
         <div className="mt-6 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-3 text-sm text-gray-500">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
             <span>
               Showing{" "}
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-foreground">
                 {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
               </span>{" "}
-              of <span className="font-medium text-gray-900">{filtered.length}</span>
+              of <span className="font-medium text-foreground">{filtered.length}</span>
             </span>
             <label className="flex items-center gap-1.5">
               <span className="sr-only">Requests per page</span>
               <select
                 value={pageSize}
                 onChange={(e) => setPageSize(Number(e.target.value))}
-                className="rounded-md border border-gray-300 bg-white px-2 py-1.5 text-sm text-gray-700 outline-none focus:border-blue-500"
+                className="rounded-md border border-input bg-card px-2 py-1.5 text-sm text-foreground outline-none focus:border-blue-500"
               >
                 {PAGE_SIZE_OPTIONS.map((n) => (
                   <option key={n} value={n}>
@@ -374,14 +374,14 @@ export default function OrganizerEventRequestsPage() {
                 onClick={() => goToPage(currentPage - 1)}
                 disabled={currentPage === 1}
                 aria-label="Previous page"
-                className={`${pageBtn} border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40`}
+                className={`${pageBtn} border border-input bg-card text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
 
               {getPageItems(currentPage, totalPages).map((item, i) =>
                 item === "…" ? (
-                  <span key={`gap-${i}`} className="px-1.5 text-gray-400">
+                  <span key={`gap-${i}`} className="px-1.5 text-muted-foreground">
                     …
                   </span>
                 ) : (
@@ -392,7 +392,7 @@ export default function OrganizerEventRequestsPage() {
                     className={`${pageBtn} ${
                       item === currentPage
                         ? "border border-blue-600 bg-blue-600 text-white"
-                        : "border border-gray-300 bg-white text-gray-600 hover:bg-gray-50"
+                        : "border border-input bg-card text-muted-foreground hover:bg-muted"
                     }`}
                   >
                     {item}
@@ -404,7 +404,7 @@ export default function OrganizerEventRequestsPage() {
                 onClick={() => goToPage(currentPage + 1)}
                 disabled={currentPage === totalPages}
                 aria-label="Next page"
-                className={`${pageBtn} border border-gray-300 bg-white text-gray-600 hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-40`}
+                className={`${pageBtn} border border-input bg-card text-muted-foreground hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
