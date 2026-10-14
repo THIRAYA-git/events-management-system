@@ -78,12 +78,13 @@ export default function HomePage() {
         title="Welcome to Aazath Plaza"
         subtitle="Two elegant halls, seamless booking, and everything you need for weddings, engagements, and celebrations — all in one place."
       >
-        <Link
-          to="/book"
-          className="inline-block rounded-md bg-card px-6 py-3 text-sm font-semibold text-violet-700 dark:text-violet-400 shadow-sm transition-colors hover:bg-violet-50 dark:hover:bg-violet-500/20"
-        >
-          Book Now
-        </Link>
+       <Link
+  to="/book"
+  className="neon-btn group inline-flex items-center gap-2 rounded-full border-2 px-9 py-3 text-sm font-semibold tracking-wide"
+>
+  Book Now
+  <ArrowRight className="h-4 w-4 transition-transform duration-300 group-hover:translate-x-1" />
+</Link>
       </PageHero>
 
       <div className="mx-auto max-w-6xl px-4 py-12 lg:px-6">

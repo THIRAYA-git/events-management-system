@@ -168,3 +168,54 @@
   animation: border-shine 4s ease infinite;
   box-shadow: 0 0 30px rgba(139, 92, 246, 0.4);
 }
+/* Light mode: white fill, violet text, soft purple glow */
+.neon-btn {
+  background: #ffffff;
+  color: #6d28d9;
+  border-color: #a78bfa;
+  box-shadow:
+    0 0 6px rgba(167, 139, 250, 0.8),
+    0 0 18px rgba(139, 92, 246, 0.55);
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  animation: neon-pulse 2.4s ease-in-out infinite;
+}
+
+.neon-btn:hover {
+  box-shadow:
+    0 0 10px #a78bfa,
+    0 0 28px #8b5cf6,
+    0 0 56px #7c3aed;
+  transform: translateY(-1px);
+  animation: none;
+}
+
+/* Dark mode: transparent, light-lavender core line, purple glow */
+.dark .neon-btn {
+  background: transparent;
+  color: #ffffff;
+  border-color: #e9d5ff;
+  box-shadow:
+    0 0 4px #e9d5ff,
+    0 0 12px #c084fc,
+    0 0 28px #a855f7,
+    inset 0 0 12px rgba(168, 85, 247, 0.55);
+  text-shadow: 0 0 8px rgba(216, 180, 254, 0.9);
+}
+
+.dark .neon-btn:hover {
+  box-shadow:
+    0 0 6px #f3e8ff,
+    0 0 18px #c084fc,
+    0 0 42px #a855f7,
+    0 0 80px #7c3aed,
+    inset 0 0 18px rgba(168, 85, 247, 0.7);
+}
+
+@keyframes neon-pulse {
+  0%, 100% { filter: brightness(1); }
+  50%      { filter: brightness(1.15); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .neon-btn { animation: none; }
+}
