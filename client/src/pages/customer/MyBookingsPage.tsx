@@ -29,7 +29,8 @@ const TABS: { key: Filter; label: string }[] = [
   { key: "cancelled", label: "Cancelled" },
 ];
 
-const PAGE_SIZE_OPTIONS = [5, 10, 20];
+// multiples of 6 so the 1/2/3-column grids fill evenly
+const PAGE_SIZE_OPTIONS = [6, 12, 24];
 
 /** Builds a compact page list like [1, "…", 4, 5, 6, "…", 12] */
 function getPageItems(current: number, total: number): (number | "…")[] {
@@ -83,7 +84,7 @@ export default function MyBookingsPage() {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5);
+  const [pageSize, setPageSize] = useState(6);
 
   useEffect(() => {
     fetchMyBookings()
@@ -205,11 +206,14 @@ export default function MyBookingsPage() {
   const pageBtn =
     "inline-flex h-9 min-w-9 items-center justify-center rounded-lg px-3 text-sm font-medium transition";
 
+  const hasBookings = !isLoading && bookings.length > 0;
+
   return (
-    <div className="mx-auto max-w-3xl px-4 py-10">
+    <div className="mx-auto w-full max-w-[1800px] px-4 py-8 sm:px-6 lg:px-10 2xl:px-16">
+      {/* Header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">My Bookings</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">My Bookings</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Track your events, complete payments and download invoices.
           </p>
@@ -220,249 +224,268 @@ export default function MyBookingsPage() {
         </Link>
       </div>
 
-      {!isLoading && bookings.length > 0 && (
-        <>
-          {/* Search bar */}
-          <div className="relative mb-4">
-            <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-            <input
-              type="text"
-              value={searchInput}
-              onChange={(e) => setSearchInput(e.target.value)}
-              placeholder="Search by booking ref, event type, hall, date or guests…"
-              aria-label="Search bookings"
-              className="w-full rounded-xl border border-border bg-card py-2.5 pl-10 pr-10 text-sm text-foreground shadow-sm outline-none transition placeholder:text-muted-foreground focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
-            />
-            {searchInput && (
-              <button
-                type="button"
-                onClick={() => setSearchInput("")}
-                aria-label="Clear search"
-                className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted hover:text-muted-foreground"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            )}
-          </div>
-
-          {/* Status tabs */}
-          <div className="mb-5 flex flex-wrap gap-2" role="tablist" aria-label="Filter bookings">
-            {TABS.map((t) => (
-              <button
-                key={t.key}
-                role="tab"
-                aria-selected={filter === t.key}
-                onClick={() => setFilter(t.key)}
-                className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-                  filter === t.key
-                    ? "bg-violet-600 text-white"
-                    : "bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted"
-                }`}
-              >
-                {t.label}
-                <span
-                  className={`ml-1.5 rounded-full px-1.5 py-0.5 text-xs ${
-                    filter === t.key ? "bg-card/20" : "bg-muted text-muted-foreground"
-                  }`}
-                >
-                  {counts[t.key]}
-                </span>
-              </button>
-            ))}
-          </div>
-        </>
-      )}
-
-      {isLoading && (
-        <div className="space-y-4">
-          <SkeletonCard />
-          <SkeletonCard />
-          <SkeletonCard />
-        </div>
-      )}
-
-      {error && <p className={errorTextClass}>{error}</p>}
-
-      {!isLoading && !error && bookings.length === 0 && (
-        <div className="rounded-2xl border border-dashed border-input! bg-card px-6 py-14 text-center">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 dark:bg-violet-500/10 text-violet-600 dark:text-violet-400">
-            <CalendarPlus className="h-7 w-7" />
-          </div>
-          <h2 className="mt-4 text-lg font-semibold text-foreground">No bookings yet</h2>
-          <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-            Pick a date, choose your hall and confirm your event in a few simple steps.
-          </p>
-          <Link to="/book" className={`${primaryBtnClass} mt-5`}>
-            Book a hall
-          </Link>
-        </div>
-      )}
-
-      {!isLoading && bookings.length > 0 && filtered.length === 0 && (
-        <div className="rounded-2xl border border-border! bg-card px-6 py-10 text-center text-sm text-muted-foreground">
-          {search ? (
-            <>
-              No bookings match “{searchInput.trim()}”.{" "}
-              <button
-                onClick={() => setSearchInput("")}
-                className="font-medium text-violet-600 dark:text-violet-400 hover:underline"
-              >
-                Clear search
-              </button>
-            </>
-          ) : (
-            "No bookings in this category."
-          )}
-        </div>
-      )}
-
-      <div className="space-y-4">
-        {visible.map((booking) => (
-          <div key={booking.booking_id}>
-            <BookingCard
-              booking={booking}
-              actions={
-                <>
-                  {booking.status === "pending" && (
-                    <button
-                      onClick={() => navigate(`/payment/${booking.booking_id}`)}
-                      className={primaryBtnClass}
-                    >
-                      Pay now
-                    </button>
-                  )}
-                  {(booking.status === "confirmed" || booking.status === "completed") && (
-                    <button
-                      onClick={() => handleInvoice(booking)}
-                      disabled={downloadingId === booking.booking_id}
-                      className={`${secondaryBtnClass} gap-2`}
-                    >
-                      <Download className="h-4 w-4" />
-                      {downloadingId === booking.booking_id ? "Preparing…" : "Invoice"}
-                    </button>
-                  )}
-                  {booking.status === "completed" &&
-                    (booking.has_feedback ? (
-                      <span className="text-sm text-green-700 dark:text-green-400">✓ Thanks for your feedback</span>
-                    ) : (
-                      feedbackOpenFor !== booking.booking_id && (
-                        <button
-                          onClick={() => setFeedbackOpenFor(booking.booking_id)}
-                          className={secondaryBtnClass}
-                        >
-                          Leave feedback
-                        </button>
-                      )
-                    ))}
-                </>
-              }
-            />
-
-            <BookingOrganizerPanel
-              bookingId={booking.booking_id}
-              assignments={organizersByBooking.get(booking.booking_id) ?? []}
-              canAssign={booking.status === "pending" || booking.status === "confirmed"}
-              onAssigned={(a) => setOrganizers((prev) => [a, ...prev])}
-            />
-
-            <BookingSponsorOffers
-              offers={offersByBooking.get(booking.booking_id) ?? []}
-              respondingId={respondingOfferId}
-              onRespond={handleOfferRespond}
-            />
-
-            {booking.status === "completed" &&
-              !booking.has_feedback &&
-              feedbackOpenFor === booking.booking_id && (
-                <div className="mt-2 rounded-2xl border border-border! bg-card p-5 shadow-sm">
-                  <FeedbackForm
-                    bookingId={booking.booking_id}
-                    onSubmitted={() => {
-                      setFeedbackOpenFor(null);
-                      setBookings((prev) =>
-                        prev.map((b) =>
-                          b.booking_id === booking.booking_id ? { ...b, has_feedback: true } : b
-                        )
-                      );
-                    }}
-                  />
-                </div>
-              )}
-          </div>
-        ))}
-      </div>
-
-      {/* Pagination */}
-      {!isLoading && filtered.length > 0 && (
-        <div className="mt-8 flex flex-col items-center justify-between gap-4 sm:flex-row">
-          <div className="flex items-center gap-3 text-sm text-muted-foreground">
-            <span>
-              Showing{" "}
-              <span className="font-medium text-foreground">
-                {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
-              </span>{" "}
-              of <span className="font-medium text-foreground">{filtered.length}</span>
-            </span>
-            <label className="flex items-center gap-1.5">
-              <span className="sr-only">Bookings per page</span>
-              <select
-                value={pageSize}
-                onChange={(e) => setPageSize(Number(e.target.value))}
-                className="rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground outline-none focus:border-violet-500"
-              >
-                {PAGE_SIZE_OPTIONS.map((n) => (
-                  <option key={n} value={n}>
-                    {n} / page
-                  </option>
-                ))}
-              </select>
-            </label>
-          </div>
-
-          {totalPages > 1 && (
-            <nav className="flex items-center gap-1" aria-label="Pagination">
-              <button
-                onClick={() => goToPage(currentPage - 1)}
-                disabled={currentPage === 1}
-                aria-label="Previous page"
-                className={`${pageBtn} bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40`}
-              >
-                <ChevronLeft className="h-4 w-4" />
-              </button>
-
-              {getPageItems(currentPage, totalPages).map((item, i) =>
-                item === "…" ? (
-                  <span key={`gap-${i}`} className="px-1.5 text-muted-foreground">
-                    …
-                  </span>
-                ) : (
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        {/* ───────── Sidebar: search + status filter ───────── */}
+        {hasBookings && (
+          <aside className="w-full shrink-0 lg:sticky lg:top-24 lg:w-72 xl:w-80">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm lg:p-5">
+              {/* Search */}
+              <div className="relative">
+                <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <input
+                  type="text"
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  placeholder="Search ref, event, hall, date…"
+                  aria-label="Search bookings"
+                  className="w-full rounded-xl border border-border bg-background py-2.5 pl-10 pr-10 text-sm text-foreground outline-none transition placeholder:text-muted-foreground focus:border-violet-500 focus:ring-2 focus:ring-violet-200 dark:focus:ring-violet-500/30"
+                />
+                {searchInput && (
                   <button
-                    key={item}
-                    onClick={() => goToPage(item)}
-                    aria-current={item === currentPage ? "page" : undefined}
-                    className={`${pageBtn} ${
-                      item === currentPage
+                    type="button"
+                    onClick={() => setSearchInput("")}
+                    aria-label="Clear search"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1 text-muted-foreground hover:bg-muted"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              {/* Status filter: horizontal scroll on small screens, vertical list on desktop */}
+              <p className="mb-2 mt-5 hidden text-xs font-semibold uppercase tracking-wide text-muted-foreground lg:block">
+                Status
+              </p>
+              <div
+                className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-0 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0"
+                role="tablist"
+                aria-label="Filter bookings"
+              >
+                {TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    role="tab"
+                    aria-selected={filter === t.key}
+                    onClick={() => setFilter(t.key)}
+                    className={`flex shrink-0 items-center justify-between gap-2 whitespace-nowrap rounded-full px-3.5 py-1.5 text-sm font-medium transition lg:w-full lg:rounded-xl lg:px-3.5 lg:py-2.5 ${
+                      filter === t.key
                         ? "bg-violet-600 text-white"
-                        : "bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted"
+                        : "bg-muted/50 text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted dark:ring-white/10"
                     }`}
                   >
-                    {item}
+                    {t.label}
+                    <span
+                      className={`rounded-full px-1.5 py-0.5 text-xs ${
+                        filter === t.key ? "bg-white/20" : "bg-muted text-muted-foreground"
+                      }`}
+                    >
+                      {counts[t.key]}
+                    </span>
                   </button>
-                )
-              )}
+                ))}
+              </div>
+            </div>
+          </aside>
+        )}
 
-              <button
-                onClick={() => goToPage(currentPage + 1)}
-                disabled={currentPage === totalPages}
-                aria-label="Next page"
-                className={`${pageBtn} bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40`}
-              >
-                <ChevronRight className="h-4 w-4" />
-              </button>
-            </nav>
+        {/* ───────── Main content ───────── */}
+        <main className="min-w-0 flex-1">
+          {isLoading && (
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 2xl:grid-cols-3">
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+              <SkeletonCard />
+            </div>
           )}
-        </div>
-      )}
+
+          {error && <p className={errorTextClass}>{error}</p>}
+
+          {!isLoading && !error && bookings.length === 0 && (
+            <div className="rounded-2xl border border-dashed border-input! bg-card px-6 py-16 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
+                <CalendarPlus className="h-7 w-7" />
+              </div>
+              <h2 className="mt-4 text-lg font-semibold text-foreground">No bookings yet</h2>
+              <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+                Pick a date, choose your hall and confirm your event in a few simple steps.
+              </p>
+              <Link to="/book" className={`${primaryBtnClass} mt-5`}>
+                Book a hall
+              </Link>
+            </div>
+          )}
+
+          {hasBookings && filtered.length === 0 && (
+            <div className="rounded-2xl border border-border! bg-card px-6 py-10 text-center text-sm text-muted-foreground">
+              {search ? (
+                <>
+                  No bookings match “{searchInput.trim()}”.{" "}
+                  <button
+                    onClick={() => setSearchInput("")}
+                    className="font-medium text-violet-600 hover:underline dark:text-violet-400"
+                  >
+                    Clear search
+                  </button>
+                </>
+              ) : (
+                "No bookings in this category."
+              )}
+            </div>
+          )}
+
+          {/* Booking grid: 1 col mobile · 2 cols tablet/laptop · 3 cols wide screens */}
+          <div className="grid grid-cols-1 items-start gap-5 md:grid-cols-2 2xl:grid-cols-3">
+            {visible.map((booking) => (
+              <div key={booking.booking_id} className="min-w-0 space-y-2">
+                <BookingCard
+                  booking={booking}
+                  actions={
+                    <>
+                      {booking.status === "pending" && (
+                        <button
+                          onClick={() => navigate(`/payment/${booking.booking_id}`)}
+                          className={primaryBtnClass}
+                        >
+                          Pay now
+                        </button>
+                      )}
+                      {(booking.status === "confirmed" || booking.status === "completed") && (
+                        <button
+                          onClick={() => handleInvoice(booking)}
+                          disabled={downloadingId === booking.booking_id}
+                          className={`${secondaryBtnClass} gap-2`}
+                        >
+                          <Download className="h-4 w-4" />
+                          {downloadingId === booking.booking_id ? "Preparing…" : "Invoice"}
+                        </button>
+                      )}
+                      {booking.status === "completed" &&
+                        (booking.has_feedback ? (
+                          <span className="text-sm text-green-700 dark:text-green-400">
+                            ✓ Thanks for your feedback
+                          </span>
+                        ) : (
+                          feedbackOpenFor !== booking.booking_id && (
+                            <button
+                              onClick={() => setFeedbackOpenFor(booking.booking_id)}
+                              className={secondaryBtnClass}
+                            >
+                              Leave feedback
+                            </button>
+                          )
+                        ))}
+                    </>
+                  }
+                />
+
+                <BookingOrganizerPanel
+                  bookingId={booking.booking_id}
+                  assignments={organizersByBooking.get(booking.booking_id) ?? []}
+                  canAssign={booking.status === "pending" || booking.status === "confirmed"}
+                  onAssigned={(a) => setOrganizers((prev) => [a, ...prev])}
+                />
+
+                <BookingSponsorOffers
+                  offers={offersByBooking.get(booking.booking_id) ?? []}
+                  respondingId={respondingOfferId}
+                  onRespond={handleOfferRespond}
+                />
+
+                {booking.status === "completed" &&
+                  !booking.has_feedback &&
+                  feedbackOpenFor === booking.booking_id && (
+                    <div className="rounded-2xl border border-border! bg-card p-5 shadow-sm">
+                      <FeedbackForm
+                        bookingId={booking.booking_id}
+                        onSubmitted={() => {
+                          setFeedbackOpenFor(null);
+                          setBookings((prev) =>
+                            prev.map((b) =>
+                              b.booking_id === booking.booking_id ? { ...b, has_feedback: true } : b
+                            )
+                          );
+                        }}
+                      />
+                    </div>
+                  )}
+              </div>
+            ))}
+          </div>
+
+          {/* Pagination */}
+          {!isLoading && filtered.length > 0 && (
+            <div className="mt-8 flex flex-col items-center justify-between gap-4 border-t border-border pt-5 sm:flex-row">
+              <div className="flex flex-wrap items-center justify-center gap-3 text-sm text-muted-foreground">
+                <span>
+                  Showing{" "}
+                  <span className="font-medium text-foreground">
+                    {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
+                  </span>{" "}
+                  of <span className="font-medium text-foreground">{filtered.length}</span>
+                </span>
+                <label className="flex items-center gap-1.5">
+                  <span className="sr-only">Bookings per page</span>
+                  <select
+                    value={pageSize}
+                    onChange={(e) => setPageSize(Number(e.target.value))}
+                    className="rounded-lg border border-border bg-card px-2 py-1.5 text-sm text-foreground outline-none focus:border-violet-500"
+                  >
+                    {PAGE_SIZE_OPTIONS.map((n) => (
+                      <option key={n} value={n}>
+                        {n} / page
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {totalPages > 1 && (
+                <nav className="flex items-center gap-1" aria-label="Pagination">
+                  <button
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    aria-label="Previous page"
+                    className={`${pageBtn} bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 dark:ring-white/10`}
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                  </button>
+
+                  {getPageItems(currentPage, totalPages).map((item, i) =>
+                    item === "…" ? (
+                      <span key={`gap-${i}`} className="px-1.5 text-muted-foreground">
+                        …
+                      </span>
+                    ) : (
+                      <button
+                        key={item}
+                        onClick={() => goToPage(item)}
+                        aria-current={item === currentPage ? "page" : undefined}
+                        className={`${pageBtn} ${
+                          item === currentPage
+                            ? "bg-violet-600 text-white"
+                            : "bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted dark:ring-white/10"
+                        }`}
+                      >
+                        {item}
+                      </button>
+                    )
+                  )}
+
+                  <button
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    aria-label="Next page"
+                    className={`${pageBtn} bg-card text-muted-foreground ring-1 ring-inset ring-gray-200 hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 dark:ring-white/10`}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </nav>
+              )}
+            </div>
+          )}
+        </main>
+      </div>
     </div>
   );
 }
