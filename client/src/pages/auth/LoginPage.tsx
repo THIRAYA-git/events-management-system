@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
@@ -55,6 +55,20 @@ export default function LoginPage() {
     }
   };
 
+  const googleWrapRef = useRef<HTMLDivElement>(null);
+  const [googleWidth, setGoogleWidth] = useState(320);
+
+  useEffect(() => {
+    const el = googleWrapRef.current;
+    if (!el) return;
+    const update = () =>
+      setGoogleWidth(Math.max(200, Math.min(400, Math.floor(el.clientWidth))));
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, []);
+
   return (
     <AuthLayout
       title="Sign in to Aazath Plaza"
@@ -62,14 +76,17 @@ export default function LoginPage() {
       footer={
         <>
           Don&apos;t have an account?{" "}
-          <Link to="/register" className="font-medium text-violet-700 dark:text-violet-400 hover:underline">
+          <Link
+            to="/register"
+            className="font-medium text-violet-700 dark:text-violet-400 hover:underline"
+          >
             Register
           </Link>
         </>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-5">
-        <div>
+<form onSubmit={handleSubmit} className="min-w-0 space-y-5">
+          <div>
           <label htmlFor="email" className={authLabelClass}>
             Email
           </label>
@@ -87,7 +104,10 @@ export default function LoginPage() {
 
         <div>
           <div className="mb-1.5 flex items-center justify-between">
-            <label htmlFor="password" className="block text-sm font-medium text-foreground">
+            <label
+              htmlFor="password"
+              className="block text-sm font-medium text-foreground"
+            >
               Password
             </label>
             <Link
@@ -108,7 +128,11 @@ export default function LoginPage() {
           />
         </div>
 
-        <button type="submit" className={authButtonClass} disabled={isSubmitting}>
+        <button
+          type="submit"
+          className={authButtonClass}
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Signing in..." : "Sign in"}
         </button>
       </form>
@@ -120,13 +144,21 @@ export default function LoginPage() {
       </div>
 
       <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => toast.error("Google sign-in failed. Please try again.")}
-          text="signin_with"
-          shape="rectangular"
-          width="320"
-        />
+        <div
+          ref={googleWrapRef}
+          className="w-full max-w-[320px] min-w-0 overflow-hidden"
+        >
+          <GoogleLogin
+            key={googleWidth}
+            onSuccess={handleGoogleSuccess}
+            onError={() =>
+              toast.error("Google sign-in failed. Please try again.")
+            }
+            text="signin_with"
+            shape="rectangular"
+            width={String(googleWidth)}
+          />
+        </div>
       </div>
     </AuthLayout>
   );
