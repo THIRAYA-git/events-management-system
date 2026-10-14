@@ -15,7 +15,7 @@ Final Year Project · MIT 32046 Software Development Project · Department of Ma
 
 <!-- Add once available: [Live Demo](https://your-demo-url) · [Project Report](link) · [Demo Video](link) -->
 
-<img src="docs/screenshots/00-hero.png" alt="EMS home page" width="900">
+<img src="docs/screenshots/01-home-light.jpg" alt="EMS home page" width="900">
 
 </div>
 
@@ -61,6 +61,7 @@ EMS replaces that with a single integrated platform built around four modules:
 - **Analytics dashboard** with revenue trends, hall utilisation, booking status and event-type breakdowns
 - **Report generation and export** to PDF
 - **Customer feedback and reviews** surfaced on the public site
+- **Light and dark themes** across the public site and all dashboards
 - **JWT authentication with role-based access control** across seven roles
 
 ## User Roles
@@ -79,61 +80,65 @@ EMS replaces that with a single integrated platform built around four modules:
 
 ### Public Site & Account
 
-| Home | About |
+| **Home (Light)** | **Home (Dark)** |
 | :---: | :---: |
-| <img src="docs/screenshots/01-home.png" width="420"> | <img src="docs/screenshots/02-about.png" width="420"> |
-| **Contact** | **Login** |
-| <img src="docs/screenshots/03-contact.png" width="420"> | <img src="docs/screenshots/04-login.png" width="420"> |
+| <img src="docs/screenshots/01-home-light.jpg" width="420"> | <img src="docs/screenshots/02-home-dark.jpg" width="420"> |
+| **About** | **Contact** |
+| <img src="docs/screenshots/03-about.jpg" width="420"> | <img src="docs/screenshots/04-contact.jpg" width="420"> |
+| **Login** |  |
+| <img src="docs/screenshots/05-login.jpg" width="420"> |  |
 
-### Customer Booking & Payment
+### Customer Booking & Account
 
-| Booking Wizard – Date & Time | Booking Wizard – Catering Menu |
+| **Booking Wizard – Date & Time** | **Booking Wizard – Catering Category** |
 | :---: | :---: |
-| <img src="docs/screenshots/05-booking-date-time.png" width="420"> | <img src="docs/screenshots/06-booking-catering-menu.png" width="420"> |
-| **Booking Confirmed** | **Payment Portal** |
-| <img src="docs/screenshots/07-booking-confirmed.png" width="420"> | <img src="docs/screenshots/08-payment-portal.png" width="420"> |
-| **Payment Success & Invoice Download** | **Customer Dashboard** |
-| <img src="docs/screenshots/09-payment-success.png" width="420"> | <img src="docs/screenshots/10-customer-dashboard.png" width="420"> |
-| **Profile Settings** | |
-| <img src="docs/screenshots/11-profile-settings.png" width="420"> | |
+| <img src="docs/screenshots/06-booking-date-time.jpg" width="420"> | <img src="docs/screenshots/07-booking-catering-category.jpg" width="420"> |
+| **Booking Wizard – Catering Items** | **Booking Review** |
+| <img src="docs/screenshots/08-booking-catering-items.jpg" width="420"> | <img src="docs/screenshots/09-booking-review.png" width="420"> |
+| **Booking Confirmed** | **Customer Dashboard** |
+| <img src="docs/screenshots/10-booking-confirmed.png" width="420"> | <img src="docs/screenshots/11-customer-dashboard.jpg" width="420"> |
+| **My Bookings** | **Profile Settings** |
+| <img src="docs/screenshots/12-my-bookings.jpg" width="420"> | <img src="docs/screenshots/13-profile-settings.png" width="420"> |
 
 ### Administration & Analytics
 
-| Dashboard | Bookings |
+| **Dashboard** | **Collapsed Sidebar** |
 | :---: | :---: |
-| <img src="docs/screenshots/12-admin-dashboard.png" width="420"> | <img src="docs/screenshots/13-admin-bookings.png" width="420"> |
-| **Event Scheduling** | **Add Activity** |
-| <img src="docs/screenshots/14-admin-event-schedule.png" width="420"> | <img src="docs/screenshots/15-admin-add-activity.png" width="420"> |
-| **Staff Management** | **Customer Feedback** |
-| <img src="docs/screenshots/16-admin-staff.png" width="420"> | <img src="docs/screenshots/17-admin-feedback.png" width="420"> |
-| **Reports** | |
-| <img src="docs/screenshots/18-admin-reports.png" width="420"> | |
+| <img src="docs/screenshots/14-admin-dashboard.jpg" width="420"> | <img src="docs/screenshots/15-admin-collapsed-sidebar.jpg" width="420"> |
+| **Bookings** | **Catering Orders** |
+| <img src="docs/screenshots/16-admin-bookings.png" width="420"> | <img src="docs/screenshots/17-admin-catering-orders.png" width="420"> |
+| **Analytics** | **Reports** |
+| <img src="docs/screenshots/18-admin-analytics.jpg" width="420"> | <img src="docs/screenshots/19-admin-reports.jpg" width="420"> |
+| **Staff Management** | **Organizers & Sponsors** |
+| <img src="docs/screenshots/20-admin-staff.png" width="420"> | <img src="docs/screenshots/21-admin-organizers-sponsors.png" width="420"> |
+| **Customer Feedback** |  |
+| <img src="docs/screenshots/22-admin-feedback.png" width="420"> |  |
 
 ### Manager & Front Desk
 
-| Manager Dashboard | Front Desk |
+| **Manager Dashboard** | **Customer Management** |
 | :---: | :---: |
-| <img src="docs/screenshots/19-manager-dashboard.png" width="420"> | <img src="docs/screenshots/20-front-desk.png" width="420"> |
+| <img src="docs/screenshots/23-manager-dashboard.png" width="420"> | <img src="docs/screenshots/24-manager-customers.png" width="420"> |
+| **Front Desk Dashboard** | **Event Scheduling** |
+| <img src="docs/screenshots/25-front-desk-dashboard.jpg" width="420"> | <img src="docs/screenshots/26-front-desk-schedule.png" width="420"> |
+| **Add Activity** |  |
+| <img src="docs/screenshots/27-front-desk-add-activity.png" width="420"> |  |
 
 ### Organizer & Sponsor Connect
 
-| Organizer Dashboard | Organizer Portfolio |
+| **Organizer Dashboard** | **Organizer Portfolio** |
 | :---: | :---: |
-| <img src="docs/screenshots/21-organizer-dashboard.png" width="420"> | <img src="docs/screenshots/22-organizer-portfolio.png" width="420"> |
-| **Sponsor Dashboard** | |
-| <img src="docs/screenshots/23-sponsor-dashboard.png" width="420"> | |
+| <img src="docs/screenshots/28-organizer-dashboard.png" width="420"> | <img src="docs/screenshots/29-organizer-portfolio.png" width="420"> |
+| **Sponsor Dashboard** | **Sponsor Offering** |
+| <img src="docs/screenshots/30-sponsor-dashboard.png" width="420"> | <img src="docs/screenshots/31-sponsor-offering.png" width="420"> |
+| **Sponsorships** |  |
+| <img src="docs/screenshots/32-sponsor-sponsorships.png" width="420"> |  |
 
 ### Restaurant & Catering
 
-| Restaurant Dashboard | Menu Items |
+| **Restaurant Dashboard** | **Menu Items** |
 | :---: | :---: |
-| <img src="docs/screenshots/24-restaurant-dashboard.png" width="420"> | <img src="docs/screenshots/25-restaurant-menu-items.png" width="420"> |
-
-### Notifications
-
-| Payment Received Email |
-| :---: |
-| <img src="docs/screenshots/26-email-payment-received.png" width="420"> |
+| <img src="docs/screenshots/33-restaurant-dashboard.png" width="420"> | <img src="docs/screenshots/34-restaurant-menu-items.png" width="420"> |
 
 ## Tech Stack
 
