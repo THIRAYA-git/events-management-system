@@ -1,4 +1,4 @@
-export const STAFF_ROLES = ["front_desk", "manager", "admin"] as const;
+export const STAFF_ROLES = ["front_desk", "admin"] as const;
 export const PARTNER_ROLES = ["organizer", "sponsor", "restaurant"] as const;
 
 export const isStaffRole = (role?: string | null): boolean =>

@@ -10,7 +10,7 @@ import {
   FileText,
 } from "lucide-react";
 
-export type AdminRole = "front_desk" | "manager" | "admin";
+export type AdminRole = "front_desk" | "admin";
 
 export interface AdminNavItem {
   label: string;
@@ -24,31 +24,31 @@ export const adminNavItems: AdminNavItem[] = [
     label: "Dashboard",
     path: "/admin",
     icon: LayoutDashboard,
-    roles: ["front_desk", "manager", "admin"],
+    roles: ["front_desk", "admin"],
   },
   {
     label: "Bookings",
     path: "/admin/bookings",
     icon: CalendarCheck,
-    roles: ["front_desk", "manager", "admin"],
+    roles: ["front_desk", "admin"],
   },
   {
     label: "Schedule Event",
     path: "/admin/schedule",
     icon: CalendarClock,
-    roles: ["admin", "manager", "front_desk"],
+    roles: ["admin", "front_desk"],
   },
   {
     label: "Customers",
     path: "/admin/customers",
     icon: Users,
-    roles: ["front_desk", "manager", "admin"],
+    roles: ["front_desk", "admin"],
   },
   {
     label: "Feedback",
     path: "/admin/feedback",
     icon: MessageSquare,
-    roles: ["admin", "manager"],
+    roles: ["admin"],
   },
   {
     label: "Manage Staffs",
@@ -60,12 +60,12 @@ export const adminNavItems: AdminNavItem[] = [
     label: "Settings",
     path: "/admin/settings",
     icon: Settings,
-    roles: ["front_desk", "manager", "admin"],
+    roles: ["front_desk", "admin"],
   },
   {
     label: "Reports",
     path: "/admin/reports",
     icon: FileText,
-    roles: ["manager", "admin"],
+    roles: ["admin"],
   },
 ];

@@ -13,7 +13,7 @@ const transporter = nodemailer.createTransport({
 });
 
 // Roles that get a bell alert for new bookings, payments and catering orders.
-const STAFF_ROLES = ["admin", "manager", "front_desk"];
+const STAFF_ROLES = ["admin", "front_desk"];
 
 const escapeHtml = (s) =>
   String(s ?? "")
@@ -242,7 +242,7 @@ const sendPaymentRefundNoticeEmail = async (to, { customerName, bookingRef }) =>
     subject: `Action needed — payment for ${bookingRef}`,
     log: { type: "general", bookingRef },
     alert: {
-      roles: ["admin", "manager"],
+      roles: ["admin"],
       subject: `Action needed — refund for ${bookingRef}`,
       message: `${customerName} paid, but the booking could not be confirmed. Please arrange a refund.`,
     },

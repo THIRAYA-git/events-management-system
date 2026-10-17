@@ -58,7 +58,7 @@ router.use(authenticate);
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
   "/",
-  restrictTo("admin", "manager", "front_desk", "customer"),
+  restrictTo("admin", "front_desk", "customer"),
   validateCreateBooking,
   validate,
   createBookingHandler
@@ -83,7 +83,7 @@ router.get(
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
   "/:bookingId",
-  restrictTo("admin", "manager", "front_desk", "customer"),
+  restrictTo("admin", "front_desk", "customer"),
   validateGetBooking,
   validate,
   getBookingHandler
@@ -94,7 +94,7 @@ router.get(
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
   "/:bookingId/organizers",
-  restrictTo("admin", "manager", "front_desk", "customer"),
+  restrictTo("admin", "front_desk", "customer"),
   listOrganizersForBookingHandler
 );
 
@@ -112,7 +112,7 @@ router.post(
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
   "/:bookingId/sponsors",
-  restrictTo("admin", "manager", "front_desk", "customer"),
+  restrictTo("admin", "front_desk", "customer"),
   listSponsorRequestsForBookingHandler
 );
 
@@ -198,13 +198,13 @@ router.delete(
 
 router.get(
   "/",
-  restrictTo("admin", "manager", "front_desk"),
+  restrictTo("admin", "front_desk"),
   listBookingsHandler
 );
 
 router.get(
   "/:bookingId",
-  restrictTo("admin", "manager", "front_desk", "customer"),
+  restrictTo("admin", "front_desk", "customer"),
   validateGetBooking,
   validate,
   getBookingHandler
@@ -212,7 +212,7 @@ router.get(
 
 router.patch(
   "/:bookingId/status",
-  restrictTo("admin", "manager", "front_desk"),
+  restrictTo("admin", "front_desk"),
   updateBookingStatusHandler
 );
 

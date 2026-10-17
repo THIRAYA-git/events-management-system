@@ -16,15 +16,13 @@ TRUNCATE TABLE audit_log, notifications, password_reset_tokens,
 RESTART IDENTITY CASCADE;
 
 -- ============================================================
--- 1. USERS (7 roles)
+-- 1. USERS (6 roles)
 -- Password for all test users: Test@2026
 -- bcrypt hash of 'Test@2026'
 -- ============================================================
 INSERT INTO users (full_name, email, password_hash, phone, role, is_active, is_verified) VALUES
 -- Admin
 ('Fathima Thiraya',        'admin@aazathplaza.lk',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94771234567', 'admin',       TRUE, TRUE),
--- Manager
-('Mohamed Zahin',         'manager@aazathplaza.lk',    '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94772345678', 'manager',     TRUE, TRUE),
 -- Front Desk Staff
 ('Aisha Nusrath',          'staff@aazathplaza.lk',      '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TugH7yGRVpJWGHp5fUoQxH6VHQIC', '+94773456789', 'front_desk',  TRUE, TRUE),
 -- Customers
@@ -125,15 +123,15 @@ INSERT INTO menu_items (item_name, category, description, price, unit, is_vegeta
 -- 4. ORGANIZERS
 -- ============================================================
 INSERT INTO organizers (user_id, business_name, specialty, experience_years, portfolio_url, bio, price_range, avg_rating, total_reviews, is_verified, is_available) VALUES
-(9,  'Riyaz Events & Decorations',  'Wedding & Reception Decoration',  8,  'https://riyazevents.lk',      'Specialising in traditional Sri Lankan and modern wedding decorations. Over 500 successful events.', 'LKR 25,000 - 80,000', 4.8, 45, TRUE, TRUE),
-(10, 'Fathima Floral Designs',      'Floral Arrangements & Stage Setup', 5, 'https://fathimaflorals.lk', 'Expert in fresh floral arrangements, stage backdrops and table centrepieces for all occasions.',     'LKR 15,000 - 50,000', 4.6, 28, TRUE, TRUE);
+(8,  'Riyaz Events & Decorations',  'Wedding & Reception Decoration',  8,  'https://riyazevents.lk',      'Specialising in traditional Sri Lankan and modern wedding decorations. Over 500 successful events.', 'LKR 25,000 - 80,000', 4.8, 45, TRUE, TRUE),
+(9, 'Fathima Floral Designs',      'Floral Arrangements & Stage Setup', 5, 'https://fathimaflorals.lk', 'Expert in fresh floral arrangements, stage backdrops and table centrepieces for all occasions.',     'LKR 15,000 - 50,000', 4.6, 28, TRUE, TRUE);
 
 -- ============================================================
 -- 5. SPONSORS
 -- ============================================================
 INSERT INTO sponsors (user_id, company_name, industry, website_url, budget_range, preferred_events, description, status) VALUES
-(11, 'Akbar Traders',    'Retail & Trading',  'https://akbartraders.lk',  'LKR 50,000 - 200,000',  'weddings, corporate events, cultural events', 'Leading retail and trading company in the Eastern Province. Proud to sponsor community events.', 'active'),
-(12, 'Zam Zam Jewellery', 'Jewellery & Gold',  'https://zamzamjewel.lk',  'LKR 30,000 - 150,000',  'weddings, engagements, valima',               'Premium gold and diamond jewellery. Official sponsor for wedding and engagement events.',         'active');
+(10, 'Akbar Traders',    'Retail & Trading',  'https://akbartraders.lk',  'LKR 50,000 - 200,000',  'weddings, corporate events, cultural events', 'Leading retail and trading company in the Eastern Province. Proud to sponsor community events.', 'active'),
+(11, 'Zam Zam Jewellery', 'Jewellery & Gold',  'https://zamzamjewel.lk',  'LKR 30,000 - 150,000',  'weddings, engagements, valima',               'Premium gold and diamond jewellery. Official sponsor for wedding and engagement events.',         'active');
 
 -- ============================================================
 -- 6. BOOKINGS (10 sample bookings)
@@ -141,22 +139,22 @@ INSERT INTO sponsors (user_id, company_name, industry, website_url, budget_range
 INSERT INTO bookings (user_id, package_id, booking_ref, event_date, event_start_time, event_end_time, event_type, guest_count, status, base_amount, addon_amount, discount_amount, tax_amount, total_amount, special_requests, confirmed_by, confirmed_at) VALUES
 
 -- Completed bookings (past)
-(4, 3, 'AP-20260101-0001', '2026-01-15', '14:00', '22:00', 'Wedding Reception',    350, 'completed', 130000, 25000, 5000,  15000, 165000, 'Vegetarian menu preferred. Flower arch at entrance.',         2, '2025-12-20 10:00:00'),
-(5, 2, 'AP-20260102-0002', '2026-02-10', '16:00', '22:00', 'Engagement Ceremony',  200, 'completed',  85000, 15000, 0,     10000, 110000, 'Pink and gold colour theme.',                                 2, '2026-01-05 11:00:00'),
-(6, 4, 'AP-20260103-0003', '2026-03-05', '12:00', '22:00', 'Wedding Reception',    450, 'completed', 200000, 30000, 10000, 22000, 242000, 'Live nasheeds performance. No music.',                        2, '2026-01-15 09:00:00'),
-(7, 5, 'AP-20260104-0004', '2026-03-22', '08:00', '16:00', 'Corporate Seminar',    180, 'completed',  95000, 10000, 5000,  10000, 110000, 'Projector needed. Tea break at 10:30 AM and 3:00 PM.',        2, '2026-02-01 14:00:00'),
+(3, 3, 'AP-20260101-0001', '2026-01-15', '14:00', '22:00', 'Wedding Reception',    350, 'completed', 130000, 25000, 5000,  15000, 165000, 'Vegetarian menu preferred. Flower arch at entrance.',         1, '2025-12-20 10:00:00'),
+(4, 2, 'AP-20260102-0002', '2026-02-10', '16:00', '22:00', 'Engagement Ceremony',  200, 'completed',  85000, 15000, 0,     10000, 110000, 'Pink and gold colour theme.',                                 1, '2026-01-05 11:00:00'),
+(5, 4, 'AP-20260103-0003', '2026-03-05', '12:00', '22:00', 'Wedding Reception',    450, 'completed', 200000, 30000, 10000, 22000, 242000, 'Live nasheeds performance. No music.',                        1, '2026-01-15 09:00:00'),
+(6, 5, 'AP-20260104-0004', '2026-03-22', '08:00', '16:00', 'Corporate Seminar',    180, 'completed',  95000, 10000, 5000,  10000, 110000, 'Projector needed. Tea break at 10:30 AM and 3:00 PM.',        1, '2026-02-01 14:00:00'),
 
 -- Confirmed bookings (upcoming)
-(8, 3, 'AP-20260601-0005', '2026-06-14', '15:00', '22:00', 'Wedding Reception',    300, 'confirmed', 130000, 20000, 0,     15000, 165000, 'Indoor garden theme. Fountain setup requested.',              2, '2026-04-10 10:00:00'),
-(4, 7, 'AP-20260602-0006', '2026-06-28', '17:00', '22:00', 'Engagement Ceremony',  150, 'confirmed',  75000, 10000, 0,      8500,  93500, 'Surprise engagement. Keep venue decoration secret.',          2, '2026-04-15 11:00:00'),
-(5, 6, 'AP-20260703-0007', '2026-07-12', '15:00', '21:00', 'Birthday Party',        80, 'confirmed',  45000,  8000, 2000,   5100,  56100, 'Unicorn theme. 5-year-old birthday. No spicy food.',          3, '2026-05-01 09:00:00'),
+(7, 3, 'AP-20260601-0005', '2026-06-14', '15:00', '22:00', 'Wedding Reception',    300, 'confirmed', 130000, 20000, 0,     15000, 165000, 'Indoor garden theme. Fountain setup requested.',              1, '2026-04-10 10:00:00'),
+(3, 7, 'AP-20260602-0006', '2026-06-28', '17:00', '22:00', 'Engagement Ceremony',  150, 'confirmed',  75000, 10000, 0,      8500,  93500, 'Surprise engagement. Keep venue decoration secret.',          1, '2026-04-15 11:00:00'),
+(4, 6, 'AP-20260703-0007', '2026-07-12', '15:00', '21:00', 'Birthday Party',        80, 'confirmed',  45000,  8000, 2000,   5100,  56100, 'Unicorn theme. 5-year-old birthday. No spicy food.',          2, '2026-05-01 09:00:00'),
 
 -- Pending bookings
-(6, 2, 'AP-20260704-0008', '2026-07-25', '16:00', '22:00', 'Valima Ceremony',      220, 'pending',   85000,     0,    0,      0,  85000, 'Traditional setup. Separate seating for males and females.', NULL, NULL),
-(7, 1, 'AP-20260805-0009', '2026-08-08', '18:00', '22:00', 'Farewell Party',        120, 'pending',  50000,     0,    0,      0,  50000, 'Buffet style. Backdrop with photos.',                        NULL, NULL),
+(5, 2, 'AP-20260704-0008', '2026-07-25', '16:00', '22:00', 'Valima Ceremony',      220, 'pending',   85000,     0,    0,      0,  85000, 'Traditional setup. Separate seating for males and females.', NULL, NULL),
+(6, 1, 'AP-20260805-0009', '2026-08-08', '18:00', '22:00', 'Farewell Party',        120, 'pending',  50000,     0,    0,      0,  50000, 'Buffet style. Backdrop with photos.',                        NULL, NULL),
 
 -- Cancelled booking
-(8, 3, 'AP-20260106-0010', '2026-04-20', '14:00', '22:00', 'Wedding Reception',    300, 'cancelled', 130000,    0,    0,      0, 130000, 'Cancelled due to change of venue.',                           NULL, NULL);
+(7, 3, 'AP-20260106-0010', '2026-04-20', '14:00', '22:00', 'Wedding Reception',    300, 'cancelled', 130000,    0,    0,      0, 130000, 'Cancelled due to change of venue.',                           NULL, NULL);
 
 -- ============================================================
 -- 6b. HALLS (only if missing) + HALL BOOKINGS
@@ -285,16 +283,16 @@ INSERT INTO booking_organizers (booking_id, organizer_id, role_in_event, agreed_
 -- 11. FEEDBACK
 -- ============================================================
 INSERT INTO feedback (booking_id, user_id, rating, title, comment, is_public) VALUES
-(1, 4, 5, 'Absolutely Perfect Wedding!',
+(1, 3, 5, 'Absolutely Perfect Wedding!',
  'Aazath Plaza made our wedding day truly unforgettable. The hall was beautifully decorated, the catering from Althab was excellent, and the staff were so helpful and professional. Highly recommended!',
  TRUE),
-(2, 5, 5, 'Dream Engagement Ceremony',
+(2, 4, 5, 'Dream Engagement Ceremony',
  'We had our engagement at Aazath Plaza and it was beyond our expectations. The pink and gold decoration was stunning. The team handled everything perfectly. Will definitely book again!',
  TRUE),
-(3, 6, 4, 'Grand Wedding Reception',
+(3, 5, 4, 'Grand Wedding Reception',
  'Our wedding reception was grand and well-organised. The Platinum Package was worth every rupee. Only minor issue was parking space was a bit limited. Overall excellent experience.',
  TRUE),
-(4, 7, 5, 'Excellent Corporate Event',
+(4, 6, 5, 'Excellent Corporate Event',
  'We held our annual company seminar at Aazath Plaza. The corporate setup was professional, AV equipment worked perfectly, and the staff were very cooperative. Will book again for next year.',
  TRUE);
 
@@ -302,24 +300,24 @@ INSERT INTO feedback (booking_id, user_id, rating, title, comment, is_public) VA
 -- 12. NOTIFICATIONS
 -- ============================================================
 INSERT INTO notifications (user_id, booking_id, type, channel, subject, message, recipient_email, recipient_phone, is_sent, sent_at) VALUES
-(4, 1, 'booking_confirmation', 'both',  'Booking Confirmed - AP-20260101-0001', 'Dear Mohamed Rifkan, your booking for Wedding Reception on 15 Jan 2026 has been confirmed. Booking Ref: AP-20260101-0001. Total: LKR 165,000.', 'rifkan@gmail.com',  '+94774567890', TRUE, '2025-12-20 10:05:00'),
-(4, 1, 'payment_receipt',      'email', 'Payment Receipt - INV-2026-0001',       'Dear Mohamed Rifkan, we have received your payment of LKR 165,000 for booking AP-20260101-0001. Invoice: INV-2026-0001.',                         'rifkan@gmail.com',  NULL,           TRUE, '2026-01-15 13:05:00'),
-(5, 2, 'booking_confirmation', 'both',  'Booking Confirmed - AP-20260102-0002', 'Dear Fathima Zahira, your booking for Engagement Ceremony on 10 Feb 2026 has been confirmed. Total: LKR 110,000.',                               'zahira@gmail.com',  '+94775678901', TRUE, '2026-01-05 11:05:00'),
-(8, 5, 'booking_confirmation', 'both',  'Booking Confirmed - AP-20260601-0005', 'Dear Hassan Mueen, your booking for Wedding Reception on 14 Jun 2026 has been confirmed. Total: LKR 165,000.',                                   'mueen@gmail.com',   '+94778901234', TRUE, '2026-04-10 10:05:00'),
-(8, 5, 'event_reminder',       'sms',   'Event Reminder - Tomorrow!',            'Dear Hassan Mueen, this is a reminder that your Wedding Reception at Aazath Plaza is scheduled for TOMORROW 14 Jun 2026 at 3:00 PM.',             NULL,                '+94778901234', TRUE, '2026-06-13 09:00:00'),
-(6, 8, 'booking_confirmation', 'email', 'Booking Received - AP-20260704-0008',  'Dear Abdul Basith, your booking request for Valima Ceremony on 25 Jul 2026 has been received and is pending confirmation.',                      'basith@gmail.com',  NULL,           TRUE, '2026-05-20 14:00:00');
+(3, 1, 'booking_confirmation', 'both',  'Booking Confirmed - AP-20260101-0001', 'Dear Mohamed Rifkan, your booking for Wedding Reception on 15 Jan 2026 has been confirmed. Booking Ref: AP-20260101-0001. Total: LKR 165,000.', 'rifkan@gmail.com',  '+94774567890', TRUE, '2025-12-20 10:05:00'),
+(3, 1, 'payment_receipt',      'email', 'Payment Receipt - INV-2026-0001',       'Dear Mohamed Rifkan, we have received your payment of LKR 165,000 for booking AP-20260101-0001. Invoice: INV-2026-0001.',                         'rifkan@gmail.com',  NULL,           TRUE, '2026-01-15 13:05:00'),
+(4, 2, 'booking_confirmation', 'both',  'Booking Confirmed - AP-20260102-0002', 'Dear Fathima Zahira, your booking for Engagement Ceremony on 10 Feb 2026 has been confirmed. Total: LKR 110,000.',                               'zahira@gmail.com',  '+94775678901', TRUE, '2026-01-05 11:05:00'),
+(7, 5, 'booking_confirmation', 'both',  'Booking Confirmed - AP-20260601-0005', 'Dear Hassan Mueen, your booking for Wedding Reception on 14 Jun 2026 has been confirmed. Total: LKR 165,000.',                                   'mueen@gmail.com',   '+94778901234', TRUE, '2026-04-10 10:05:00'),
+(7, 5, 'event_reminder',       'sms',   'Event Reminder - Tomorrow!',            'Dear Hassan Mueen, this is a reminder that your Wedding Reception at Aazath Plaza is scheduled for TOMORROW 14 Jun 2026 at 3:00 PM.',             NULL,                '+94778901234', TRUE, '2026-06-13 09:00:00'),
+(5, 8, 'booking_confirmation', 'email', 'Booking Received - AP-20260704-0008',  'Dear Abdul Basith, your booking request for Valima Ceremony on 25 Jul 2026 has been received and is pending confirmation.',                      'basith@gmail.com',  NULL,           TRUE, '2026-05-20 14:00:00');
 
 -- ============================================================
 -- 13. AUDIT LOG
 -- ============================================================
 INSERT INTO audit_log (user_id, action, table_name, record_id, new_values, ip_address) VALUES
 (1, 'CREATE_USER',    'users',    1,  '{"email":"admin@aazathplaza.lk","role":"admin"}',      '127.0.0.1'),
-(2, 'CONFIRM_BOOKING','bookings', 1,  '{"status":"confirmed","booking_ref":"AP-20260101-0001"}','192.168.1.10'),
-(2, 'CONFIRM_BOOKING','bookings', 2,  '{"status":"confirmed","booking_ref":"AP-20260102-0002"}','192.168.1.10'),
-(2, 'CONFIRM_BOOKING','bookings', 5,  '{"status":"confirmed","booking_ref":"AP-20260601-0005"}','192.168.1.10'),
-(3, 'CONFIRM_BOOKING','bookings', 7,  '{"status":"confirmed","booking_ref":"AP-20260703-0007"}','192.168.1.12'),
-(4, 'CREATE_BOOKING', 'bookings', 1,  '{"event_type":"Wedding Reception","event_date":"2026-01-15"}','102.165.1.5'),
-(5, 'CREATE_BOOKING', 'bookings', 2,  '{"event_type":"Engagement Ceremony","event_date":"2026-02-10"}','102.165.2.8');
+(1, 'CONFIRM_BOOKING','bookings', 1,  '{"status":"confirmed","booking_ref":"AP-20260101-0001"}','192.168.1.10'),
+(1, 'CONFIRM_BOOKING','bookings', 2,  '{"status":"confirmed","booking_ref":"AP-20260102-0002"}','192.168.1.10'),
+(1, 'CONFIRM_BOOKING','bookings', 5,  '{"status":"confirmed","booking_ref":"AP-20260601-0005"}','192.168.1.10'),
+(2, 'CONFIRM_BOOKING','bookings', 7,  '{"status":"confirmed","booking_ref":"AP-20260703-0007"}','192.168.1.12'),
+(3, 'CREATE_BOOKING', 'bookings', 1,  '{"event_type":"Wedding Reception","event_date":"2026-01-15"}','102.165.1.5'),
+(4, 'CREATE_BOOKING', 'bookings', 2,  '{"event_type":"Engagement Ceremony","event_date":"2026-02-10"}','102.165.2.8');
 
 -- ============================================================
 -- VERIFY: Count rows in each table

@@ -11,7 +11,7 @@ const rowsOf = (r) => (Array.isArray(r) ? r : r.rows);
 router.post(
   "/image",
   authenticate,
-  restrictTo("admin", "manager", "front_desk"),
+  restrictTo("admin", "front_desk"),
   singleImage("image"),
   async (req, res) => {
     try {
@@ -52,7 +52,7 @@ router.post("/avatar", authenticate, singleImage("image"), async (req, res) => {
 });
 
 // DELETE /api/uploads/image  body: { public_id }
-router.delete("/image", authenticate, restrictTo("admin", "manager"), async (req, res) => {
+router.delete("/image", authenticate, restrictTo("admin"), async (req, res) => {
   try {
     const { public_id } = req.body;
     if (!public_id) return res.status(400).json({ message: "public_id is required" });

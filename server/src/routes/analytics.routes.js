@@ -7,8 +7,8 @@ const { getDashboardAnalyticsHandler } = require("../controllers/analytics.contr
 
 router.use(authenticate);
 
-// Analytics is sensitive business data — manager/admin only,
+// Analytics is sensitive business data — admin only,
 // not front_desk (unlike Bookings/Customers which front_desk can see).
-router.get("/dashboard", restrictTo("manager", "admin"), getDashboardAnalyticsHandler);
+router.get("/dashboard", restrictTo("admin"), getDashboardAnalyticsHandler);
 
 module.exports = router;

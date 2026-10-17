@@ -21,28 +21,28 @@ const router = express.Router();
 // All customer routes require a valid token
 router.use(authenticate);
 
-// GET /api/customers — admin | manager | front_desk
+// GET /api/customers — admin | front_desk
 router.get(
   '/',
-  restrictTo('admin', 'manager', 'front_desk'),
+  restrictTo('admin', 'front_desk'),
   validateListCustomers,
   validate,
   listCustomers
 );
 
-// GET /api/customers/:id — admin | manager | front_desk
+// GET /api/customers/:id — admin | front_desk
 router.get(
   '/:id',
-  restrictTo('admin', 'manager', 'front_desk'),
+  restrictTo('admin', 'front_desk'),
   validateCustomerId,
   validate,
   getCustomer
 );
 
-// PUT /api/customers/:id — admin | manager | front_desk
+// PUT /api/customers/:id — admin | front_desk
 router.put(
   '/:id',
-  restrictTo('admin', 'manager', 'front_desk'),
+  restrictTo('admin', 'front_desk'),
   validateUpdateCustomer,
   validate,
   updateCustomer
@@ -57,10 +57,10 @@ router.delete(
   deactivateCustomer
 );
 
-// GET /api/customers/:id/bookings — admin | manager | front_desk
+// GET /api/customers/:id/bookings — admin | front_desk
 router.get(
   '/:id/bookings',
-  restrictTo('admin', 'manager', 'front_desk'),
+  restrictTo('admin', 'front_desk'),
   validateCustomerBookingsQuery,
   validate,
   getCustomerBookings

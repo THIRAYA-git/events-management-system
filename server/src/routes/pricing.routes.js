@@ -25,7 +25,7 @@ router.use(authenticate);
 // ─────────────────────────────────────────────────────────────────────────────
 router.get(
   '/event-types',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  restrictTo('admin', 'front_desk', 'customer'),
   validateGetEventPricing,
   validate,
   getEventPricing
@@ -37,7 +37,7 @@ router.get(
 // ─────────────────────────────────────────────────────────────────────────────
 router.post(
   '/calculate',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  restrictTo('admin', 'front_desk', 'customer'),
   validateCalculatePrice,
   validate,
   calculatePrice

@@ -17,7 +17,7 @@ router.use(authenticate);
 // POST /api/feedback — customer submits feedback on their own completed booking
 router.post("/", authorize("feedback:create"), createFeedbackHandler);
 
-// GET /api/feedback — admin/manager list + moderation view
+// GET /api/feedback — admin list + moderation view
 router.get("/", authorize("feedback:read"), listFeedbackHandler);
 
 // GET /api/feedback/summary — headline stats for the admin page
@@ -40,7 +40,7 @@ router.patch(
   markReplyReadHandler
 );
 
-// PATCH /api/feedback/:feedbackId/reply — admin/manager adds or edits a reply
+// PATCH /api/feedback/:feedbackId/reply — admin adds or edits a reply
 router.patch(
   "/:feedbackId/reply",
   authorize("feedback:manage"),

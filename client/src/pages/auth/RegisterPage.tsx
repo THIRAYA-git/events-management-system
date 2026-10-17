@@ -11,7 +11,7 @@ import {
 } from "@/components/auth/authStyles";
 
 // Matches PUBLIC_ROLES in auth.controller.js — the only roles a person can
-// self-assign at signup. Staff roles (admin/manager/front_desk) are
+// self-assign at signup. Staff roles (admin/front_desk) are
 // deliberately excluded and can only be granted by an existing admin.
 const PUBLIC_ROLES: { value: UserRole; label: string }[] = [
   { value: "customer", label: "Customer" },

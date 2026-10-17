@@ -162,7 +162,7 @@ const respondToSponsorRequest = async (
     throw err;
   }
 
-  const isStaff = ["admin", "manager"].includes(respondingRole);
+  const isStaff = ["admin"].includes(respondingRole);
   const isOwningSponsor =
     respondingRole === "sponsor" &&
     request.sponsor_user_id === respondingUserId;

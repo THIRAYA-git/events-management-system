@@ -38,7 +38,7 @@ const orderBelongsToRestaurant = async (order, restaurantId) => {
 };
 
 const assertCanAccessOrder = async (order, requestingUser) => {
-  if (["admin", "manager", "front_desk"].includes(requestingUser.role)) {
+  if (["admin", "front_desk"].includes(requestingUser.role)) {
     return;
   }
 
@@ -161,7 +161,7 @@ const listCateringOrdersForBooking = async (bookingId, requestingUser) => {
   return result.rows;
 };
 
-// Admin/manager/front_desk/restaurant view across every booking.
+// Admin/front_desk/restaurant view across every booking.
 // Sort: open orders first (soonest event date first), then finished orders
 // (delivered/cancelled), most recent first.
 // hideDeliveredThrough (YYYY-MM-DD): hides DELIVERED orders whose event date

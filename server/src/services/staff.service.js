@@ -1,7 +1,7 @@
 const { query } = require("../config/db");
 const { hashPassword } = require("./auth.service");
 
-const STAFF_ROLES = ["admin", "manager", "front_desk"];
+const STAFF_ROLES = ["admin", "front_desk"];
 const STAFF_LIMIT = 10;
 
 const COLS = `user_id, full_name, email, phone, role, profile_image, is_active,

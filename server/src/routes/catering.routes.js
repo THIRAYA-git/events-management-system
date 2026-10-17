@@ -14,13 +14,13 @@ router.use(authenticate);
 // POST /api/catering-orders   -> customer places a catering order for their own booking
 router.post("/", authorize("catering:create"), createCateringOrderHandler);
 
-// GET /api/catering-orders    -> admin/manager/front_desk/restaurant table view across all bookings.
+// GET /api/catering-orders    -> admin/front_desk/restaurant table view across all bookings.
 // Deliberately restrictTo(...) rather than authorize("catering:read"): that
 // permission also includes "customer" for the single-order-by-id route,
 // but this endpoint has no ownership filtering and must stay staff-only.
-router.get("/", restrictTo("admin", "manager", "front_desk", "restaurant"), listCateringOrdersHandler);
+router.get("/", restrictTo("admin", "front_desk", "restaurant"), listCateringOrdersHandler);
 
-// GET /api/catering-orders/:orderId               -> single order (owner customer, or admin/manager/front_desk/restaurant)
+// GET /api/catering-orders/:orderId               -> single order (owner customer, or admin/front_desk/restaurant)
 router.get("/:orderId", authorize("catering:read"), getCateringOrderHandler);
 
 // PATCH /api/catering-orders/:orderId/status       -> advance or cancel order status

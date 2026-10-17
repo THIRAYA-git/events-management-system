@@ -1,17 +1,17 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  src/routes/hall.routes.js
 // ─────────────────────────────────────────────────────────────────────────────
-const express = require('express');
+const express = require("express");
 
-const { authenticate, restrictTo } = require('../middleware/auth.middleware');
-const { validate }                 = require('../middleware/validate');
+const { authenticate, restrictTo } = require("../middleware/auth.middleware");
+const { validate } = require("../middleware/validate");
 const {
   validateCheckAvailability,
   validateGetAvailableHalls,
   validateGetSchedule,
   validateAssignHall,
   validateReleaseHall,
-} = require('../validators/hall.validator');
+} = require("../validators/hall.validator");
 const {
   checkHallAvailability,
   listAvailableHalls,
@@ -19,17 +19,20 @@ const {
   getSchedule,
   assignHall,
   releaseHall,
-} = require('../controllers/hall.controller');
+} = require("../controllers/hall.controller");
 
-const { singleImage } = require('../middleware/upload.middleware');
-const { validateUploadHallPhoto } = require('../validators/hall.validator'); 
-const { uploadHallPhoto } = require('../controllers/hall.controller'); 
-const { listAllActiveHalls } = require('../controllers/hall.controller'); 
-
+const { singleImage } = require("../middleware/upload.middleware");
+const { validateUploadHallPhoto } = require("../validators/hall.validator");
+const { uploadHallPhoto } = require("../controllers/hall.controller");
+const { listAllActiveHalls } = require("../controllers/hall.controller");
 
 const router = express.Router();
 
-// All hall routes require a valid token
+// PUBLIC: halls listing for the home page (no login needed)
+// GET /api/halls
+router.get("/", listAllActiveHalls);
+
+// All hall routes BELOW this line require a valid token
 router.use(authenticate);
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -39,8 +42,8 @@ router.use(authenticate);
 // Check if a specific hall is free for a given date + time slot
 // GET /api/halls/availability?hall_id=1&event_date=2026-08-15&start_time=09:00&end_time=14:00
 router.get(
-  '/availability',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/availability",
+  restrictTo("admin", "front_desk", "customer"),
   validateCheckAvailability,
   validate,
   checkHallAvailability
@@ -49,8 +52,8 @@ router.get(
 // List all halls that are free for a given slot (with optional floor/capacity filters)
 // GET /api/halls/available?event_date=2026-08-15&start_time=09:00&end_time=14:00&floor_number=1&guest_count=200
 router.get(
-  '/available',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/available",
+  restrictTo("admin", "front_desk", "customer"),
   validateGetAvailableHalls,
   validate,
   listAvailableHalls
@@ -59,16 +62,16 @@ router.get(
 // Per-date hall usage for shading the booking calendar
 // GET /api/halls/calendar?from=2026-10-01&to=2026-10-31
 router.get(
-  '/calendar',
-  restrictTo('admin', 'manager', 'front_desk', 'customer'),
+  "/calendar",
+  restrictTo("admin", "front_desk", "customer"),
   getCalendar
 );
 
 // Full day schedule for a specific hall
 // GET /api/halls/:hallId/schedule?event_date=2026-08-15
 router.get(
-  '/:hallId/schedule',
-  restrictTo('admin', 'manager', 'front_desk'),
+  "/:hallId/schedule",
+  restrictTo("admin", "front_desk"),
   validateGetSchedule,
   validate,
   getSchedule
@@ -81,8 +84,8 @@ router.get(
 // Assign a hall to a booking (after conflict check)
 // POST /api/halls/assign
 router.post(
-  '/assign',
-  restrictTo('admin', 'manager', 'front_desk'),
+  "/assign",
+  restrictTo("admin", "front_desk"),
   validateAssignHall,
   validate,
   assignHall
@@ -91,8 +94,8 @@ router.post(
 // Cancel / release a hall assignment
 // DELETE /api/halls/assign/:hallBookingId
 router.delete(
-  '/assign/:hallBookingId',
-  restrictTo('admin', 'manager'),
+  "/assign/:hallBookingId",
+  restrictTo("admin"),
   validateReleaseHall,
   validate,
   releaseHall
@@ -100,15 +103,12 @@ router.delete(
 
 // PATCH /api/halls/:hallId/photo
 router.patch(
-  '/:hallId/photo',
-  restrictTo('admin', 'manager'),
-  singleImage('photo'),
+  "/:hallId/photo",
+  restrictTo("admin"),
+  singleImage("photo"),
   validateUploadHallPhoto,
   validate,
   uploadHallPhoto
 );
-
-// GET /api/halls — plain listing of both halls for showcase/homepage use
-router.get('/', listAllActiveHalls);
 
 module.exports = router;

@@ -10,7 +10,7 @@ const {
   deactivateUser,
 } = require("../models/user.model");
 
-const VALID_ROLES = ["customer", "front_desk", "manager", "admin", "organizer", "sponsor", "restaurant"];
+const VALID_ROLES = ["customer", "front_desk", "admin", "organizer", "sponsor", "restaurant"];
 
 // Front desk may only see customer accounts (never staff, partners or admins)
 const isFrontDesk = (req) => req.user.role === "front_desk";

@@ -21,13 +21,11 @@ import type { StaffMember, StaffRole, StaffFilters } from "@/types/staff.types";
 
 const ROLE_LABEL: Record<StaffRole, string> = {
   admin: "Admin",
-  manager: "Manager",
   front_desk: "Front Desk",
 };
 
 const ROLE_STYLE: Record<StaffRole, string> = {
   admin: "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400",
-  manager: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400",
   front_desk: "bg-muted text-foreground",
 };
 
@@ -205,7 +203,6 @@ export const AdminStaffPage = () => {
           >
             <option value="">All roles</option>
             <option value="admin">Admin</option>
-            <option value="manager">Manager</option>
             <option value="front_desk">Front Desk</option>
           </select>
         </div>
@@ -449,7 +446,6 @@ export const AdminStaffPage = () => {
                 }
               >
                 <option value="front_desk">Front Desk</option>
-                <option value="manager">Manager</option>
                 <option value="admin">Admin</option>
               </select>
             </div>

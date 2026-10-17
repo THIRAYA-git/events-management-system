@@ -115,7 +115,7 @@ const createFeedback = async (data, requestingUser) => {
   return result.rows[0];
 };
 
-// GET /api/feedback — admin/manager listing.
+// GET /api/feedback — admin listing.
 // Filters: rating, isPublic, hasReply, hasRooms, eventType, search (q)
 // LEFT JOIN bookings so manual entries (booking_id NULL) still appear.
 const listFeedback = async ({
@@ -223,7 +223,7 @@ const getFeedbackSummary = async () => {
   return result.rows[0];
 };
 
-// PATCH /api/feedback/:feedbackId/reply — admin/manager adds or edits a reply
+// PATCH /api/feedback/:feedbackId/reply — admin adds or edits a reply
 const respondToFeedback = async (feedbackId, adminReply) => {
   const reply = typeof adminReply === "string" ? adminReply.trim() : "";
   if (!reply) throw badRequest("admin_reply is required.");

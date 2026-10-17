@@ -3,7 +3,7 @@ const { pgTable, pgEnum, serial, varchar,
 const { sql } = require('drizzle-orm');
 
 const userRole = pgEnum('user_role', [
-  'customer', 'front_desk', 'manager', 'admin',
+  'customer', 'front_desk', 'admin',
   'organizer', 'sponsor', 'restaurant'
 ]);
 

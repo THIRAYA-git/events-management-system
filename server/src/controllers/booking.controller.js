@@ -129,7 +129,7 @@ const getBookingHandler = async (req, res, next) => {
     const result = await getBookingById(bookingId);
 
     // Object-level check: customers may only view their own bookings.
-    // Staff (admin/manager/front_desk) bypass this per their RBAC role.
+    // Staff (admin/front_desk) bypass this per their RBAC role.
     if (req.user.role === "customer" && result.user_id !== req.user.id) {
       return res.status(403).json({
         success: false,

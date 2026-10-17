@@ -68,7 +68,7 @@ const listCateringOrdersForBookingHandler = async (req, res) => {
   }
 };
 
-// GET /api/catering-orders — admin/manager/front_desk/restaurant table view
+// GET /api/catering-orders — admin/front_desk/restaurant table view
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const DATE_FILTERS = ["overdue", "today", "upcoming"];
 

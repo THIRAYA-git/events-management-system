@@ -45,7 +45,7 @@ const notifyUsers = async (
 };
 
 // Notify every user who has one of the given roles, e.g.
-//   notifyRoles(["admin", "manager", "front_desk"], { ... })
+//   notifyRoles(["admin", "front_desk"], { ... })
 const notifyRoles = async (roles, payload) => {
   try {
     const found = await query(

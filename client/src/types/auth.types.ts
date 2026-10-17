@@ -1,7 +1,6 @@
 export type UserRole =
   | "customer"
   | "front_desk"
-  | "manager"
   | "admin"
   | "sponsor"
   | "organizer"
