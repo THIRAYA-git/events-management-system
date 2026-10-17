@@ -21,6 +21,26 @@ type Stage =
   | "error";
 
 const SANDBOX = import.meta.env.VITE_PAYHERE_SANDBOX !== "false"; // default true
+const PAYHERE_SDK_URL = "https://www.payhere.lk/lib/payhere.js";
+const SDK_ERROR =
+  "Could not load the PayHere payment library. Turn off your VPN, ad blocker or tracking protection for this site, then try again.";
+
+// Make sure window.payhere exists before we touch it. If the <script> in
+// index.html was blocked or hasn't finished, try loading it once more here.
+const ensurePayhere = async (): Promise<void> => {
+  if (window.payhere) return;
+
+  await new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = PAYHERE_SDK_URL;
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error(SDK_ERROR));
+    document.head.appendChild(script);
+  });
+
+  if (!window.payhere) throw new Error(SDK_ERROR);
+};
 
 // Poll a few times after PayHere's popup reports success, since the real
 // confirmation happens async via the /notify webhook, not this callback.
@@ -54,6 +74,10 @@ export default function PaymentCheckoutPage() {
 
     const run = async () => {
       try {
+        // 1. SDK first, so we don't create a payment record we can't pay.
+        await ensurePayhere();
+
+        // 2. Ask the backend for the signed checkout payload.
         const checkout = await initiatePayment(numericBookingId);
         setStage("awaiting");
 

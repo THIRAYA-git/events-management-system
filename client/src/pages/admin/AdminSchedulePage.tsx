@@ -132,7 +132,7 @@ export function AdminSchedulePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Schedule Event</h1>
+      <h1 className="text-2xl font-semibold text-foreground">Scheduled Events</h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Plan setup, catering, decoration and cleanup tasks for each booked event.
       </p>

@@ -8,7 +8,7 @@ import {
   CalendarClock,
   UserPlus,
   Check,
-  Plus,
+  
 } from "lucide-react";
 import type { AdminBooking, BookingStatus } from "@/types/booking.types";
 import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
@@ -242,13 +242,13 @@ export function AdminBookingsPage() {
             <XCircle className="h-4 w-4" />
             Reject All
           </button>
-          <Link
+          {/* <Link
             to="/book"
             className="flex items-center gap-1.5 rounded-md bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             <Plus className="h-4 w-4" />
             Book a Hall
-          </Link>
+          </Link> */}
         </div>
       </div>
 

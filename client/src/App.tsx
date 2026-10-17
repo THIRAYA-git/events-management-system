@@ -19,9 +19,6 @@ import PartnerLayout from "@/layouts/PartnerLayout";
 import { AdminDashboardHome } from "@/pages/admin/AdminDashboardHome";
 import { AdminBookingsPage } from "@/pages/admin/AdminBookingsPage";
 import { AdminCustomersPage } from "@/pages/admin/AdminCustomersPage";
-import { AdminOrganizersSponsorsPage } from "@/pages/admin/AdminOrganizersSponsorsPage";
-import { AdminCateringPage } from "@/pages/admin/AdminCateringPage";
-import { AdminAnalyticsPage } from "@/pages/admin/AdminAnalyticsPage";
 import { AdminSettingsPage } from "@/pages/admin/AdminSettingsPage";
 import { AccountSettingsPage } from "@/pages/AccountSettingsPage";
 import MenuItemsPage from "@/pages/restaurant/MenuItemsPage";
@@ -123,12 +120,6 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="staff" element={<AdminStaffPage />} />
               </Route>
-              <Route
-                path="organizers-sponsors"
-                element={<AdminOrganizersSponsorsPage />}
-              />
-              <Route path="catering" element={<AdminCateringPage />} />
-              <Route path="analytics" element={<AdminAnalyticsPage />} />
               <Route path="reports" element={<AdminReportsPage />} />
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
