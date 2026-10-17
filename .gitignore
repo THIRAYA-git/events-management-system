@@ -34,3 +34,4 @@ Desktop.ini
 *.swo
 *~
 nul
+DB_backup.sql
