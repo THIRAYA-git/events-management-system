@@ -166,14 +166,14 @@ Three-tier architecture: React single-page client → Express REST API → Postg
 
 ### Prerequisites
 - Node.js 18+
-- PostgreSQL
+- PostgreSQL (run the db file in query tool)
 
 ### Installation
 
 ```bash
 # Install server dependencies
 cd server
-npm install
+npm install (run on cmd)
 
 # Install client dependencies
 cd ../client
@@ -181,12 +181,24 @@ npm install
 ```
 
 ### Environment Variables
+Copy the .env.example file and fill in your values:
+Rename the server/.env.example to server/.env
 
-Copy the example file and fill in your values:
+### ngrok Download, install & VS Code extension to run.
+1. Go to this link "https://ngrok.com/download/windows?tab=download"
 
-```bash
-cp server/.env.example server/.env
-```
+2. sign up & get Auth Token from dashboard.
+
+3. ngrok for VSCode by Phill Nash
+
+4. Press Ctrl + Shift + P (or F1) on your keyboard to open the VS Code Command Palette dropdown at the top of your editor.
+
+5. Type ngrok set auth token & paste the token.
+ngrok: start inside that top search bar.
+
+6. Press Enter Type ngrok: start. 
+
+Why it is needed: Malicious actors frequently use free TCP tunnels to launch malware and phishing campaigns anonymously. Ngrok requires a valid debit or credit card purely as an identity check to stop automated bots. As long as you stay within free limits, it costs $0.
 
 ### Running the App
 
