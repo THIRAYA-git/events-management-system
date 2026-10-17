@@ -39,11 +39,11 @@ import AdminFeedbackPage from "@/pages/admin/AdminFeedbackPage";
 import { AdminReportsPage } from "@/pages/admin/AdminReportsPage";
 import CustomerDashboardPage from "@/pages/customer/CustomerDashboardPage";
 
-
 function Home() {
-  const { user } = useAuth();
-  if (isPartnerRole(user?.role)) {
-    return <Navigate to={getHomePath(user?.role)} replace />;
+  const { user, isLoading } = useAuth();
+  if (isLoading) return null;
+  if (user && isPartnerRole(user.role)) {
+    return <Navigate to={getHomePath(user.role)} replace />;
   }
   return <HomePage />;
 }
@@ -60,18 +60,16 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
 
           <Route element={<CustomerLayout />}>
-            {/* Any logged-in user */}
-            <Route element={<ProtectedRoute />}>
-              <Route path="/" element={<Home />} />
-              <Route path="/about" element={<AboutPage />} />
-              <Route path="/contact" element={<ContactPage />} />
-            </Route>
+            {/* Public: no login needed */}
+            <Route path="/" element={<Home />} />
+            <Route path="/about" element={<AboutPage />} />
+            <Route path="/contact" element={<ContactPage />} />
 
             {/* Only roles allowed to create bookings */}
             <Route
               element={
                 <ProtectedRoute
-                  allowedRoles={["customer", "admin", "manager", "front_desk"]}
+                  allowedRoles={["customer", "admin", "front_desk"]}
                 />
               }
             >
@@ -95,13 +93,9 @@ function App() {
             </Route>
           </Route>
 
-          {/* Staff: front desk, manager, admin — each guard is its own top-level group */}
+          {/* Staff: front desk, admin — each guard is its own top-level group */}
           <Route
-            element={
-              <ProtectedRoute
-                allowedRoles={["front_desk", "manager", "admin"]}
-              />
-            }
+            element={<ProtectedRoute allowedRoles={["front_desk", "admin"]} />}
           >
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboardHome />} />
@@ -112,15 +106,15 @@ function App() {
                 element={<EventTimelinePage />}
               />
               <Route path="customers" element={<AdminCustomersPage />} />
-              <Route
-                element={<ProtectedRoute allowedRoles={["admin", "manager"]} />}
-              >
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="feedback" element={<AdminFeedbackPage />} />
               </Route>{" "}
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="staff" element={<AdminStaffPage />} />
               </Route>
-              <Route path="reports" element={<AdminReportsPage />} />
+              <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
+                <Route path="reports" element={<AdminReportsPage />} />
+              </Route>
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
           </Route>

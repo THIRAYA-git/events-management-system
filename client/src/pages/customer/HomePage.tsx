@@ -50,27 +50,28 @@ export default function HomePage() {
   const [upcoming, setUpcoming] = useState<UpcomingBookingSummary | null>(null);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    const load = async () => {
-      setLoading(true);
-      try {
-        const [hallsData, feedbackData, upcomingData] = await Promise.all([
-          getAllHalls(),
-          getPublicFeedback(4),
-          user?.role === "customer" ? getMyNextUpcomingBooking() : Promise.resolve(null),
-        ]);
-        setHalls(hallsData);
-        setTestimonials(feedbackData);
-        setUpcoming(upcomingData);
-      } catch {
-        // Non-critical page — fail silently per section rather than blocking the whole page
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [user?.role]);
+useEffect(() => {
+  const load = async () => {
+    setLoading(true);
+    const [hallsRes, feedbackRes, upcomingRes] = await Promise.allSettled([
+      getAllHalls(),
+      getPublicFeedback(4),
+      user?.role === "customer" ? getMyNextUpcomingBooking() : Promise.resolve(null),
+    ]);
+
+    if (hallsRes.status === "fulfilled") setHalls(hallsRes.value);
+    else console.error("Halls failed:", hallsRes.reason);
+
+    if (feedbackRes.status === "fulfilled") setTestimonials(feedbackRes.value);
+    else console.error("Feedback failed:", feedbackRes.reason);
+
+    if (upcomingRes.status === "fulfilled") setUpcoming(upcomingRes.value);
+
+    setLoading(false);
+  };
+  load();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+}, [user?.role]);
 
   return (
     <div>
