@@ -25,7 +25,7 @@ export const getRecentBookings = async (limit = 5): Promise<RecentBookingRow[]> 
   return data.data;
 };
 
-// front_desk can't hit /analytics/dashboard (manager/admin only), so status
+// front_desk can't hit /analytics/dashboard (admin only), so status
 // counts for their view come from /bookings itself, which they can call —
 // one lightweight request per status, reading meta.total off each.
 export const getBookingStatusCounts = async (): Promise<Record<string, number>> => {

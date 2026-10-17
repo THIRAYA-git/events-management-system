@@ -27,7 +27,7 @@ export const createCateringOrder = async (
   return data.order;
 };
 
-// Admin/manager/front_desk/restaurant table view across all bookings.
+// Admin/front_desk/restaurant table view across all bookings.
 // hideDeliveredThrough (YYYY-MM-DD): hides delivered orders on/before that day.
 // dateFilter + today (YYYY-MM-DD, client local date): event-date filter.
 export const listAllCateringOrders = async (
