@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { CalendarPlus, ChevronLeft, ChevronRight, Download, Search, X } from "lucide-react";
+import {
+  CalendarPlus,
+  ChevronLeft,
+  ChevronRight,
+  Download,
+  Search,
+  BedDouble,
+  X,
+} from "lucide-react";
 import { BookingCard } from "@/components/customer/BookingCard";
 import { BookingSponsorOffers } from "@/components/customer/BookingSponsorOffers";
 import { BookingOrganizerPanel } from "@/components/customer/BookingOrganizerPanel";
@@ -77,7 +85,9 @@ export default function MyBookingsPage() {
   const [feedbackOpenFor, setFeedbackOpenFor] = useState<number | null>(null);
   const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [offers, setOffers] = useState<SponsorOffer[]>([]);
-  const [respondingOfferId, setRespondingOfferId] = useState<number | null>(null);
+  const [respondingOfferId, setRespondingOfferId] = useState<number | null>(
+    null
+  );
   const [organizers, setOrganizers] = useState<CustomerBookingOrganizer[]>([]);
 
   // search + pagination
@@ -109,7 +119,10 @@ export default function MyBookingsPage() {
 
   // Debounce the search box (300 ms)
   useEffect(() => {
-    const t = setTimeout(() => setSearch(searchInput.trim().toLowerCase()), 300);
+    const t = setTimeout(
+      () => setSearch(searchInput.trim().toLowerCase()),
+      300
+    );
     return () => clearTimeout(t);
   }, [searchInput]);
 
@@ -163,7 +176,8 @@ export default function MyBookingsPage() {
   }, [organizers]);
 
   // 2) status tab, 3) paginate
-  const filtered = filter === "all" ? searched : searched.filter((b) => b.status === filter);
+  const filtered =
+    filter === "all" ? searched : searched.filter((b) => b.status === filter);
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
   const startIdx = (currentPage - 1) * pageSize;
@@ -185,19 +199,34 @@ export default function MyBookingsPage() {
     }
   };
 
-  const handleOfferRespond = async (offerId: number, action: "accepted" | "rejected") => {
+  const handleOfferRespond = async (
+    offerId: number,
+    action: "accepted" | "rejected"
+  ) => {
     const offer = offers.find((o) => o.id === offerId);
     const verb = action === "accepted" ? "accept" : "reject";
-    if (!window.confirm(`Are you sure you want to ${verb} the offer from ${offer?.company_name}?`))
+    if (
+      !window.confirm(
+        `Are you sure you want to ${verb} the offer from ${offer?.company_name}?`
+      )
+    )
       return;
 
     setRespondingOfferId(offerId);
     try {
       const updated = await respondToSponsorOffer(offerId, action);
-      setOffers((prev) => prev.map((o) => (o.id === offerId ? { ...o, ...updated } as SponsorOffer : o)));
-      toast.success(action === "accepted" ? "Offer accepted." : "Offer rejected.");
+      setOffers((prev) =>
+        prev.map((o) =>
+          o.id === offerId ? ({ ...o, ...updated } as SponsorOffer) : o
+        )
+      );
+      toast.success(
+        action === "accepted" ? "Offer accepted." : "Offer rejected."
+      );
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Could not update the offer.");
+      toast.error(
+        err?.response?.data?.message ?? "Could not update the offer."
+      );
     } finally {
       setRespondingOfferId(null);
     }
@@ -213,15 +242,23 @@ export default function MyBookingsPage() {
       {/* Header */}
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">My Bookings</h1>
+          <h1 className="text-2xl font-bold text-foreground sm:text-3xl">
+            My Bookings
+          </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Track your events, complete payments and download invoices.
           </p>
         </div>
-        <Link to="/book" className={`${primaryBtnClass} gap-2`}>
-          <CalendarPlus className="h-4 w-4" />
-          New booking
-        </Link>
+        <div className="flex gap-2">
+          <Link to="/rooms" className={`${secondaryBtnClass} gap-2`}>
+            <BedDouble className="h-4 w-4" />
+            Book a room
+          </Link>
+          <Link to="/book" className={`${primaryBtnClass} gap-2`}>
+            <CalendarPlus className="h-4 w-4" />
+            New booking
+          </Link>
+        </div>
       </div>
 
       <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
@@ -276,7 +313,9 @@ export default function MyBookingsPage() {
                     {t.label}
                     <span
                       className={`rounded-full px-1.5 py-0.5 text-xs ${
-                        filter === t.key ? "bg-white/20" : "bg-muted text-muted-foreground"
+                        filter === t.key
+                          ? "bg-white/20"
+                          : "bg-muted text-muted-foreground"
                       }`}
                     >
                       {counts[t.key]}
@@ -306,9 +345,12 @@ export default function MyBookingsPage() {
               <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
                 <CalendarPlus className="h-7 w-7" />
               </div>
-              <h2 className="mt-4 text-lg font-semibold text-foreground">No bookings yet</h2>
+              <h2 className="mt-4 text-lg font-semibold text-foreground">
+                No bookings yet
+              </h2>
               <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                Pick a date, choose your hall and confirm your event in a few simple steps.
+                Pick a date, choose your hall and confirm your event in a few
+                simple steps.
               </p>
               <Link to="/book" className={`${primaryBtnClass} mt-5`}>
                 Book a hall
@@ -344,20 +386,25 @@ export default function MyBookingsPage() {
                     <>
                       {booking.status === "pending" && (
                         <button
-                          onClick={() => navigate(`/payment/${booking.booking_id}`)}
+                          onClick={() =>
+                            navigate(`/payment/${booking.booking_id}`)
+                          }
                           className={primaryBtnClass}
                         >
                           Pay now
                         </button>
                       )}
-                      {(booking.status === "confirmed" || booking.status === "completed") && (
+                      {(booking.status === "confirmed" ||
+                        booking.status === "completed") && (
                         <button
                           onClick={() => handleInvoice(booking)}
                           disabled={downloadingId === booking.booking_id}
                           className={`${secondaryBtnClass} gap-2`}
                         >
                           <Download className="h-4 w-4" />
-                          {downloadingId === booking.booking_id ? "Preparing…" : "Invoice"}
+                          {downloadingId === booking.booking_id
+                            ? "Preparing…"
+                            : "Invoice"}
                         </button>
                       )}
                       {booking.status === "completed" &&
@@ -368,7 +415,9 @@ export default function MyBookingsPage() {
                         ) : (
                           feedbackOpenFor !== booking.booking_id && (
                             <button
-                              onClick={() => setFeedbackOpenFor(booking.booking_id)}
+                              onClick={() =>
+                                setFeedbackOpenFor(booking.booking_id)
+                              }
                               className={secondaryBtnClass}
                             >
                               Leave feedback
@@ -381,8 +430,13 @@ export default function MyBookingsPage() {
 
                 <BookingOrganizerPanel
                   bookingId={booking.booking_id}
-                  assignments={organizersByBooking.get(booking.booking_id) ?? []}
-                  canAssign={booking.status === "pending" || booking.status === "confirmed"}
+                  assignments={
+                    organizersByBooking.get(booking.booking_id) ?? []
+                  }
+                  canAssign={
+                    booking.status === "pending" ||
+                    booking.status === "confirmed"
+                  }
                   onAssigned={(a) => setOrganizers((prev) => [a, ...prev])}
                 />
 
@@ -402,7 +456,9 @@ export default function MyBookingsPage() {
                           setFeedbackOpenFor(null);
                           setBookings((prev) =>
                             prev.map((b) =>
-                              b.booking_id === booking.booking_id ? { ...b, has_feedback: true } : b
+                              b.booking_id === booking.booking_id
+                                ? { ...b, has_feedback: true }
+                                : b
                             )
                           );
                         }}
@@ -420,9 +476,13 @@ export default function MyBookingsPage() {
                 <span>
                   Showing{" "}
                   <span className="font-medium text-foreground">
-                    {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
+                    {startIdx + 1}–
+                    {Math.min(startIdx + pageSize, filtered.length)}
                   </span>{" "}
-                  of <span className="font-medium text-foreground">{filtered.length}</span>
+                  of{" "}
+                  <span className="font-medium text-foreground">
+                    {filtered.length}
+                  </span>
                 </span>
                 <label className="flex items-center gap-1.5">
                   <span className="sr-only">Bookings per page</span>
@@ -441,7 +501,10 @@ export default function MyBookingsPage() {
               </div>
 
               {totalPages > 1 && (
-                <nav className="flex items-center gap-1" aria-label="Pagination">
+                <nav
+                  className="flex items-center gap-1"
+                  aria-label="Pagination"
+                >
                   <button
                     onClick={() => goToPage(currentPage - 1)}
                     disabled={currentPage === 1}
@@ -453,7 +516,10 @@ export default function MyBookingsPage() {
 
                   {getPageItems(currentPage, totalPages).map((item, i) =>
                     item === "…" ? (
-                      <span key={`gap-${i}`} className="px-1.5 text-muted-foreground">
+                      <span
+                        key={`gap-${i}`}
+                        className="px-1.5 text-muted-foreground"
+                      >
                         …
                       </span>
                     ) : (

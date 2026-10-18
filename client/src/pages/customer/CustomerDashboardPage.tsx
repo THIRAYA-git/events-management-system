@@ -18,6 +18,7 @@ import {
   MapPin,
   MessageSquare,
   Users,
+  BedDouble,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import FeedbackForm from "@/components/customer/FeedbackForm";
@@ -29,6 +30,8 @@ import { fetchMyBookings } from "@/lib/booking.api";
 import type { AdminBooking } from "@/types/booking.types";
 import { getMyUnreadReplies, markReplyRead } from "@/api/feedback.api";
 import type { FeedbackReply } from "@/types/feedback.types";
+import { getMyRoomReservations } from "@/api/room.api";
+import type { RoomReservation } from "@/types/room.types";
 
 ChartJS.register(
   ArcElement,
@@ -57,6 +60,13 @@ const fmtDate = (d: Date) =>
   });
 const lkr = (n: number) =>
   `LKR ${n.toLocaleString("en-LK", { maximumFractionDigits: 0 })}`;
+
+// Room dates arrive as "YYYY-MM-DD" text. Parse at local midnight so the
+// day never shifts with the time zone.
+const fmtStayDate = (s: string) => {
+  const [y, m, d] = s.slice(0, 10).split("-").map(Number);
+  return fmtDate(new Date(y, m - 1, d));
+};
 
 // every tint now has a dark variant (sky + teal were missing before)
 const CARD_TINTS = [
@@ -114,6 +124,9 @@ export default function CustomerDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [showAllUpcoming, setShowAllUpcoming] = useState(false);
 
+  // room stays (optional extra: never blocks the page if it fails)
+  const [stays, setStays] = useState<RoomReservation[]>([]);
+
   // null = nothing chosen yet, number = booking_id, "manual" = typed in
   const [feedbackId, setFeedbackId] = useState<number | typeof MANUAL | null>(
     null
@@ -136,6 +149,12 @@ export default function CustomerDashboardPage() {
       .catch((e) =>
         console.error("replies error:", e?.response?.status, e?.response?.data)
       );
+  }, []);
+
+  useEffect(() => {
+    getMyRoomReservations()
+      .then(setStays)
+      .catch(() => {});
   }, []);
 
   const handleMarkRead = async (id: number) => {
@@ -223,6 +242,22 @@ export default function CustomerDashboardPage() {
     };
   }, [bookings]);
 
+  // room stays that are still active and haven't ended yet
+  const upcomingStays = useMemo(() => {
+    const d = new Date();
+    const today = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+    return stays
+      .filter(
+        (s) =>
+          (s.status === "pending" || s.status === "confirmed") &&
+          s.check_out.slice(0, 10) >= today
+      )
+      .sort((a, b) => a.check_in.localeCompare(b.check_in));
+  }, [stays]);
+
   // completed events still waiting for feedback
   const eligible = useMemo(
     () => data.completed.filter((b) => !b.has_feedback),
@@ -269,10 +304,19 @@ export default function CustomerDashboardPage() {
             Events, payments and feedback in one place.
           </p>
         </div>
-        <Link to="/book" className={`${primaryBtnClass} gap-2`}>
-          <CalendarPlus className="h-4 w-4" />
-          New booking
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/rooms"
+            className="inline-flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5 text-sm font-medium text-foreground hover:bg-muted"
+          >
+            <BedDouble className="h-4 w-4" />
+            Book a room
+          </Link>
+          <Link to="/book" className={`${primaryBtnClass} gap-2`}>
+            <CalendarPlus className="h-4 w-4" />
+            New booking
+          </Link>
+        </div>
       </div>
 
       {error && <p className={errorTextClass}>{error}</p>}
@@ -393,92 +437,142 @@ export default function CustomerDashboardPage() {
             )}
           </section>
 
-          {/* Charts */}
-<section className="grid grid-cols-1 gap-4 lg:grid-cols-3 2xl:grid-cols-5">
-  <div className="min-w-0 rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5 2xl:col-span-2">
-    <h3 className="mb-3 text-sm font-medium text-foreground">
-      Bookings by status
-    </h3>
-    {bookings.length === 0 ? (
-      <p className="py-10 text-center text-sm text-muted-foreground">
-        No bookings yet.
-      </p>
-    ) : (
-      <div className="relative mx-auto h-64 w-full max-w-[18rem]">
-        <Doughnut
-          data={{
-            labels: ["Awaiting payment", "Confirmed", "Completed", "Cancelled"],
-            datasets: [
-              {
-                data: data.statusCounts,
-                backgroundColor: Object.values(STATUS_COLORS),
-                borderWidth: 0,
-              },
-            ],
-          }}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            cutout: "65%",
-            plugins: {
-              legend: {
-                position: "bottom",
-                labels: { boxWidth: 10 },
-              },
-            },
-          }}
-        />
-      </div>
-    )}
-  </div>
+          {/* Room stays: only shown when the customer has an upcoming stay */}
+          {upcomingStays.length > 0 && (
+            <section>
+              <div className="mb-3 flex items-center justify-between">
+                <h2 className="text-lg font-semibold text-foreground">
+                  My room stays
+                </h2>
+                <Link
+                  to="/my-rooms"
+                  className="text-sm font-medium text-violet-600 hover:underline dark:text-violet-400"
+                >
+                  All room reservations
+                </Link>
+              </div>
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {upcomingStays.map((s, i) => (
+                  <div
+                    key={s.reservation_id}
+                    className={`flex flex-col rounded-2xl border p-4 ${
+                      CARD_TINTS[i % CARD_TINTS.length]
+                    }`}
+                  >
+                    <p className="flex items-center gap-2 font-semibold text-foreground">
+                      <BedDouble className="h-4 w-4" /> {s.room_name}
+                    </p>
+                    <div className="mt-3 space-y-1.5 text-sm text-muted-foreground">
+                      <p className="flex items-center gap-2">
+                        <Clock className="h-3.5 w-3.5" />
+                        {fmtStayDate(s.check_in)} – {fmtStayDate(s.check_out)}
+                      </p>
+                      <p className="flex items-center gap-2">
+                        <Users className="h-3.5 w-3.5" />
+                        {s.nights} night{s.nights > 1 && "s"} · {s.guests} guest
+                        {s.guests > 1 && "s"}
+                      </p>
+                    </div>
+                    <div className="mt-auto flex items-center justify-between pt-4">
+                      <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs capitalize text-muted-foreground">
+                        {s.status}
+                      </span>
+                      <span className="text-sm font-semibold text-foreground">
+                        {lkr(Number(s.total_amount))}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
 
-  <div className="min-w-0 rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5 lg:col-span-2 2xl:col-span-3">
-    <h3 className="mb-3 text-sm font-medium text-foreground">
-      Spending by event month (LKR)
-    </h3>
-    {data.months.length === 0 ? (
-      <p className="py-10 text-center text-sm text-muted-foreground">
-        No data to chart yet.
-      </p>
-    ) : (
-      <div className="relative h-64 w-full">
-        <Bar
-          data={{
-            labels: data.months.map((m) => m.label),
-            datasets: [
-              {
-                label: "Paid",
-                data: data.months.map((m) => m.paid),
-                backgroundColor: "#7c3aed",
-                borderRadius: 6,
-              },
-              {
-                label: "Due",
-                data: data.months.map((m) => m.due),
-                backgroundColor: "#f59e0b",
-                borderRadius: 6,
-              },
-            ],
-          }}
-          options={{
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { stacked: true, grid: { display: false } },
-              y: { stacked: true, beginAtZero: true },
-            },
-            plugins: {
-              legend: {
-                position: "bottom",
-                labels: { boxWidth: 10 },
-              },
-            },
-          }}
-        />
-      </div>
-    )}
-  </div>
-</section>
+          {/* Charts */}
+          <section className="grid grid-cols-1 gap-4 lg:grid-cols-3 2xl:grid-cols-5">
+            <div className="min-w-0 rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5 2xl:col-span-2">
+              <h3 className="mb-3 text-sm font-medium text-foreground">
+                Bookings by status
+              </h3>
+              {bookings.length === 0 ? (
+                <p className="py-10 text-center text-sm text-muted-foreground">
+                  No bookings yet.
+                </p>
+              ) : (
+                <div className="relative mx-auto h-64 w-full max-w-[18rem]">
+                  <Doughnut
+                    data={{
+                      labels: ["Awaiting payment", "Confirmed", "Completed", "Cancelled"],
+                      datasets: [
+                        {
+                          data: data.statusCounts,
+                          backgroundColor: Object.values(STATUS_COLORS),
+                          borderWidth: 0,
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      cutout: "65%",
+                      plugins: {
+                        legend: {
+                          position: "bottom",
+                          labels: { boxWidth: 10 },
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+
+            <div className="min-w-0 rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5 lg:col-span-2 2xl:col-span-3">
+              <h3 className="mb-3 text-sm font-medium text-foreground">
+                Spending by event month (LKR)
+              </h3>
+              {data.months.length === 0 ? (
+                <p className="py-10 text-center text-sm text-muted-foreground">
+                  No data to chart yet.
+                </p>
+              ) : (
+                <div className="relative h-64 w-full">
+                  <Bar
+                    data={{
+                      labels: data.months.map((m) => m.label),
+                      datasets: [
+                        {
+                          label: "Paid",
+                          data: data.months.map((m) => m.paid),
+                          backgroundColor: "#7c3aed",
+                          borderRadius: 6,
+                        },
+                        {
+                          label: "Due",
+                          data: data.months.map((m) => m.due),
+                          backgroundColor: "#f59e0b",
+                          borderRadius: 6,
+                        },
+                      ],
+                    }}
+                    options={{
+                      responsive: true,
+                      maintainAspectRatio: false,
+                      scales: {
+                        x: { stacked: true, grid: { display: false } },
+                        y: { stacked: true, beginAtZero: true },
+                      },
+                      plugins: {
+                        legend: {
+                          position: "bottom",
+                          labels: { boxWidth: 10 },
+                        },
+                      },
+                    }}
+                  />
+                </div>
+              )}
+            </div>
+          </section>
 
           {/* Post-event feedback: replies left, form right on wide screens */}
           <section>

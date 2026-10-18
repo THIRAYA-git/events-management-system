@@ -38,6 +38,9 @@ import { AdminSchedulePage } from "@/pages/admin/AdminSchedulePage";
 import AdminFeedbackPage from "@/pages/admin/AdminFeedbackPage";
 import { AdminReportsPage } from "@/pages/admin/AdminReportsPage";
 import CustomerDashboardPage from "@/pages/customer/CustomerDashboardPage";
+import MyRoomsPage from "./pages/customer/MyRoomsPage";
+import RoomsPage from "./pages/customer/RoomsPage";
+import RoomPaymentCheckoutPage from "@/pages/customer/RoomPaymentCheckoutPage";
 
 function Home() {
   const { user, isLoading } = useAuth();
@@ -88,6 +91,9 @@ function App() {
             {/* Customer only — booking history + account settings */}
             <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
               <Route path="/my-bookings" element={<MyBookingsPage />} />
+              <Route path="/rooms" element={<RoomsPage />} />
+              <Route path="/my-rooms" element={<MyRoomsPage />} />
+              <Route path="/room-payment/:groupRef" element={<RoomPaymentCheckoutPage />} />
               <Route path="/dashboard" element={<CustomerDashboardPage />} />
               <Route path="/settings" element={<AccountSettingsPage />} />
             </Route>

@@ -11,6 +11,9 @@ const { findUserById } = require("../models/user.model");
 const { query } = require("../config/db");
 const { generateInvoicePdf } = require("../services/pdf.service");
 const {
+  handleNotify: handleRoomNotify,
+} = require("../services/room-payment.service");
+const {
   sendPaymentReceivedSms,
   sendPaymentRefundNoticeSms,
 } = require("../services/sms.service");
@@ -30,6 +33,51 @@ async function flagForRefund(paymentId, reason) {
      WHERE payment_id = $1`,
     [paymentId, reason]
   );
+}
+
+const PAYMENT_AUDIT_ACTIONS = {
+  2: "PAYMENT_SUCCESS",
+  0: "PAYMENT_PENDING",
+  "-1": "PAYMENT_CANCELLED",
+  "-2": "PAYMENT_FAILED",
+  "-3": "PAYMENT_CHARGEDBACK",
+};
+
+// NFR-014: logs every PayHere notification with event type and pricing.
+// Never throws, so auditing can't change the 200/400 PayHere receives.
+async function auditPayment(action, body, ip, extra = {}) {
+  try {
+    const r = await query(
+      `SELECT p.payment_id, p.amount AS expected_amount, b.event_type
+         FROM payments p
+         JOIN bookings b ON b.booking_id = p.booking_id
+        WHERE p.payhere_order_id = $1`,
+      [body.order_id]
+    );
+    const row = r.rows[0];
+    await query(
+      `INSERT INTO audit_log (user_id, action, table_name, record_id, new_values, ip_address)
+       VALUES (NULL, $1, 'payments', $2, $3::jsonb, $4)
+       ON CONFLICT DO NOTHING`,
+      [
+        action,
+        row?.payment_id ?? null,
+        JSON.stringify({
+          order_id: body.order_id,
+          payment_ref: body.payment_id ?? null,
+          status_code: String(body.status_code),
+          event_type: row?.event_type ?? null,
+          amount: body.payhere_amount ?? null,
+          expected_amount: row?.expected_amount ?? null,
+          currency: body.payhere_currency ?? null,
+          ...extra,
+        }),
+        ip,
+      ]
+    );
+  } catch (e) {
+    console.error("[audit] payment log failed:", e.message);
+  }
 }
 
 // Loads everything generateInvoicePdf needs for a booking's completed
@@ -306,9 +354,29 @@ router.post("/notify", async (req, res) => {
 
     if (!isValid) {
       console.warn("Invalid PayHere signature for order:", req.body.order_id);
+      await auditPayment("PAYMENT_SIG_INVALID", req.body, req.ip);
       return res.status(400).send("Invalid signature");
     }
-
+    // Room reservations share this webhook; their order_id starts with ROOM-
+    if (String(req.body.order_id || "").startsWith("ROOM-")) {
+      const r = await handleRoomNotify(req.body);
+      await auditPayment(
+        !r.ok
+          ? "PAYMENT_ROOM_REJECTED"
+          : r.lateRefund
+          ? "PAYMENT_REFUND_FLAGGED"
+          : PAYMENT_AUDIT_ACTIONS[String(req.body.status_code)] ||
+            "PAYMENT_UNKNOWN",
+        req.body,
+        req.ip,
+        {
+          event_type: "Room Reservation",
+          expected_amount: r.expected ?? null,
+          ...(r.reason && { reason: r.reason }),
+        }
+      );
+      return res.sendStatus(r.ok ? 200 : 400);
+    }
     const { order_id, status_code, payment_id } = req.body;
 
     const paymentStatus =
@@ -411,6 +479,14 @@ router.post("/notify", async (req, res) => {
         }
       }
     }
+
+    await auditPayment(
+      notifyKind === "refund"
+        ? "PAYMENT_REFUND_FLAGGED"
+        : PAYMENT_AUDIT_ACTIONS[String(status_code)] || "PAYMENT_UNKNOWN",
+      req.body,
+      req.ip
+    );
 
     // Respond to PayHere first, then send the email/SMS in the background.
     res.status(200).send("OK");

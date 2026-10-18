@@ -35,13 +35,14 @@ const CustomerNavbar = () => {
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
-
 const links = [
   ...(!user ? publicLinks : []),
   { to: "/book", label: "Book a Hall" },
   ...(user?.role === "customer"
     ? [
+        { to: "/rooms", label: "Book a Room" },
         { to: "/my-bookings", label: "My Bookings" },
+        { to: "/my-rooms", label: "My Rooms" },
         { to: "/dashboard", label: "Dashboard" },
       ]
     : []),

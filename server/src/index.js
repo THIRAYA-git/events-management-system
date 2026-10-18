@@ -27,7 +27,6 @@ const { startReminderJob } = require("./services/reminder.service");
 const reportRoutes = require("./routes/report.routes");
 const notificationRoutes = require("./routes/notification.routes");
 
-
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -69,6 +68,7 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/partner-accounts", partnerAccountRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/rooms", require("./routes/room.routes"));
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");

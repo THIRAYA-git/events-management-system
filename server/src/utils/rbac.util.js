@@ -108,6 +108,14 @@ const PERMISSIONS = {
   "sponsor_request:read_all": ["admin", "front_desk"],
   "sponsor_request:respond": ["admin", "sponsor"],
   "sponsor_request:withdraw": ["customer"],
+
+    // ── Room reservations (FR-009) ────────────────────────────
+  "room:browse": ["admin", "front_desk", "customer"],
+  "room:create": ["customer"],
+  "room:read_own": ["customer"],
+  "room:cancel_own": ["customer"],
+  "room:read_all": ["admin", "front_desk"],
+  "room:manage": ["admin", "front_desk"],
 };
 
 // Check if a role has a specific permission
