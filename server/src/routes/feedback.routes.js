@@ -12,6 +12,16 @@ const {
   markReplyReadHandler,
 } = require("../controllers/feedback.controller");
 
+// ─────────────────────────────────────────────────────────────
+// PUBLIC routes — must be registered BEFORE router.use(authenticate)
+// ─────────────────────────────────────────────────────────────
+
+// GET /api/feedback/public — testimonials for the homepage (no login needed)
+router.get("/public", listPublicFeedbackHandler);
+
+// ─────────────────────────────────────────────────────────────
+// Everything below requires a logged-in user
+// ─────────────────────────────────────────────────────────────
 router.use(authenticate);
 
 // POST /api/feedback — customer submits feedback on their own completed booking
@@ -24,21 +34,11 @@ router.get("/", authorize("feedback:read"), listFeedbackHandler);
 // (static paths are registered before any /:feedbackId route)
 router.get("/summary", authorize("feedback:read"), getFeedbackSummaryHandler);
 
-// GET /api/feedback/public — testimonials for the homepage, any logged-in role
-router.get("/public", listPublicFeedbackHandler);
+// GET /api/feedback/my/replies — customer's own admin replies
+router.get("/my/replies", restrictTo("customer"), getMyRepliesHandler);
 
-router.get(
-  "/my/replies",
-  authenticate,
-  restrictTo("customer"),
-  getMyRepliesHandler
-);
-router.patch(
-  "/:id/read",
-  authenticate,
-  restrictTo("customer"),
-  markReplyReadHandler
-);
+// PATCH /api/feedback/:id/read — customer marks an admin reply as read
+router.patch("/:id/read", restrictTo("customer"), markReplyReadHandler);
 
 // PATCH /api/feedback/:feedbackId/reply — admin adds or edits a reply
 router.patch(
