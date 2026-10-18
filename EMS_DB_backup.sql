@@ -2,7 +2,7 @@
 -- PostgreSQL database dump
 --
 
-\restrict Qed21i943wR8Wc0XgH0t7KnvtvJOlDgkK75EBw6bdM0A80Rwqf6AgdFPbuAhywG
+\restrict RQSs5Bj1N4plS1YvO85uboRvZTNBO6B2lgmbxtuQ7eMIwvmx5Hh4aOBGzEpyNYF
 
 -- Dumped from database version 18.4
 -- Dumped by pg_dump version 18.4
@@ -19,6 +19,196 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+ALTER TABLE IF EXISTS ONLY public.sponsors DROP CONSTRAINT IF EXISTS sponsors_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.room_reservations DROP CONSTRAINT IF EXISTS room_reservations_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.room_reservations DROP CONSTRAINT IF EXISTS room_reservations_room_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.room_reservations DROP CONSTRAINT IF EXISTS room_reservations_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.payments DROP CONSTRAINT IF EXISTS payments_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_tokens_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.organizers DROP CONSTRAINT IF EXISTS organizers_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.menu_items DROP CONSTRAINT IF EXISTS menu_items_restaurant_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.hall_bookings DROP CONSTRAINT IF EXISTS hall_bookings_hall_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.hall_bookings DROP CONSTRAINT IF EXISTS hall_bookings_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.hall_bookings DROP CONSTRAINT IF EXISTS hall_bookings_assigned_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.bookings DROP CONSTRAINT IF EXISTS fk_bookings_event_type;
+ALTER TABLE IF EXISTS ONLY public.feedback DROP CONSTRAINT IF EXISTS feedback_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.feedback DROP CONSTRAINT IF EXISTS feedback_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.event_timelines DROP CONSTRAINT IF EXISTS event_timelines_hall_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.event_timelines DROP CONSTRAINT IF EXISTS event_timelines_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.catering_orders DROP CONSTRAINT IF EXISTS catering_orders_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_user_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_confirmed_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.booking_sponsors DROP CONSTRAINT IF EXISTS booking_sponsors_sponsor_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.booking_sponsors DROP CONSTRAINT IF EXISTS booking_sponsors_responded_by_fkey;
+ALTER TABLE IF EXISTS ONLY public.booking_sponsors DROP CONSTRAINT IF EXISTS booking_sponsors_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.booking_organizers DROP CONSTRAINT IF EXISTS booking_organizers_organizer_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.booking_organizers DROP CONSTRAINT IF EXISTS booking_organizers_booking_id_fkey;
+ALTER TABLE IF EXISTS ONLY public.audit_log DROP CONSTRAINT IF EXISTS audit_log_user_id_fkey;
+DROP TRIGGER IF EXISTS trg_sponsors_updated ON public.sponsors;
+DROP TRIGGER IF EXISTS trg_payments_updated ON public.payments;
+DROP TRIGGER IF EXISTS trg_organizers_updated ON public.organizers;
+DROP TRIGGER IF EXISTS trg_hall_bookings_updated ON public.hall_bookings;
+DROP TRIGGER IF EXISTS trg_hall_bookings_capacity_cap ON public.hall_bookings;
+DROP TRIGGER IF EXISTS trg_event_pricing_updated ON public.event_pricing;
+DROP TRIGGER IF EXISTS trg_catering_updated ON public.catering_orders;
+DROP TRIGGER IF EXISTS trg_bookings_updated ON public.bookings;
+DROP TRIGGER IF EXISTS trg_booking_ref ON public.bookings;
+DROP INDEX IF EXISTS public.uq_audit_payment;
+DROP INDEX IF EXISTS public.idx_users_role;
+DROP INDEX IF EXISTS public.idx_users_email;
+DROP INDEX IF EXISTS public.idx_users_active;
+DROP INDEX IF EXISTS public.idx_timeline_booking;
+DROP INDEX IF EXISTS public.idx_sponsors_user;
+DROP INDEX IF EXISTS public.idx_sponsors_status;
+DROP INDEX IF EXISTS public.idx_room_res_user;
+DROP INDEX IF EXISTS public.idx_room_res_group;
+DROP INDEX IF EXISTS public.idx_payments_transaction;
+DROP INDEX IF EXISTS public.idx_payments_status;
+DROP INDEX IF EXISTS public.idx_payments_booking_id;
+DROP INDEX IF EXISTS public.idx_organizers_user;
+DROP INDEX IF EXISTS public.idx_organizers_spec;
+DROP INDEX IF EXISTS public.idx_notifications_user_id;
+DROP INDEX IF EXISTS public.idx_notifications_user_created;
+DROP INDEX IF EXISTS public.idx_notif_user;
+DROP INDEX IF EXISTS public.idx_notif_sent;
+DROP INDEX IF EXISTS public.idx_notif_booking;
+DROP INDEX IF EXISTS public.idx_no_double_booking;
+DROP INDEX IF EXISTS public.idx_menu_category;
+DROP INDEX IF EXISTS public.idx_hb_one_primary_per_booking;
+DROP INDEX IF EXISTS public.idx_hb_one_complimentary_per_booking;
+DROP INDEX IF EXISTS public.idx_hall_bookings_status;
+DROP INDEX IF EXISTS public.idx_hall_bookings_hall_date;
+DROP INDEX IF EXISTS public.idx_hall_bookings_booking;
+DROP INDEX IF EXISTS public.idx_feedback_rating;
+DROP INDEX IF EXISTS public.idx_feedback_booking;
+DROP INDEX IF EXISTS public.idx_event_timelines_start_time;
+DROP INDEX IF EXISTS public.idx_event_timelines_sequence_order;
+DROP INDEX IF EXISTS public.idx_event_timelines_hall_id;
+DROP INDEX IF EXISTS public.idx_event_timelines_booking_id;
+DROP INDEX IF EXISTS public.idx_catering_status;
+DROP INDEX IF EXISTS public.idx_catering_orders_booking_id;
+DROP INDEX IF EXISTS public.idx_catering_booking;
+DROP INDEX IF EXISTS public.idx_bookings_user_id;
+DROP INDEX IF EXISTS public.idx_bookings_status;
+DROP INDEX IF EXISTS public.idx_bookings_ref;
+DROP INDEX IF EXISTS public.idx_bookings_event_date;
+DROP INDEX IF EXISTS public.idx_bookings_booking_ref;
+DROP INDEX IF EXISTS public.idx_audit_user;
+DROP INDEX IF EXISTS public.idx_audit_table;
+DROP INDEX IF EXISTS public.idx_audit_log_user_id;
+DROP INDEX IF EXISTS public.idx_audit_log_table_name;
+DROP INDEX IF EXISTS public.idx_audit_action;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_pkey;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_google_id_key;
+ALTER TABLE IF EXISTS ONLY public.users DROP CONSTRAINT IF EXISTS users_email_key;
+ALTER TABLE IF EXISTS ONLY public.sponsors DROP CONSTRAINT IF EXISTS sponsors_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.sponsors DROP CONSTRAINT IF EXISTS sponsors_pkey;
+ALTER TABLE IF EXISTS ONLY public.rooms DROP CONSTRAINT IF EXISTS rooms_room_name_key;
+ALTER TABLE IF EXISTS ONLY public.rooms DROP CONSTRAINT IF EXISTS rooms_pkey;
+ALTER TABLE IF EXISTS ONLY public.room_reservations DROP CONSTRAINT IF EXISTS room_reservations_reservation_ref_key;
+ALTER TABLE IF EXISTS ONLY public.room_reservations DROP CONSTRAINT IF EXISTS room_reservations_pkey;
+ALTER TABLE IF EXISTS ONLY public.payments DROP CONSTRAINT IF EXISTS payments_transaction_id_key;
+ALTER TABLE IF EXISTS ONLY public.payments DROP CONSTRAINT IF EXISTS payments_pkey;
+ALTER TABLE IF EXISTS ONLY public.payments DROP CONSTRAINT IF EXISTS payments_invoice_number_key;
+ALTER TABLE IF EXISTS ONLY public.password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_tokens_token_key;
+ALTER TABLE IF EXISTS ONLY public.password_reset_tokens DROP CONSTRAINT IF EXISTS password_reset_tokens_pkey;
+ALTER TABLE IF EXISTS ONLY public.organizers DROP CONSTRAINT IF EXISTS organizers_user_id_key;
+ALTER TABLE IF EXISTS ONLY public.organizers DROP CONSTRAINT IF EXISTS organizers_pkey;
+ALTER TABLE IF EXISTS ONLY public.notifications DROP CONSTRAINT IF EXISTS notifications_pkey;
+ALTER TABLE IF EXISTS ONLY public.room_reservations DROP CONSTRAINT IF EXISTS no_room_overlap;
+ALTER TABLE IF EXISTS ONLY public.menu_items DROP CONSTRAINT IF EXISTS menu_items_pkey;
+ALTER TABLE IF EXISTS ONLY public.halls DROP CONSTRAINT IF EXISTS halls_pkey;
+ALTER TABLE IF EXISTS ONLY public.hall_bookings DROP CONSTRAINT IF EXISTS hall_bookings_pkey;
+ALTER TABLE IF EXISTS ONLY public.hall_bookings DROP CONSTRAINT IF EXISTS hall_bookings_booking_hall_key;
+ALTER TABLE IF EXISTS ONLY public.feedback DROP CONSTRAINT IF EXISTS feedback_pkey;
+ALTER TABLE IF EXISTS ONLY public.feedback DROP CONSTRAINT IF EXISTS feedback_booking_id_key;
+ALTER TABLE IF EXISTS ONLY public.event_timelines DROP CONSTRAINT IF EXISTS event_timelines_pkey;
+ALTER TABLE IF EXISTS ONLY public.event_pricing DROP CONSTRAINT IF EXISTS event_pricing_pkey;
+ALTER TABLE IF EXISTS ONLY public.catering_orders DROP CONSTRAINT IF EXISTS catering_orders_pkey;
+ALTER TABLE IF EXISTS ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_pkey;
+ALTER TABLE IF EXISTS ONLY public.bookings DROP CONSTRAINT IF EXISTS bookings_booking_ref_key;
+ALTER TABLE IF EXISTS ONLY public.booking_sponsors DROP CONSTRAINT IF EXISTS booking_sponsors_pkey;
+ALTER TABLE IF EXISTS ONLY public.booking_sponsors DROP CONSTRAINT IF EXISTS booking_sponsors_booking_id_sponsor_id_key;
+ALTER TABLE IF EXISTS ONLY public.booking_organizers DROP CONSTRAINT IF EXISTS booking_organizers_pkey;
+ALTER TABLE IF EXISTS ONLY public.booking_organizers DROP CONSTRAINT IF EXISTS booking_organizers_booking_id_organizer_id_key;
+ALTER TABLE IF EXISTS ONLY public.audit_log DROP CONSTRAINT IF EXISTS audit_log_pkey;
+ALTER TABLE IF EXISTS public.users ALTER COLUMN user_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.sponsors ALTER COLUMN sponsor_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.rooms ALTER COLUMN room_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.room_reservations ALTER COLUMN reservation_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.payments ALTER COLUMN payment_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.password_reset_tokens ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.organizers ALTER COLUMN organizer_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.notifications ALTER COLUMN notification_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.menu_items ALTER COLUMN item_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.halls ALTER COLUMN hall_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.hall_bookings ALTER COLUMN hall_booking_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.feedback ALTER COLUMN feedback_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.event_timelines ALTER COLUMN timeline_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.catering_orders ALTER COLUMN order_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.bookings ALTER COLUMN booking_id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.booking_sponsors ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.booking_organizers ALTER COLUMN id DROP DEFAULT;
+ALTER TABLE IF EXISTS public.audit_log ALTER COLUMN log_id DROP DEFAULT;
+DROP VIEW IF EXISTS public.v_ratings_summary;
+DROP VIEW IF EXISTS public.v_monthly_revenue;
+DROP VIEW IF EXISTS public.v_booking_summary;
+DROP VIEW IF EXISTS public.v_booked_dates;
+DROP SEQUENCE IF EXISTS public.users_user_id_seq;
+DROP TABLE IF EXISTS public.users;
+DROP SEQUENCE IF EXISTS public.sponsors_sponsor_id_seq;
+DROP TABLE IF EXISTS public.sponsors;
+DROP SEQUENCE IF EXISTS public.rooms_room_id_seq;
+DROP TABLE IF EXISTS public.rooms;
+DROP SEQUENCE IF EXISTS public.room_reservations_reservation_id_seq;
+DROP TABLE IF EXISTS public.room_reservations;
+DROP SEQUENCE IF EXISTS public.payments_payment_id_seq;
+DROP TABLE IF EXISTS public.payments;
+DROP SEQUENCE IF EXISTS public.password_reset_tokens_id_seq;
+DROP TABLE IF EXISTS public.password_reset_tokens;
+DROP SEQUENCE IF EXISTS public.organizers_organizer_id_seq;
+DROP TABLE IF EXISTS public.organizers;
+DROP SEQUENCE IF EXISTS public.notifications_notification_id_seq;
+DROP TABLE IF EXISTS public.notifications;
+DROP SEQUENCE IF EXISTS public.menu_items_item_id_seq;
+DROP TABLE IF EXISTS public.menu_items;
+DROP SEQUENCE IF EXISTS public.halls_hall_id_seq;
+DROP TABLE IF EXISTS public.halls;
+DROP SEQUENCE IF EXISTS public.hall_bookings_hall_booking_id_seq;
+DROP TABLE IF EXISTS public.hall_bookings;
+DROP SEQUENCE IF EXISTS public.feedback_feedback_id_seq;
+DROP TABLE IF EXISTS public.feedback;
+DROP SEQUENCE IF EXISTS public.event_timelines_timeline_id_seq;
+DROP TABLE IF EXISTS public.event_timelines;
+DROP TABLE IF EXISTS public.event_pricing;
+DROP SEQUENCE IF EXISTS public.catering_orders_order_id_seq;
+DROP TABLE IF EXISTS public.catering_orders;
+DROP SEQUENCE IF EXISTS public.bookings_booking_id_seq;
+DROP TABLE IF EXISTS public.bookings;
+DROP SEQUENCE IF EXISTS public.booking_sponsors_id_seq;
+DROP TABLE IF EXISTS public.booking_sponsors;
+DROP SEQUENCE IF EXISTS public.booking_organizers_id_seq;
+DROP TABLE IF EXISTS public.booking_organizers;
+DROP SEQUENCE IF EXISTS public.audit_log_log_id_seq;
+DROP TABLE IF EXISTS public.audit_log;
+DROP FUNCTION IF EXISTS public.update_updated_at();
+DROP FUNCTION IF EXISTS public.generate_booking_ref();
+DROP FUNCTION IF EXISTS public.check_combined_hall_capacity();
+DROP TYPE IF EXISTS public.user_role;
+DROP TYPE IF EXISTS public.sponsor_status;
+DROP TYPE IF EXISTS public.sponsor_request_status;
+DROP TYPE IF EXISTS public.sponsor_request_direction;
+DROP TYPE IF EXISTS public.payment_status;
+DROP TYPE IF EXISTS public.payment_method;
+DROP TYPE IF EXISTS public.order_status;
+DROP TYPE IF EXISTS public.notification_type;
+DROP TYPE IF EXISTS public.notification_channel;
+DROP TYPE IF EXISTS public.booking_status;
+DROP EXTENSION IF EXISTS pgcrypto;
+DROP EXTENSION IF EXISTS pg_stat_statements;
+DROP EXTENSION IF EXISTS btree_gist;
 --
 -- Name: btree_gist; Type: EXTENSION; Schema: -; Owner: -
 --
@@ -27,7 +217,7 @@ CREATE EXTENSION IF NOT EXISTS btree_gist WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION btree_gist; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION btree_gist; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION btree_gist IS 'support for indexing common datatypes in GiST';
@@ -41,7 +231,7 @@ CREATE EXTENSION IF NOT EXISTS pg_stat_statements WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION pg_stat_statements; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION pg_stat_statements IS 'track planning and execution statistics of all SQL statements executed';
@@ -55,14 +245,14 @@ CREATE EXTENSION IF NOT EXISTS pgcrypto WITH SCHEMA public;
 
 
 --
--- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: 
+-- Name: EXTENSION pgcrypto; Type: COMMENT; Schema: -; Owner: -
 --
 
 COMMENT ON EXTENSION pgcrypto IS 'cryptographic functions';
 
 
 --
--- Name: booking_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: booking_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.booking_status AS ENUM (
@@ -73,10 +263,8 @@ CREATE TYPE public.booking_status AS ENUM (
 );
 
 
-ALTER TYPE public.booking_status OWNER TO postgres;
-
 --
--- Name: notification_channel; Type: TYPE; Schema: public; Owner: postgres
+-- Name: notification_channel; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.notification_channel AS ENUM (
@@ -87,10 +275,8 @@ CREATE TYPE public.notification_channel AS ENUM (
 );
 
 
-ALTER TYPE public.notification_channel OWNER TO postgres;
-
 --
--- Name: notification_type; Type: TYPE; Schema: public; Owner: postgres
+-- Name: notification_type; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.notification_type AS ENUM (
@@ -103,10 +289,8 @@ CREATE TYPE public.notification_type AS ENUM (
 );
 
 
-ALTER TYPE public.notification_type OWNER TO postgres;
-
 --
--- Name: order_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: order_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.order_status AS ENUM (
@@ -118,10 +302,8 @@ CREATE TYPE public.order_status AS ENUM (
 );
 
 
-ALTER TYPE public.order_status OWNER TO postgres;
-
 --
--- Name: payment_method; Type: TYPE; Schema: public; Owner: postgres
+-- Name: payment_method; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.payment_method AS ENUM (
@@ -132,10 +314,8 @@ CREATE TYPE public.payment_method AS ENUM (
 );
 
 
-ALTER TYPE public.payment_method OWNER TO postgres;
-
 --
--- Name: payment_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: payment_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.payment_status AS ENUM (
@@ -146,10 +326,8 @@ CREATE TYPE public.payment_status AS ENUM (
 );
 
 
-ALTER TYPE public.payment_status OWNER TO postgres;
-
 --
--- Name: sponsor_request_direction; Type: TYPE; Schema: public; Owner: postgres
+-- Name: sponsor_request_direction; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.sponsor_request_direction AS ENUM (
@@ -158,10 +336,8 @@ CREATE TYPE public.sponsor_request_direction AS ENUM (
 );
 
 
-ALTER TYPE public.sponsor_request_direction OWNER TO postgres;
-
 --
--- Name: sponsor_request_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: sponsor_request_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.sponsor_request_status AS ENUM (
@@ -172,10 +348,8 @@ CREATE TYPE public.sponsor_request_status AS ENUM (
 );
 
 
-ALTER TYPE public.sponsor_request_status OWNER TO postgres;
-
 --
--- Name: sponsor_status; Type: TYPE; Schema: public; Owner: postgres
+-- Name: sponsor_status; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.sponsor_status AS ENUM (
@@ -185,10 +359,8 @@ CREATE TYPE public.sponsor_status AS ENUM (
 );
 
 
-ALTER TYPE public.sponsor_status OWNER TO postgres;
-
 --
--- Name: user_role; Type: TYPE; Schema: public; Owner: postgres
+-- Name: user_role; Type: TYPE; Schema: public; Owner: -
 --
 
 CREATE TYPE public.user_role AS ENUM (
@@ -201,10 +373,8 @@ CREATE TYPE public.user_role AS ENUM (
 );
 
 
-ALTER TYPE public.user_role OWNER TO postgres;
-
 --
--- Name: check_combined_hall_capacity(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: check_combined_hall_capacity(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.check_combined_hall_capacity() RETURNS trigger
@@ -240,10 +410,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.check_combined_hall_capacity() OWNER TO postgres;
-
 --
--- Name: generate_booking_ref(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: generate_booking_ref(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.generate_booking_ref() RETURNS trigger
@@ -256,10 +424,8 @@ END;
 $$;
 
 
-ALTER FUNCTION public.generate_booking_ref() OWNER TO postgres;
-
 --
--- Name: update_updated_at(); Type: FUNCTION; Schema: public; Owner: postgres
+-- Name: update_updated_at(); Type: FUNCTION; Schema: public; Owner: -
 --
 
 CREATE FUNCTION public.update_updated_at() RETURNS trigger
@@ -272,14 +438,12 @@ END;
 $$;
 
 
-ALTER FUNCTION public.update_updated_at() OWNER TO postgres;
-
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
 
 --
--- Name: audit_log; Type: TABLE; Schema: public; Owner: postgres
+-- Name: audit_log; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.audit_log (
@@ -296,10 +460,8 @@ CREATE TABLE public.audit_log (
 );
 
 
-ALTER TABLE public.audit_log OWNER TO postgres;
-
 --
--- Name: audit_log_log_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: audit_log_log_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.audit_log_log_id_seq
@@ -311,17 +473,15 @@ CREATE SEQUENCE public.audit_log_log_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.audit_log_log_id_seq OWNER TO postgres;
-
 --
--- Name: audit_log_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: audit_log_log_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.audit_log_log_id_seq OWNED BY public.audit_log.log_id;
 
 
 --
--- Name: booking_organizers; Type: TABLE; Schema: public; Owner: postgres
+-- Name: booking_organizers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.booking_organizers (
@@ -338,10 +498,8 @@ CREATE TABLE public.booking_organizers (
 );
 
 
-ALTER TABLE public.booking_organizers OWNER TO postgres;
-
 --
--- Name: booking_organizers_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: booking_organizers_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.booking_organizers_id_seq
@@ -353,17 +511,15 @@ CREATE SEQUENCE public.booking_organizers_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.booking_organizers_id_seq OWNER TO postgres;
-
 --
--- Name: booking_organizers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: booking_organizers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.booking_organizers_id_seq OWNED BY public.booking_organizers.id;
 
 
 --
--- Name: booking_sponsors; Type: TABLE; Schema: public; Owner: postgres
+-- Name: booking_sponsors; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.booking_sponsors (
@@ -380,10 +536,8 @@ CREATE TABLE public.booking_sponsors (
 );
 
 
-ALTER TABLE public.booking_sponsors OWNER TO postgres;
-
 --
--- Name: booking_sponsors_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: booking_sponsors_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.booking_sponsors_id_seq
@@ -395,17 +549,15 @@ CREATE SEQUENCE public.booking_sponsors_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.booking_sponsors_id_seq OWNER TO postgres;
-
 --
--- Name: booking_sponsors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: booking_sponsors_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.booking_sponsors_id_seq OWNED BY public.booking_sponsors.id;
 
 
 --
--- Name: bookings; Type: TABLE; Schema: public; Owner: postgres
+-- Name: bookings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.bookings (
@@ -441,10 +593,8 @@ CREATE TABLE public.bookings (
 );
 
 
-ALTER TABLE public.bookings OWNER TO postgres;
-
 --
--- Name: bookings_booking_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: bookings_booking_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.bookings_booking_id_seq
@@ -456,17 +606,15 @@ CREATE SEQUENCE public.bookings_booking_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.bookings_booking_id_seq OWNER TO postgres;
-
 --
--- Name: bookings_booking_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: bookings_booking_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.bookings_booking_id_seq OWNED BY public.bookings.booking_id;
 
 
 --
--- Name: catering_orders; Type: TABLE; Schema: public; Owner: postgres
+-- Name: catering_orders; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.catering_orders (
@@ -485,10 +633,8 @@ CREATE TABLE public.catering_orders (
 );
 
 
-ALTER TABLE public.catering_orders OWNER TO postgres;
-
 --
--- Name: catering_orders_order_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: catering_orders_order_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.catering_orders_order_id_seq
@@ -500,17 +646,15 @@ CREATE SEQUENCE public.catering_orders_order_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.catering_orders_order_id_seq OWNER TO postgres;
-
 --
--- Name: catering_orders_order_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: catering_orders_order_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.catering_orders_order_id_seq OWNED BY public.catering_orders.order_id;
 
 
 --
--- Name: event_pricing; Type: TABLE; Schema: public; Owner: postgres
+-- Name: event_pricing; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.event_pricing (
@@ -524,10 +668,8 @@ CREATE TABLE public.event_pricing (
 );
 
 
-ALTER TABLE public.event_pricing OWNER TO postgres;
-
 --
--- Name: event_timelines; Type: TABLE; Schema: public; Owner: postgres
+-- Name: event_timelines; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.event_timelines (
@@ -546,10 +688,8 @@ CREATE TABLE public.event_timelines (
 );
 
 
-ALTER TABLE public.event_timelines OWNER TO postgres;
-
 --
--- Name: event_timelines_timeline_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: event_timelines_timeline_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.event_timelines_timeline_id_seq
@@ -561,17 +701,15 @@ CREATE SEQUENCE public.event_timelines_timeline_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.event_timelines_timeline_id_seq OWNER TO postgres;
-
 --
--- Name: event_timelines_timeline_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: event_timelines_timeline_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.event_timelines_timeline_id_seq OWNED BY public.event_timelines.timeline_id;
 
 
 --
--- Name: feedback; Type: TABLE; Schema: public; Owner: postgres
+-- Name: feedback; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.feedback (
@@ -594,10 +732,8 @@ CREATE TABLE public.feedback (
 );
 
 
-ALTER TABLE public.feedback OWNER TO postgres;
-
 --
--- Name: feedback_feedback_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: feedback_feedback_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.feedback_feedback_id_seq
@@ -609,17 +745,15 @@ CREATE SEQUENCE public.feedback_feedback_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.feedback_feedback_id_seq OWNER TO postgres;
-
 --
--- Name: feedback_feedback_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: feedback_feedback_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.feedback_feedback_id_seq OWNED BY public.feedback.feedback_id;
 
 
 --
--- Name: hall_bookings; Type: TABLE; Schema: public; Owner: postgres
+-- Name: hall_bookings; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.hall_bookings (
@@ -639,10 +773,8 @@ CREATE TABLE public.hall_bookings (
 );
 
 
-ALTER TABLE public.hall_bookings OWNER TO postgres;
-
 --
--- Name: hall_bookings_hall_booking_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: hall_bookings_hall_booking_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.hall_bookings_hall_booking_id_seq
@@ -654,17 +786,15 @@ CREATE SEQUENCE public.hall_bookings_hall_booking_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.hall_bookings_hall_booking_id_seq OWNER TO postgres;
-
 --
--- Name: hall_bookings_hall_booking_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: hall_bookings_hall_booking_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.hall_bookings_hall_booking_id_seq OWNED BY public.hall_bookings.hall_booking_id;
 
 
 --
--- Name: halls; Type: TABLE; Schema: public; Owner: postgres
+-- Name: halls; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.halls (
@@ -685,10 +815,8 @@ CREATE TABLE public.halls (
 );
 
 
-ALTER TABLE public.halls OWNER TO postgres;
-
 --
--- Name: halls_hall_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: halls_hall_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.halls_hall_id_seq
@@ -700,17 +828,15 @@ CREATE SEQUENCE public.halls_hall_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.halls_hall_id_seq OWNER TO postgres;
-
 --
--- Name: halls_hall_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: halls_hall_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.halls_hall_id_seq OWNED BY public.halls.hall_id;
 
 
 --
--- Name: menu_items; Type: TABLE; Schema: public; Owner: postgres
+-- Name: menu_items; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.menu_items (
@@ -729,10 +855,8 @@ CREATE TABLE public.menu_items (
 );
 
 
-ALTER TABLE public.menu_items OWNER TO postgres;
-
 --
--- Name: menu_items_item_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: menu_items_item_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.menu_items_item_id_seq
@@ -744,17 +868,15 @@ CREATE SEQUENCE public.menu_items_item_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.menu_items_item_id_seq OWNER TO postgres;
-
 --
--- Name: menu_items_item_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: menu_items_item_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.menu_items_item_id_seq OWNED BY public.menu_items.item_id;
 
 
 --
--- Name: notifications; Type: TABLE; Schema: public; Owner: postgres
+-- Name: notifications; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.notifications (
@@ -775,10 +897,8 @@ CREATE TABLE public.notifications (
 );
 
 
-ALTER TABLE public.notifications OWNER TO postgres;
-
 --
--- Name: notifications_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: notifications_notification_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.notifications_notification_id_seq
@@ -790,17 +910,15 @@ CREATE SEQUENCE public.notifications_notification_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.notifications_notification_id_seq OWNER TO postgres;
-
 --
--- Name: notifications_notification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: notifications_notification_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.notifications_notification_id_seq OWNED BY public.notifications.notification_id;
 
 
 --
--- Name: organizers; Type: TABLE; Schema: public; Owner: postgres
+-- Name: organizers; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.organizers (
@@ -823,10 +941,8 @@ CREATE TABLE public.organizers (
 );
 
 
-ALTER TABLE public.organizers OWNER TO postgres;
-
 --
--- Name: organizers_organizer_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: organizers_organizer_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.organizers_organizer_id_seq
@@ -838,17 +954,15 @@ CREATE SEQUENCE public.organizers_organizer_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.organizers_organizer_id_seq OWNER TO postgres;
-
 --
--- Name: organizers_organizer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: organizers_organizer_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.organizers_organizer_id_seq OWNED BY public.organizers.organizer_id;
 
 
 --
--- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: postgres
+-- Name: password_reset_tokens; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.password_reset_tokens (
@@ -861,10 +975,8 @@ CREATE TABLE public.password_reset_tokens (
 );
 
 
-ALTER TABLE public.password_reset_tokens OWNER TO postgres;
-
 --
--- Name: password_reset_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.password_reset_tokens_id_seq
@@ -876,17 +988,15 @@ CREATE SEQUENCE public.password_reset_tokens_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.password_reset_tokens_id_seq OWNER TO postgres;
-
 --
--- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.password_reset_tokens_id_seq OWNED BY public.password_reset_tokens.id;
 
 
 --
--- Name: payments; Type: TABLE; Schema: public; Owner: postgres
+-- Name: payments; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.payments (
@@ -910,10 +1020,8 @@ CREATE TABLE public.payments (
 );
 
 
-ALTER TABLE public.payments OWNER TO postgres;
-
 --
--- Name: payments_payment_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: payments_payment_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.payments_payment_id_seq
@@ -925,17 +1033,96 @@ CREATE SEQUENCE public.payments_payment_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.payments_payment_id_seq OWNER TO postgres;
-
 --
--- Name: payments_payment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: payments_payment_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.payments_payment_id_seq OWNED BY public.payments.payment_id;
 
 
 --
--- Name: sponsors; Type: TABLE; Schema: public; Owner: postgres
+-- Name: room_reservations; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.room_reservations (
+    reservation_id integer NOT NULL,
+    reservation_ref character varying(30) NOT NULL,
+    user_id integer NOT NULL,
+    room_id integer NOT NULL,
+    booking_id integer,
+    check_in date NOT NULL,
+    check_out date NOT NULL,
+    nights integer GENERATED ALWAYS AS ((check_out - check_in)) STORED,
+    guests integer DEFAULT 1 NOT NULL,
+    total_amount numeric(10,2) NOT NULL,
+    status character varying(12) DEFAULT 'pending'::character varying NOT NULL,
+    payment_status character varying(10) DEFAULT 'unpaid'::character varying NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL,
+    group_ref character varying(30) NOT NULL,
+    transaction_id character varying(50),
+    payment_method character varying(30),
+    paid_at timestamp with time zone,
+    CONSTRAINT room_reservations_check CHECK ((check_out > check_in)),
+    CONSTRAINT room_reservations_payment_status_check CHECK (((payment_status)::text = ANY ((ARRAY['unpaid'::character varying, 'paid'::character varying, 'refunded'::character varying])::text[]))),
+    CONSTRAINT room_reservations_status_check CHECK (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying, 'cancelled'::character varying, 'completed'::character varying])::text[])))
+);
+
+
+--
+-- Name: room_reservations_reservation_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.room_reservations_reservation_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: room_reservations_reservation_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.room_reservations_reservation_id_seq OWNED BY public.room_reservations.reservation_id;
+
+
+--
+-- Name: rooms; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public.rooms (
+    room_id integer NOT NULL,
+    room_name character varying(50) NOT NULL,
+    capacity integer DEFAULT 2 NOT NULL,
+    rate_per_day numeric(10,2) DEFAULT 5000 NOT NULL,
+    is_active boolean DEFAULT true NOT NULL
+);
+
+
+--
+-- Name: rooms_room_id_seq; Type: SEQUENCE; Schema: public; Owner: -
+--
+
+CREATE SEQUENCE public.rooms_room_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+--
+-- Name: rooms_room_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
+--
+
+ALTER SEQUENCE public.rooms_room_id_seq OWNED BY public.rooms.room_id;
+
+
+--
+-- Name: sponsors; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.sponsors (
@@ -954,10 +1141,8 @@ CREATE TABLE public.sponsors (
 );
 
 
-ALTER TABLE public.sponsors OWNER TO postgres;
-
 --
--- Name: sponsors_sponsor_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: sponsors_sponsor_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.sponsors_sponsor_id_seq
@@ -969,17 +1154,15 @@ CREATE SEQUENCE public.sponsors_sponsor_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.sponsors_sponsor_id_seq OWNER TO postgres;
-
 --
--- Name: sponsors_sponsor_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: sponsors_sponsor_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.sponsors_sponsor_id_seq OWNED BY public.sponsors.sponsor_id;
 
 
 --
--- Name: users; Type: TABLE; Schema: public; Owner: postgres
+-- Name: users; Type: TABLE; Schema: public; Owner: -
 --
 
 CREATE TABLE public.users (
@@ -1002,10 +1185,8 @@ CREATE TABLE public.users (
 );
 
 
-ALTER TABLE public.users OWNER TO postgres;
-
 --
--- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+-- Name: users_user_id_seq; Type: SEQUENCE; Schema: public; Owner: -
 --
 
 CREATE SEQUENCE public.users_user_id_seq
@@ -1017,17 +1198,15 @@ CREATE SEQUENCE public.users_user_id_seq
     CACHE 1;
 
 
-ALTER SEQUENCE public.users_user_id_seq OWNER TO postgres;
-
 --
--- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+-- Name: users_user_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: -
 --
 
 ALTER SEQUENCE public.users_user_id_seq OWNED BY public.users.user_id;
 
 
 --
--- Name: v_booked_dates; Type: VIEW; Schema: public; Owner: postgres
+-- Name: v_booked_dates; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.v_booked_dates AS
@@ -1041,10 +1220,8 @@ CREATE VIEW public.v_booked_dates AS
   ORDER BY event_date;
 
 
-ALTER VIEW public.v_booked_dates OWNER TO postgres;
-
 --
--- Name: v_booking_summary; Type: VIEW; Schema: public; Owner: postgres
+-- Name: v_booking_summary; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.v_booking_summary AS
@@ -1067,10 +1244,8 @@ CREATE VIEW public.v_booking_summary AS
      LEFT JOIN public.payments py ON ((py.booking_id = b.booking_id)));
 
 
-ALTER VIEW public.v_booking_summary OWNER TO postgres;
-
 --
--- Name: v_monthly_revenue; Type: VIEW; Schema: public; Owner: postgres
+-- Name: v_monthly_revenue; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.v_monthly_revenue AS
@@ -1086,10 +1261,8 @@ CREATE VIEW public.v_monthly_revenue AS
   ORDER BY (date_trunc('month'::text, (event_date)::timestamp with time zone)) DESC;
 
 
-ALTER VIEW public.v_monthly_revenue OWNER TO postgres;
-
 --
--- Name: v_ratings_summary; Type: VIEW; Schema: public; Owner: postgres
+-- Name: v_ratings_summary; Type: VIEW; Schema: public; Owner: -
 --
 
 CREATE VIEW public.v_ratings_summary AS
@@ -1104,122 +1277,134 @@ CREATE VIEW public.v_ratings_summary AS
   ORDER BY (avg(f.rating)) DESC;
 
 
-ALTER VIEW public.v_ratings_summary OWNER TO postgres;
-
 --
--- Name: audit_log log_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: audit_log log_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.audit_log ALTER COLUMN log_id SET DEFAULT nextval('public.audit_log_log_id_seq'::regclass);
 
 
 --
--- Name: booking_organizers id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: booking_organizers id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_organizers ALTER COLUMN id SET DEFAULT nextval('public.booking_organizers_id_seq'::regclass);
 
 
 --
--- Name: booking_sponsors id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: booking_sponsors id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_sponsors ALTER COLUMN id SET DEFAULT nextval('public.booking_sponsors_id_seq'::regclass);
 
 
 --
--- Name: bookings booking_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: bookings booking_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookings ALTER COLUMN booking_id SET DEFAULT nextval('public.bookings_booking_id_seq'::regclass);
 
 
 --
--- Name: catering_orders order_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: catering_orders order_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.catering_orders ALTER COLUMN order_id SET DEFAULT nextval('public.catering_orders_order_id_seq'::regclass);
 
 
 --
--- Name: event_timelines timeline_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: event_timelines timeline_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.event_timelines ALTER COLUMN timeline_id SET DEFAULT nextval('public.event_timelines_timeline_id_seq'::regclass);
 
 
 --
--- Name: feedback feedback_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: feedback feedback_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.feedback ALTER COLUMN feedback_id SET DEFAULT nextval('public.feedback_feedback_id_seq'::regclass);
 
 
 --
--- Name: hall_bookings hall_booking_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: hall_bookings hall_booking_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hall_bookings ALTER COLUMN hall_booking_id SET DEFAULT nextval('public.hall_bookings_hall_booking_id_seq'::regclass);
 
 
 --
--- Name: halls hall_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: halls hall_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.halls ALTER COLUMN hall_id SET DEFAULT nextval('public.halls_hall_id_seq'::regclass);
 
 
 --
--- Name: menu_items item_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: menu_items item_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.menu_items ALTER COLUMN item_id SET DEFAULT nextval('public.menu_items_item_id_seq'::regclass);
 
 
 --
--- Name: notifications notification_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: notifications notification_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications ALTER COLUMN notification_id SET DEFAULT nextval('public.notifications_notification_id_seq'::regclass);
 
 
 --
--- Name: organizers organizer_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: organizers organizer_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.organizers ALTER COLUMN organizer_id SET DEFAULT nextval('public.organizers_organizer_id_seq'::regclass);
 
 
 --
--- Name: password_reset_tokens id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: password_reset_tokens id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.password_reset_tokens ALTER COLUMN id SET DEFAULT nextval('public.password_reset_tokens_id_seq'::regclass);
 
 
 --
--- Name: payments payment_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: payments payment_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments ALTER COLUMN payment_id SET DEFAULT nextval('public.payments_payment_id_seq'::regclass);
 
 
 --
--- Name: sponsors sponsor_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: room_reservations reservation_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations ALTER COLUMN reservation_id SET DEFAULT nextval('public.room_reservations_reservation_id_seq'::regclass);
+
+
+--
+-- Name: rooms room_id; Type: DEFAULT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rooms ALTER COLUMN room_id SET DEFAULT nextval('public.rooms_room_id_seq'::regclass);
+
+
+--
+-- Name: sponsors sponsor_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sponsors ALTER COLUMN sponsor_id SET DEFAULT nextval('public.sponsors_sponsor_id_seq'::regclass);
 
 
 --
--- Name: users user_id; Type: DEFAULT; Schema: public; Owner: postgres
+-- Name: users user_id; Type: DEFAULT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users ALTER COLUMN user_id SET DEFAULT nextval('public.users_user_id_seq'::regclass);
 
 
 --
--- Data for Name: audit_log; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: audit_log; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.audit_log (log_id, user_id, action, table_name, record_id, old_values, new_values, ip_address, user_agent, created_at) FROM stdin;
@@ -1889,11 +2074,30 @@ COPY public.audit_log (log_id, user_id, action, table_name, record_id, old_value
 664	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-17 22:27:07.135719
 665	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-17 22:33:06.339048
 666	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-17 23:49:28.095735
+667	17	LOGOUT	users	17	\N	{}	::1	\N	2026-10-18 14:00:47.898196
+668	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 14:01:40.072548
+669	17	LOGOUT	users	17	\N	{}	::1	\N	2026-10-18 14:04:24.183779
+670	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 14:20:49.711611
+671	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 14:38:00.67126
+672	17	LOGOUT	users	17	\N	{}	::1	\N	2026-10-18 17:44:19.066975
+673	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 17:46:56.788023
+674	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 17:54:57.382058
+675	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 17:57:44.335373
+676	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 18:05:09.240203
+677	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 18:05:24.843955
+678	\N	PAYMENT_SIG_INVALID	payments	\N	\N	{"amount": "40000.00", "currency": "LKR", "order_id": "AZP-1-123", "event_type": null, "payment_ref": "TEST1", "status_code": "2", "expected_amount": null}	::1	\N	2026-10-18 19:50:33.853662
+679	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 20:08:31.238863
+680	17	LOGIN	users	17	\N	{"role": "customer", "email": "test@example.com"}	::1	\N	2026-10-18 20:26:42.246637
+681	\N	PAYMENT_SUCCESS	payments	\N	\N	{"amount": "5000.00", "currency": "LKR", "order_id": "ROOM-RG-261018-2C713F", "event_type": "Room Reservation", "payment_ref": "320032674251", "status_code": "2", "expected_amount": "5000.00"}	::1	\N	2026-10-18 20:27:19.441143
+682	6	LOGIN	users	6	\N	{"role": "customer", "email": "thirayafathima@gmail.com", "provider": "google"}	::1	\N	2026-10-18 21:04:53.953558
+683	\N	PAYMENT_SUCCESS	payments	\N	\N	{"amount": "15000.00", "currency": "LKR", "order_id": "ROOM-RG-261018-21A2A6", "event_type": "Room Reservation", "payment_ref": "320032674263", "status_code": "2", "expected_amount": "15000.00"}	::1	\N	2026-10-18 21:13:01.723446
+684	\N	PAYMENT_SUCCESS	payments	\N	\N	{"amount": "25000.00", "currency": "LKR", "order_id": "ROOM-RG-261018-5A431D", "event_type": "Room Reservation", "payment_ref": "320032674264", "status_code": "2", "expected_amount": "25000.00"}	::1	\N	2026-10-18 21:15:11.071698
+685	6	LOGOUT	users	6	\N	{}	::1	\N	2026-10-18 21:17:05.335069
 \.
 
 
 --
--- Data for Name: booking_organizers; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: booking_organizers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.booking_organizers (id, booking_id, organizer_id, role_in_event, agreed_fee, status, notes, assigned_at, decline_reason, responded_at) FROM stdin;
@@ -1916,7 +2120,7 @@ COPY public.booking_organizers (id, booking_id, organizer_id, role_in_event, agr
 
 
 --
--- Data for Name: booking_sponsors; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: booking_sponsors; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.booking_sponsors (id, booking_id, sponsor_id, proposed_amount, message, status, responded_by, responded_at, requested_at, direction) FROM stdin;
@@ -1929,7 +2133,7 @@ COPY public.booking_sponsors (id, booking_id, sponsor_id, proposed_amount, messa
 
 
 --
--- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: bookings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.bookings (booking_id, user_id, booking_ref, event_date, event_start_time, event_end_time, event_type, guest_count, status, base_amount, addon_amount, discount_amount, tax_amount, total_amount, special_requests, internal_notes, confirmed_by, confirmed_at, cancelled_at, cancel_reason, created_at, updated_at, room_count, custom_event_type, reminder_sent_at, reminder_email_sent_at) FROM stdin;
@@ -1997,11 +2201,14 @@ COPY public.bookings (booking_id, user_id, booking_ref, event_date, event_start_
 6	4	AP-20260602-0006	2026-06-28	17:00:00	22:00:00	Wedding Function	150	completed	75000.00	10000.00	0.00	8500.00	93500.00	Surprise engagement. Keep venue decoration secret.	\N	1	2026-04-15 11:00:00	\N	\N	2026-05-29 11:35:02.45325	2026-10-17 21:31:12.988817	0	\N	\N	\N
 4	7	AP-20260104-0004	2026-03-22	08:00:00	16:00:00	Political Event	180	completed	95000.00	10000.00	5000.00	10000.00	110000.00	Projector needed. Tea break at 10:30 AM and 3:00 PM.	\N	1	2026-02-01 14:00:00	\N	\N	2026-05-29 11:35:02.45325	2026-10-17 21:31:12.988817	0	\N	\N	\N
 64	17	AP-20261017-0064	2026-12-01	09:00:00	14:00:00	School Event	300	pending	20000.00	0.00	0.00	0.00	20000.00	\N	\N	\N	\N	\N	\N	2026-10-17 23:50:40.583142	2026-10-17 23:50:40.583142	0	\N	\N	\N
+65	17	AP-20261018-0065	2026-11-26	09:00:00	14:00:00	School Event	250	pending	20000.00	0.00	0.00	0.00	20000.00	\N	\N	\N	\N	\N	\N	2026-10-18 19:53:25.8643	2026-10-18 19:53:25.8643	0	\N	\N	\N
+66	6	AP-20261018-0066	2026-11-18	09:00:00	14:00:00	Political Event (Large)	400	pending	35000.00	15000.00	0.00	0.00	50000.00	\N	\N	\N	\N	\N	\N	2026-10-18 21:06:43.106062	2026-10-18 21:06:43.106062	3	\N	\N	\N
+67	6	AP-20261018-0067	2026-11-07	09:00:00	14:00:00	Wedding Function	1000	pending	40000.00	25000.00	0.00	0.00	65000.00	\N	\N	\N	\N	\N	\N	2026-10-18 21:10:35.27566	2026-10-18 21:10:35.27566	5	\N	\N	\N
 \.
 
 
 --
--- Data for Name: catering_orders; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: catering_orders; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.catering_orders (order_id, booking_id, menu_items, total_cost, guest_count, status, special_notes, delivery_time, confirmed_at, delivered_at, created_at, updated_at) FROM stdin;
@@ -2032,11 +2239,12 @@ COPY public.catering_orders (order_id, booking_id, menu_items, total_cost, guest
 4	7	[{"item_id": 6, "discount": 0, "quantity": 1, "subtotal": 6500, "item_name": "Birthday Cake 2kg", "unit_price": 6500}, {"item_id": 12, "discount": 0, "quantity": 80, "subtotal": 14400, "item_name": "Ice Cream", "unit_price": 180}, {"item_id": 13, "discount": 0, "quantity": 80, "subtotal": 28000, "item_name": "Chocolate Fountain", "unit_price": 350}, {"item_id": 14, "discount": 0, "quantity": 80, "subtotal": 6400, "item_name": "Soft Drinks", "unit_price": 80}]	54900.00	80	delivered	Unicorn theme cake. No nuts.	15:30:00	2026-10-11 08:01:05.87354	2026-10-11 08:01:09.920668	2026-05-29 11:36:22.715789	2026-10-11 08:01:09.920668
 26	60	[{"item_id": 7, "discount": 0, "quantity": 250, "subtotal": 62500, "item_name": "Short Eats Platter", "unit_price": 250}]	62500.00	250	pending	\N	\N	\N	\N	2026-10-13 21:53:00.217398	2026-10-13 21:53:00.217398
 27	61	[{"item_id": 7, "discount": 0, "quantity": 500, "subtotal": 125000, "item_name": "Short Eats Platter", "unit_price": 250}]	125000.00	500	pending	\N	\N	\N	\N	2026-10-14 14:25:39.045106	2026-10-14 14:25:39.045106
+28	66	[{"item_id": 10, "discount": 0, "quantity": 400, "subtotal": 48000, "item_name": "Watalappan", "unit_price": 120}]	48000.00	400	pending	\N	\N	\N	\N	2026-10-18 21:06:43.547938	2026-10-18 21:06:43.547938
 \.
 
 
 --
--- Data for Name: event_pricing; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: event_pricing; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.event_pricing (event_type, base_price, description, is_active, created_at, updated_at) FROM stdin;
@@ -2050,7 +2258,7 @@ Other	30000.00	Any event type not listed - customer types their own	t	2026-09-29
 
 
 --
--- Data for Name: event_timelines; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: event_timelines; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.event_timelines (timeline_id, booking_id, activity_name, start_time, end_time, assigned_to, notes, sequence_order, created_at, category, hall_id) FROM stdin;
@@ -2081,7 +2289,7 @@ COPY public.event_timelines (timeline_id, booking_id, activity_name, start_time,
 
 
 --
--- Data for Name: feedback; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: feedback; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.feedback (feedback_id, booking_id, user_id, rating, title, comment, is_public, admin_reply, replied_at, created_at, reply_read_at, event_name, event_date, hall_name) FROM stdin;
@@ -2097,7 +2305,7 @@ COPY public.feedback (feedback_id, booking_id, user_id, rating, title, comment, 
 
 
 --
--- Data for Name: hall_bookings; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: hall_bookings; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.hall_bookings (hall_booking_id, hall_id, booking_id, event_date, event_start_time, event_end_time, status, assigned_by, notes, created_at, updated_at, is_complimentary) FROM stdin;
@@ -2167,11 +2375,15 @@ COPY public.hall_bookings (hall_booking_id, hall_id, booking_id, event_date, eve
 64	5	62	2026-11-02	09:00:00	14:00:00	pending	\N	\N	2026-10-17 09:20:02.016771	2026-10-17 09:20:02.016771	f
 65	6	63	2026-11-02	09:00:00	14:00:00	pending	\N	\N	2026-10-17 09:55:57.905099	2026-10-17 09:55:57.905099	f
 66	5	64	2026-12-01	09:00:00	14:00:00	pending	\N	\N	2026-10-17 23:50:40.594929	2026-10-17 23:50:40.594929	f
+67	6	65	2026-11-26	09:00:00	14:00:00	pending	\N	\N	2026-10-18 19:53:25.92675	2026-10-18 19:53:25.92675	f
+68	5	66	2026-11-18	09:00:00	14:00:00	pending	\N	\N	2026-10-18 21:06:43.14712	2026-10-18 21:06:43.14712	f
+69	5	67	2026-11-07	09:00:00	14:00:00	pending	\N	\N	2026-10-18 21:10:35.328692	2026-10-18 21:10:35.328692	f
+70	6	67	2026-11-07	09:00:00	14:00:00	pending	\N	\N	2026-10-18 21:10:35.338057	2026-10-18 21:10:35.338057	t
 \.
 
 
 --
--- Data for Name: halls; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: halls; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.halls (hall_id, hall_name, floor_number, capacity, description, base_price, is_active, image_url, amenities, created_at, updated_at) FROM stdin;
@@ -2181,7 +2393,7 @@ COPY public.halls (hall_id, hall_name, floor_number, capacity, description, base
 
 
 --
--- Data for Name: menu_items; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: menu_items; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.menu_items (item_id, item_name, category, description, price, unit, image_url, is_vegetarian, is_available, created_at, restaurant_id) FROM stdin;
@@ -2210,7 +2422,7 @@ COPY public.menu_items (item_id, item_name, category, description, price, unit, 
 
 
 --
--- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: notifications; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.notifications (notification_id, user_id, booking_id, type, channel, subject, message, recipient_email, recipient_phone, is_sent, sent_at, error_message, created_at, is_read) FROM stdin;
@@ -2295,6 +2507,8 @@ COPY public.notifications (notification_id, user_id, booking_id, type, channel, 
 88	6	59	general	email	Event schedule updated — AP-20261010-0059	Hi Customer-01,\n\nAn activity was added to the schedule for your event.\n\nBooking: AP-20261010-0059\nHall: Hall 1 - Grand + Hall 2 - Banquet\nDate: 11/10/2026\nActivity: Food Supply Arrangements. (setup)\nTime: 12:45 - 13:30	thirayafathima@gmail.com	\N	t	2026-10-11 08:19:13.931848	\N	2026-10-11 08:19:13.931848	f
 89	6	59	general	email	Event schedule updated — AP-20261010-0059	Hi Customer-01,\n\nAn activity was added to the schedule for your event.\n\nBooking: AP-20261010-0059\nHall: Hall 1 - Grand + Hall 2 - Banquet\nDate: 11/10/2026\nActivity: Hall & Floor Cleanup. (cleanup)\nTime: 15:00 - 17:00	thirayafathima@gmail.com	\N	t	2026-10-11 08:23:15.898342	\N	2026-10-11 08:23:15.898342	f
 90	6	59	general	email	Event schedule updated — AP-20261010-0059	Hi Customer-01,\n\nAn activity was updated in the schedule for your event.\n\nBooking: AP-20261010-0059\nHall: Hall 1 - Grand + Hall 2 - Banquet\nDate: 11/10/2026\nActivity: Decorations, Hall Arrangement (decoration)\nTime: 10:00 - 12:30	thirayafathima@gmail.com	\N	t	2026-10-11 08:24:06.178573	\N	2026-10-11 08:24:06.178573	f
+155	6	66	booking_confirmation	sms	\N	Aazath Plaza: Booking request received (AP-20261018-0066) for Hall 1 - Grand on 2026-11-18. Status: pending confirmation. We'll text you once it's confirmed.	\N	+94779972423	f	\N	fetch failed	2026-10-18 21:06:43.544962	f
+157	19	66	catering_update	in_app	New catering order #28 — AP-20261018-0066	Customer-01 ordered catering for 400 guests (LKR 48,000.00).	\N	\N	t	2026-10-18 21:06:43.666884	\N	2026-10-18 21:06:43.666884	f
 91	6	59	general	email	Event schedule updated — AP-20261010-0059	Hi Customer-01,\n\nAn activity was updated in the schedule for your event.\n\nBooking: AP-20261010-0059\nHall: Hall 1 - Grand + Hall 2 - Banquet\nDate: 11/10/2026\nActivity: Decorations, Hall Arrangement (decoration)\nTime: 10:00 - 23:30	thirayafathima@gmail.com	\N	t	2026-10-11 08:24:33.932326	\N	2026-10-11 08:24:33.932326	f
 92	6	59	general	email	Event schedule updated — AP-20261010-0059	Hi Customer-01,\n\nAn activity was updated in the schedule for your event.\n\nBooking: AP-20261010-0059\nHall: Hall 1 - Grand + Hall 2 - Banquet\nDate: 11/10/2026\nActivity: Food Supply Arrangements. (catering)\nTime: 11:45 - 12:30	thirayafathima@gmail.com	\N	t	2026-10-11 08:25:22.976889	\N	2026-10-11 08:25:22.976889	f
 93	1	60	booking_confirmation	email	Booking request received — AP-20261013-0060	Hi Admin,\n\nWe've received your booking request for Aazath Plaza. Here are the details:\n\nReference: AP-20261013-0060\nHall: Hall 1 - Grand\nDate: 2027-01-12\nTime: 09:00 - 14:00\nEvent type: School Event\nGuests: 250\nTotal: LKR 25000\n\nYour booking is currently pending confirmation from our team. We'll notify you once it's confirmed.	admin@aazathplaza.lk	\N	t	2026-10-13 21:52:58.973016	\N	2026-10-13 21:52:58.973016	f
@@ -2342,11 +2556,29 @@ COPY public.notifications (notification_id, user_id, booking_id, type, channel, 
 143	3	64	booking_confirmation	in_app	New booking request — AP-20261017-0064	Test Customer requested Hall 1 - Grand for School Event on 2026-12-01 (300 guests).	\N	\N	t	2026-10-17 23:50:42.412411	\N	2026-10-17 23:50:42.412411	f
 144	1	64	booking_confirmation	in_app	New booking request — AP-20261017-0064	Test Customer requested Hall 1 - Grand for School Event on 2026-12-01 (300 guests).	\N	\N	t	2026-10-17 23:50:42.412411	\N	2026-10-17 23:50:42.412411	f
 145	17	64	booking_confirmation	sms	\N	Aazath Plaza: Booking request received (AP-20261017-0064) for Hall 1 - Grand on 2026-12-01. Status: pending confirmation. We'll text you once it's confirmed.	\N	0771234567	f	\N	You have exceeded your sending limit.	2026-10-17 23:50:43.282696	f
+146	17	65	booking_confirmation	email	Booking request received — AP-20261018-0065	Hi Test Customer,\n\nWe've received your booking request for Aazath Plaza. Here are the details:\n\nReference: AP-20261018-0065\nHall: Hall 2 - Banquet\nDate: 2026-11-26\nTime: 09:00 - 14:00\nEvent type: School Event\nGuests: 250\nTotal: LKR 20000\n\nYour booking is currently pending confirmation from our team. We'll notify you once it's confirmed.	test@example.com	\N	t	2026-10-18 19:53:28.329378	\N	2026-10-18 19:53:28.329378	f
+147	19	65	booking_confirmation	in_app	New booking request — AP-20261018-0065	Test Customer requested Hall 2 - Banquet for School Event on 2026-11-26 (250 guests).	\N	\N	t	2026-10-18 19:53:28.493742	\N	2026-10-18 19:53:28.493742	f
+148	3	65	booking_confirmation	in_app	New booking request — AP-20261018-0065	Test Customer requested Hall 2 - Banquet for School Event on 2026-11-26 (250 guests).	\N	\N	t	2026-10-18 19:53:28.493742	\N	2026-10-18 19:53:28.493742	f
+149	1	65	booking_confirmation	in_app	New booking request — AP-20261018-0065	Test Customer requested Hall 2 - Banquet for School Event on 2026-11-26 (250 guests).	\N	\N	t	2026-10-18 19:53:28.493742	\N	2026-10-18 19:53:28.493742	f
+150	17	65	booking_confirmation	sms	\N	Aazath Plaza: Booking request received (AP-20261018-0065) for Hall 2 - Banquet on 2026-11-26. Status: pending confirmation. We'll text you once it's confirmed.	\N	0771234567	f	\N	You have exceeded your sending limit.	2026-10-18 19:53:29.096135	f
+151	6	66	booking_confirmation	email	Booking request received — AP-20261018-0066	Hi Customer-01,\n\nWe've received your booking request for Aazath Plaza. Here are the details:\n\nReference: AP-20261018-0066\nHall: Hall 1 - Grand\nDate: 2026-11-18\nTime: 09:00 - 14:00\nEvent type: Political Event (Large)\nGuests: 400\nTotal: LKR 50000\n\nYour booking is currently pending confirmation from our team. We'll notify you once it's confirmed.	thirayafathima@gmail.com	\N	f	\N	getaddrinfo ENOTFOUND smtp.sendgrid.net	2026-10-18 21:06:43.301203	f
+152	19	66	booking_confirmation	in_app	New booking request — AP-20261018-0066	Customer-01 requested Hall 1 - Grand for Political Event (Large) on 2026-11-18 (400 guests).	\N	\N	t	2026-10-18 21:06:43.536091	\N	2026-10-18 21:06:43.536091	f
+153	3	66	booking_confirmation	in_app	New booking request — AP-20261018-0066	Customer-01 requested Hall 1 - Grand for Political Event (Large) on 2026-11-18 (400 guests).	\N	\N	t	2026-10-18 21:06:43.536091	\N	2026-10-18 21:06:43.536091	f
+154	1	66	booking_confirmation	in_app	New booking request — AP-20261018-0066	Customer-01 requested Hall 1 - Grand for Political Event (Large) on 2026-11-18 (400 guests).	\N	\N	t	2026-10-18 21:06:43.536091	\N	2026-10-18 21:06:43.536091	f
+158	3	66	catering_update	in_app	New catering order #28 — AP-20261018-0066	Customer-01 ordered catering for 400 guests (LKR 48,000.00).	\N	\N	t	2026-10-18 21:06:43.666884	\N	2026-10-18 21:06:43.666884	f
+159	13	66	catering_update	in_app	New catering order #28 — AP-20261018-0066	Customer-01 ordered catering for 400 guests (LKR 48,000.00).	\N	\N	t	2026-10-18 21:06:43.666884	\N	2026-10-18 21:06:43.666884	f
+160	1	66	catering_update	in_app	New catering order #28 — AP-20261018-0066	Customer-01 ordered catering for 400 guests (LKR 48,000.00).	\N	\N	t	2026-10-18 21:06:43.666884	\N	2026-10-18 21:06:43.666884	f
+156	6	66	catering_update	email	Catering order #28 received — AP-20261018-0066	Hi Customer-01,\n\nWe received your catering order #28 for booking AP-20261018-0066.\n\n- 400 x Watalappan\n\nGuests: 400\nTotal: LKR 48,000.00\nCatering is billed separately by the restaurant. We'll email you as the order progresses.	thirayafathima@gmail.com	\N	f	\N	getaddrinfo ENOTFOUND smtp.sendgrid.net	2026-10-18 21:06:43.666132	f
+161	6	67	booking_confirmation	email	Booking request received — AP-20261018-0067	Hi Customer-01,\n\nWe've received your booking request for Aazath Plaza. Here are the details:\n\nReference: AP-20261018-0067\nHall: Hall 1 - Grand + Hall 2 - Banquet\nDate: 2026-11-07\nTime: 09:00 - 14:00\nEvent type: Wedding Function\nGuests: 1000\nTotal: LKR 65000\n\nYour booking is currently pending confirmation from our team. We'll notify you once it's confirmed.	thirayafathima@gmail.com	\N	t	2026-10-18 21:10:37.24711	\N	2026-10-18 21:10:37.24711	f
+162	19	67	booking_confirmation	in_app	New booking request — AP-20261018-0067	Customer-01 requested Hall 1 - Grand + Hall 2 - Banquet for Wedding Function on 2026-11-07 (1000 guests).	\N	\N	t	2026-10-18 21:10:37.514126	\N	2026-10-18 21:10:37.514126	f
+163	3	67	booking_confirmation	in_app	New booking request — AP-20261018-0067	Customer-01 requested Hall 1 - Grand + Hall 2 - Banquet for Wedding Function on 2026-11-07 (1000 guests).	\N	\N	t	2026-10-18 21:10:37.514126	\N	2026-10-18 21:10:37.514126	f
+164	1	67	booking_confirmation	in_app	New booking request — AP-20261018-0067	Customer-01 requested Hall 1 - Grand + Hall 2 - Banquet for Wedding Function on 2026-11-07 (1000 guests).	\N	\N	t	2026-10-18 21:10:37.514126	\N	2026-10-18 21:10:37.514126	f
+165	6	67	booking_confirmation	sms	\N	Aazath Plaza: Booking request received (AP-20261018-0067) for Hall 1 - Grand + Hall 2 - Banquet on 2026-11-07. Status: pending confirmation. We'll text you once it's confirmed.	\N	+94779972423	f	\N	You have exceeded your sending limit.	2026-10-18 21:10:38.092691	f
 \.
 
 
 --
--- Data for Name: organizers; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: organizers; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.organizers (organizer_id, user_id, business_name, specialty, experience_years, portfolio_url, bio, service_areas, price_range, avg_rating, total_reviews, is_verified, is_available, created_at, updated_at) FROM stdin;
@@ -2356,7 +2588,7 @@ COPY public.organizers (organizer_id, user_id, business_name, specialty, experie
 
 
 --
--- Data for Name: password_reset_tokens; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: password_reset_tokens; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.password_reset_tokens (id, user_id, token, expires_at, used_at, created_at) FROM stdin;
@@ -2365,7 +2597,7 @@ COPY public.password_reset_tokens (id, user_id, token, expires_at, used_at, crea
 
 
 --
--- Data for Name: payments; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: payments; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.payments (payment_id, booking_id, amount, payment_method, transaction_id, payhere_order_id, status, currency, invoice_url, invoice_number, paid_at, refunded_at, refund_reason, gateway_response, created_at, updated_at) FROM stdin;
@@ -2428,11 +2660,46 @@ COPY public.payments (payment_id, booking_id, amount, payment_method, transactio
 57	63	20000.00	credit_card	\N	AZP-63-1792211163535	pending	LKR	\N	\N	\N	\N	\N	\N	2026-10-17 09:56:03.564384	2026-10-17 09:56:03.564384
 58	63	20000.00	credit_card	320032673682	AZP-63-1792211922143	completed	LKR	\N	INV-20261017-58	2026-10-17 10:10:11.882911	\N	\N	{"md5sig": "0BF0881DAB18627F4D4526A085E8A99A", "method": "VISA", "card_no": "************1292", "custom_1": "", "custom_2": "", "order_id": "AZP-63-1792211922143", "recurring": "0", "payment_id": "320032673682", "card_expiry": "11/26", "merchant_id": "1236612", "status_code": "2", "payhere_amount": "20000.00", "status_message": "Successfully received the VISA payment", "captured_amount": "20000.00", "card_holder_name": "test", "payhere_currency": "LKR"}	2026-10-17 10:08:42.159301	2026-10-17 10:10:11.908412
 59	64	20000.00	credit_card	\N	AZP-64-1792261264746	pending	LKR	\N	\N	\N	\N	\N	\N	2026-10-17 23:51:04.754936	2026-10-17 23:51:04.754936
+60	66	50000.00	credit_card	\N	AZP-66-1792337805925	pending	LKR	\N	\N	\N	\N	\N	\N	2026-10-18 21:06:45.927932	2026-10-18 21:06:45.927932
+61	67	65000.00	credit_card	\N	AZP-67-1792338039940	pending	LKR	\N	\N	\N	\N	\N	\N	2026-10-18 21:10:39.942133	2026-10-18 21:10:39.942133
 \.
 
 
 --
--- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: room_reservations; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.room_reservations (reservation_id, reservation_ref, user_id, room_id, booking_id, check_in, check_out, guests, total_amount, status, payment_status, created_at, group_ref, transaction_id, payment_method, paid_at) FROM stdin;
+1	RM-261018-BB8F0	17	1	\N	2026-12-10	2026-12-15	4	25000.00	cancelled	unpaid	2026-10-18 14:41:01.971015+05:30	RM-261018-BB8F0	\N	\N	\N
+2	RM-261018-261C6	17	2	\N	2026-12-10	2026-12-15	4	25000.00	cancelled	unpaid	2026-10-18 14:41:01.971015+05:30	RM-261018-261C6	\N	\N	\N
+3	RM-261018-FF9B5	17	5	\N	2026-10-19	2026-10-20	1	5000.00	cancelled	unpaid	2026-10-18 17:47:28.264819+05:30	RG-261018-CEE300	\N	\N	\N
+4	RM-261018-3822A	17	3	\N	2026-10-20	2026-10-22	1	10000.00	cancelled	unpaid	2026-10-18 18:05:45.804027+05:30	RG-261018-170F60	\N	\N	\N
+5	RM-261018-36B46	17	2	\N	2026-10-21	2026-10-22	1	5000.00	cancelled	unpaid	2026-10-18 18:23:58.136242+05:30	RG-261018-7EEA7B	\N	\N	\N
+6	RM-261018-DC7FA	17	1	\N	2026-10-22	2026-10-24	1	10000.00	cancelled	unpaid	2026-10-18 20:08:53.48083+05:30	RG-261018-9CDEA5	\N	\N	\N
+7	RM-261018-6BC3C	17	2	\N	2026-10-23	2026-10-24	1	5000.00	confirmed	paid	2026-10-18 20:27:04.36473+05:30	RG-261018-2C713F	320032674251	VISA	2026-10-18 20:27:19.402746+05:30
+8	RM-261018-46DA2	6	3	\N	2026-10-22	2026-10-25	1	15000.00	confirmed	paid	2026-10-18 21:12:45.777971+05:30	RG-261018-21A2A6	320032674263	VISA	2026-10-18 21:13:01.682597+05:30
+9	RM-261018-2AD30	6	3	\N	2026-12-25	2026-12-30	5	25000.00	pending	unpaid	2026-10-18 21:14:04.790759+05:30	RG-261018-57F2EE	\N	\N	\N
+10	RM-261018-20BD1	6	4	\N	2026-12-25	2026-12-30	5	25000.00	pending	unpaid	2026-10-18 21:14:04.790759+05:30	RG-261018-57F2EE	\N	\N	\N
+11	RM-261018-C0E42	6	5	\N	2026-12-25	2026-12-30	5	25000.00	pending	unpaid	2026-10-18 21:14:04.790759+05:30	RG-261018-57F2EE	\N	\N	\N
+12	RM-261018-08E4F	6	2	\N	2026-11-15	2026-11-20	2	25000.00	confirmed	paid	2026-10-18 21:14:57.020714+05:30	RG-261018-5A431D	320032674264	VISA	2026-10-18 21:15:11.006424+05:30
+\.
+
+
+--
+-- Data for Name: rooms; Type: TABLE DATA; Schema: public; Owner: -
+--
+
+COPY public.rooms (room_id, room_name, capacity, rate_per_day, is_active) FROM stdin;
+1	Room 1	2	5000.00	t
+2	Room 2	2	5000.00	t
+3	Room 3	2	5000.00	t
+4	Room 4	2	5000.00	t
+5	Room 5	2	5000.00	t
+\.
+
+
+--
+-- Data for Name: sponsors; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.sponsors (sponsor_id, user_id, company_name, industry, website_url, logo_url, budget_range, preferred_events, description, status, created_at, updated_at) FROM stdin;
@@ -2442,7 +2709,7 @@ COPY public.sponsors (sponsor_id, user_id, company_name, industry, website_url, 
 
 
 --
--- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: postgres
+-- Data for Name: users; Type: TABLE DATA; Schema: public; Owner: -
 --
 
 COPY public.users (user_id, full_name, email, password_hash, phone, role, profile_image, is_active, is_verified, login_attempts, locked_until, last_login, created_at, updated_at, refresh_token, google_id) FROM stdin;
@@ -2461,126 +2728,140 @@ COPY public.users (user_id, full_name, email, password_hash, phone, role, profil
 10	Fathima Decorations	fathima@decorations.lk	$2b$10$HCcCJ92/kc8vgN/oHiZF0.GB8YdLbXfmw9QuYlrScGmyeFntYAa.m	+94770123456	organizer	https://res.cloudinary.com/h0f2gpu1/image/upload/v1790244997/aazath-plaza/users/uvtrqqkfgttt05oo8d4w.jpg	t	t	0	\N	2026-10-14 21:07:30.019097	2026-05-29 11:33:11.576052	2026-05-29 11:33:11.576052	\N	\N
 3	Front Desk Staff	staff@aazathplaza.lk	$2b$10$8oX2gTYptOLytLU2qdJ1ZOBwzSalKFU3I56PEQZkRk/30ePjZXc0C	+94773456789	front_desk	https://res.cloudinary.com/h0f2gpu1/image/upload/v1790230739/aazath-plaza/users/o7dzl90rmogagflkifuk.jpg	t	t	0	\N	2026-10-14 20:46:13.455504	2026-05-29 11:33:11.576052	2026-10-17 10:42:11.09157	\N	\N
 13	Althab Restaurant	althab@restaurant.lk	$2b$10$XgDWZqBupT36otT7lihy3ulPsR4w446k8PYz34vmJC40ga85AphRq	+94773344556	restaurant	\N	t	t	0	\N	2026-10-17 21:27:45.799104	2026-05-29 11:33:11.576052	2026-05-29 11:33:11.576052	\N	\N
-6	Customer-01	thirayafathima@gmail.com	$2b$12$63vFif2T1tGAtYHXuivEA.NznakErE1lbyax5jlTE9zlt38lwZOfe	+94779972423	customer	https://res.cloudinary.com/h0f2gpu1/image/upload/v1790226950/aazath-plaza/users/ar2ivkqriftzlegeyui4.jpg	t	t	0	\N	2026-10-17 22:21:21.625833	2026-05-29 11:33:11.576052	2026-05-29 11:33:11.576052	\N	103468752940350229146
+17	Test Customer	test@example.com	$2b$12$VizevEqJu/5rBaPKh3p6l.urgJR7nMDhdvdteNMl2/BOQ.mrhKXKG	0771234567	customer	\N	t	f	0	\N	2026-10-18 20:26:42.208268	2026-06-21 16:38:06.436496	2026-06-21 16:38:06.436496	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc5MjMzNzY1OSwiZXhwIjoxNzkyOTQyNDU5fQ.1mAn6aR1ZQugtrRhpRnRGBsdZqahmn1xNGuPfQn_GcE	\N
 1	Admin	admin@aazathplaza.lk	$2b$10$94tFbhA/jeRcYr7KYy4FnuqqxEoYKmNSOyYhO8Ec3O5D2hHHCIDHq	+94771234567	admin	https://res.cloudinary.com/h0f2gpu1/image/upload/v1790196116/aazath-plaza/users/qunvcvxidbwo2bnxq6um.jpg	t	t	0	\N	2026-10-17 21:34:11.380543	2026-05-29 11:33:11.576052	2026-05-29 11:33:11.576052	\N	\N
-17	Test Customer	test@example.com	$2b$12$VizevEqJu/5rBaPKh3p6l.urgJR7nMDhdvdteNMl2/BOQ.mrhKXKG	0771234567	customer	\N	t	f	0	\N	2026-10-17 23:49:28.088675	2026-06-21 16:38:06.436496	2026-06-21 16:38:06.436496	eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6MTcsImVtYWlsIjoidGVzdEBleGFtcGxlLmNvbSIsInJvbGUiOiJjdXN0b21lciIsImlhdCI6MTc5MjI2MjA4OSwiZXhwIjoxNzkyODY2ODg5fQ.nHuPvW0pSubAgscaV_-10ZQd6iluit3h9dsSe-SRHXI	\N
+6	Customer-01	thirayafathima@gmail.com	$2b$12$63vFif2T1tGAtYHXuivEA.NznakErE1lbyax5jlTE9zlt38lwZOfe	+94779972423	customer	https://res.cloudinary.com/h0f2gpu1/image/upload/v1790226950/aazath-plaza/users/ar2ivkqriftzlegeyui4.jpg	t	t	0	\N	2026-10-18 21:04:53.944811	2026-05-29 11:33:11.576052	2026-05-29 11:33:11.576052	\N	103468752940350229146
 \.
 
 
 --
--- Name: audit_log_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: audit_log_log_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.audit_log_log_id_seq', 666, true);
+SELECT pg_catalog.setval('public.audit_log_log_id_seq', 685, true);
 
 
 --
--- Name: booking_organizers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: booking_organizers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.booking_organizers_id_seq', 18, true);
 
 
 --
--- Name: booking_sponsors_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: booking_sponsors_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.booking_sponsors_id_seq', 6, true);
 
 
 --
--- Name: bookings_booking_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: bookings_booking_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.bookings_booking_id_seq', 64, true);
-
-
---
--- Name: catering_orders_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
---
-
-SELECT pg_catalog.setval('public.catering_orders_order_id_seq', 27, true);
+SELECT pg_catalog.setval('public.bookings_booking_id_seq', 67, true);
 
 
 --
--- Name: event_timelines_timeline_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: catering_orders_order_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.catering_orders_order_id_seq', 28, true);
+
+
+--
+-- Name: event_timelines_timeline_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.event_timelines_timeline_id_seq', 23, true);
 
 
 --
--- Name: feedback_feedback_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: feedback_feedback_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.feedback_feedback_id_seq', 14, true);
 
 
 --
--- Name: hall_bookings_hall_booking_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: hall_bookings_hall_booking_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.hall_bookings_hall_booking_id_seq', 66, true);
+SELECT pg_catalog.setval('public.hall_bookings_hall_booking_id_seq', 70, true);
 
 
 --
--- Name: halls_hall_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: halls_hall_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.halls_hall_id_seq', 6, true);
 
 
 --
--- Name: menu_items_item_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: menu_items_item_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.menu_items_item_id_seq', 22, true);
 
 
 --
--- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: notifications_notification_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.notifications_notification_id_seq', 145, true);
+SELECT pg_catalog.setval('public.notifications_notification_id_seq', 165, true);
 
 
 --
--- Name: organizers_organizer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: organizers_organizer_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.organizers_organizer_id_seq', 2, true);
 
 
 --
--- Name: password_reset_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: password_reset_tokens_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.password_reset_tokens_id_seq', 7, true);
 
 
 --
--- Name: payments_payment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: payments_payment_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
-SELECT pg_catalog.setval('public.payments_payment_id_seq', 59, true);
+SELECT pg_catalog.setval('public.payments_payment_id_seq', 61, true);
 
 
 --
--- Name: sponsors_sponsor_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: room_reservations_reservation_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.room_reservations_reservation_id_seq', 12, true);
+
+
+--
+-- Name: rooms_room_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
+--
+
+SELECT pg_catalog.setval('public.rooms_room_id_seq', 5, true);
+
+
+--
+-- Name: sponsors_sponsor_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.sponsors_sponsor_id_seq', 2, true);
 
 
 --
--- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: postgres
+-- Name: users_user_id_seq; Type: SEQUENCE SET; Schema: public; Owner: -
 --
 
 SELECT pg_catalog.setval('public.users_user_id_seq', 21, true);
 
 
 --
--- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: audit_log audit_log_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.audit_log
@@ -2588,7 +2869,7 @@ ALTER TABLE ONLY public.audit_log
 
 
 --
--- Name: booking_organizers booking_organizers_booking_id_organizer_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_organizers booking_organizers_booking_id_organizer_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_organizers
@@ -2596,7 +2877,7 @@ ALTER TABLE ONLY public.booking_organizers
 
 
 --
--- Name: booking_organizers booking_organizers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_organizers booking_organizers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_organizers
@@ -2604,7 +2885,7 @@ ALTER TABLE ONLY public.booking_organizers
 
 
 --
--- Name: booking_sponsors booking_sponsors_booking_id_sponsor_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_sponsors booking_sponsors_booking_id_sponsor_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_sponsors
@@ -2612,7 +2893,7 @@ ALTER TABLE ONLY public.booking_sponsors
 
 
 --
--- Name: booking_sponsors booking_sponsors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_sponsors booking_sponsors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_sponsors
@@ -2620,7 +2901,7 @@ ALTER TABLE ONLY public.booking_sponsors
 
 
 --
--- Name: bookings bookings_booking_ref_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bookings bookings_booking_ref_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookings
@@ -2628,7 +2909,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bookings bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookings
@@ -2636,7 +2917,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- Name: catering_orders catering_orders_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: catering_orders catering_orders_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.catering_orders
@@ -2644,7 +2925,7 @@ ALTER TABLE ONLY public.catering_orders
 
 
 --
--- Name: event_pricing event_pricing_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: event_pricing event_pricing_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.event_pricing
@@ -2652,7 +2933,7 @@ ALTER TABLE ONLY public.event_pricing
 
 
 --
--- Name: event_timelines event_timelines_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: event_timelines event_timelines_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.event_timelines
@@ -2660,7 +2941,7 @@ ALTER TABLE ONLY public.event_timelines
 
 
 --
--- Name: feedback feedback_booking_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: feedback feedback_booking_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.feedback
@@ -2668,7 +2949,7 @@ ALTER TABLE ONLY public.feedback
 
 
 --
--- Name: feedback feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: feedback feedback_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.feedback
@@ -2676,7 +2957,7 @@ ALTER TABLE ONLY public.feedback
 
 
 --
--- Name: hall_bookings hall_bookings_booking_hall_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hall_bookings hall_bookings_booking_hall_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hall_bookings
@@ -2684,7 +2965,7 @@ ALTER TABLE ONLY public.hall_bookings
 
 
 --
--- Name: hall_bookings hall_bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hall_bookings hall_bookings_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hall_bookings
@@ -2692,7 +2973,7 @@ ALTER TABLE ONLY public.hall_bookings
 
 
 --
--- Name: halls halls_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: halls halls_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.halls
@@ -2700,7 +2981,7 @@ ALTER TABLE ONLY public.halls
 
 
 --
--- Name: menu_items menu_items_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: menu_items menu_items_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.menu_items
@@ -2708,7 +2989,15 @@ ALTER TABLE ONLY public.menu_items
 
 
 --
--- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: room_reservations no_room_overlap; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations
+    ADD CONSTRAINT no_room_overlap EXCLUDE USING gist (room_id WITH =, daterange(check_in, check_out) WITH &&) WHERE (((status)::text = ANY ((ARRAY['pending'::character varying, 'confirmed'::character varying])::text[])));
+
+
+--
+-- Name: notifications notifications_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications
@@ -2716,7 +3005,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: organizers organizers_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: organizers organizers_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.organizers
@@ -2724,7 +3013,7 @@ ALTER TABLE ONLY public.organizers
 
 
 --
--- Name: organizers organizers_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: organizers organizers_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.organizers
@@ -2732,7 +3021,7 @@ ALTER TABLE ONLY public.organizers
 
 
 --
--- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: password_reset_tokens password_reset_tokens_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.password_reset_tokens
@@ -2740,7 +3029,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- Name: password_reset_tokens password_reset_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: password_reset_tokens password_reset_tokens_token_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.password_reset_tokens
@@ -2748,7 +3037,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- Name: payments payments_invoice_number_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: payments payments_invoice_number_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
@@ -2756,7 +3045,7 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: payments payments_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
@@ -2764,7 +3053,7 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- Name: payments payments_transaction_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: payments payments_transaction_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
@@ -2772,7 +3061,39 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- Name: sponsors sponsors_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: room_reservations room_reservations_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations
+    ADD CONSTRAINT room_reservations_pkey PRIMARY KEY (reservation_id);
+
+
+--
+-- Name: room_reservations room_reservations_reservation_ref_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations
+    ADD CONSTRAINT room_reservations_reservation_ref_key UNIQUE (reservation_ref);
+
+
+--
+-- Name: rooms rooms_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rooms
+    ADD CONSTRAINT rooms_pkey PRIMARY KEY (room_id);
+
+
+--
+-- Name: rooms rooms_room_name_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.rooms
+    ADD CONSTRAINT rooms_room_name_key UNIQUE (room_name);
+
+
+--
+-- Name: sponsors sponsors_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sponsors
@@ -2780,7 +3101,7 @@ ALTER TABLE ONLY public.sponsors
 
 
 --
--- Name: sponsors sponsors_user_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: sponsors sponsors_user_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sponsors
@@ -2788,7 +3109,7 @@ ALTER TABLE ONLY public.sponsors
 
 
 --
--- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_email_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -2796,7 +3117,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_google_id_key; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_google_id_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -2804,7 +3125,7 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+-- Name: users users_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.users
@@ -2812,371 +3133,392 @@ ALTER TABLE ONLY public.users
 
 
 --
--- Name: idx_audit_action; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_action; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_audit_action ON public.audit_log USING btree (action);
 
 
 --
--- Name: idx_audit_log_table_name; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_log_table_name; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_audit_log_table_name ON public.audit_log USING btree (table_name);
 
 
 --
--- Name: idx_audit_log_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_log_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_audit_log_user_id ON public.audit_log USING btree (user_id);
 
 
 --
--- Name: idx_audit_table; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_table; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_audit_table ON public.audit_log USING btree (table_name);
 
 
 --
--- Name: idx_audit_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_audit_user; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_audit_user ON public.audit_log USING btree (user_id);
 
 
 --
--- Name: idx_bookings_booking_ref; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bookings_booking_ref; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_bookings_booking_ref ON public.bookings USING btree (booking_ref);
 
 
 --
--- Name: idx_bookings_event_date; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bookings_event_date; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_bookings_event_date ON public.bookings USING btree (event_date);
 
 
 --
--- Name: idx_bookings_ref; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bookings_ref; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_bookings_ref ON public.bookings USING btree (booking_ref);
 
 
 --
--- Name: idx_bookings_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bookings_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_bookings_status ON public.bookings USING btree (status);
 
 
 --
--- Name: idx_bookings_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_bookings_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_bookings_user_id ON public.bookings USING btree (user_id);
 
 
 --
--- Name: idx_catering_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_catering_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_catering_booking ON public.catering_orders USING btree (booking_id);
 
 
 --
--- Name: idx_catering_orders_booking_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_catering_orders_booking_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_catering_orders_booking_id ON public.catering_orders USING btree (booking_id);
 
 
 --
--- Name: idx_catering_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_catering_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_catering_status ON public.catering_orders USING btree (status);
 
 
 --
--- Name: idx_event_timelines_booking_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_event_timelines_booking_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_event_timelines_booking_id ON public.event_timelines USING btree (booking_id);
 
 
 --
--- Name: idx_event_timelines_hall_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_event_timelines_hall_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_event_timelines_hall_id ON public.event_timelines USING btree (hall_id);
 
 
 --
--- Name: idx_event_timelines_sequence_order; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_event_timelines_sequence_order; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_event_timelines_sequence_order ON public.event_timelines USING btree (sequence_order);
 
 
 --
--- Name: idx_event_timelines_start_time; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_event_timelines_start_time; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_event_timelines_start_time ON public.event_timelines USING btree (start_time);
 
 
 --
--- Name: idx_feedback_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_feedback_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_feedback_booking ON public.feedback USING btree (booking_id);
 
 
 --
--- Name: idx_feedback_rating; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_feedback_rating; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_feedback_rating ON public.feedback USING btree (rating);
 
 
 --
--- Name: idx_hall_bookings_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hall_bookings_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hall_bookings_booking ON public.hall_bookings USING btree (booking_id);
 
 
 --
--- Name: idx_hall_bookings_hall_date; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hall_bookings_hall_date; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hall_bookings_hall_date ON public.hall_bookings USING btree (hall_id, event_date);
 
 
 --
--- Name: idx_hall_bookings_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hall_bookings_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_hall_bookings_status ON public.hall_bookings USING btree (status);
 
 
 --
--- Name: idx_hb_one_complimentary_per_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hb_one_complimentary_per_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX idx_hb_one_complimentary_per_booking ON public.hall_bookings USING btree (booking_id) WHERE is_complimentary;
 
 
 --
--- Name: idx_hb_one_primary_per_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_hb_one_primary_per_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX idx_hb_one_primary_per_booking ON public.hall_bookings USING btree (booking_id) WHERE (NOT is_complimentary);
 
 
 --
--- Name: idx_menu_category; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_menu_category; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_menu_category ON public.menu_items USING btree (category);
 
 
 --
--- Name: idx_no_double_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_no_double_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX idx_no_double_booking ON public.bookings USING btree (event_date) WHERE (status = 'confirmed'::public.booking_status);
 
 
 --
--- Name: INDEX idx_no_double_booking; Type: COMMENT; Schema: public; Owner: postgres
+-- Name: INDEX idx_no_double_booking; Type: COMMENT; Schema: public; Owner: -
 --
 
 COMMENT ON INDEX public.idx_no_double_booking IS 'BR-01: one confirmed event per date across both halls';
 
 
 --
--- Name: idx_notif_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notif_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_notif_booking ON public.notifications USING btree (booking_id);
 
 
 --
--- Name: idx_notif_sent; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notif_sent; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_notif_sent ON public.notifications USING btree (is_sent);
 
 
 --
--- Name: idx_notif_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notif_user; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_notif_user ON public.notifications USING btree (user_id);
 
 
 --
--- Name: idx_notifications_user_created; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notifications_user_created; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_notifications_user_created ON public.notifications USING btree (user_id, created_at DESC);
 
 
 --
--- Name: idx_notifications_user_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_notifications_user_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_notifications_user_id ON public.notifications USING btree (user_id);
 
 
 --
--- Name: idx_organizers_spec; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_organizers_spec; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_organizers_spec ON public.organizers USING btree (specialty);
 
 
 --
--- Name: idx_organizers_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_organizers_user; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_organizers_user ON public.organizers USING btree (user_id);
 
 
 --
--- Name: idx_payments_booking_id; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_booking_id; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_payments_booking_id ON public.payments USING btree (booking_id);
 
 
 --
--- Name: idx_payments_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_payments_status ON public.payments USING btree (status);
 
 
 --
--- Name: idx_payments_transaction; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_payments_transaction; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_payments_transaction ON public.payments USING btree (transaction_id);
 
 
 --
--- Name: idx_sponsors_status; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_room_res_group; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_room_res_group ON public.room_reservations USING btree (group_ref);
+
+
+--
+-- Name: idx_room_res_user; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX idx_room_res_user ON public.room_reservations USING btree (user_id);
+
+
+--
+-- Name: idx_sponsors_status; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_sponsors_status ON public.sponsors USING btree (status);
 
 
 --
--- Name: idx_sponsors_user; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_sponsors_user; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_sponsors_user ON public.sponsors USING btree (user_id);
 
 
 --
--- Name: idx_timeline_booking; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_timeline_booking; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_timeline_booking ON public.event_timelines USING btree (booking_id);
 
 
 --
--- Name: idx_users_active; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_active; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_users_active ON public.users USING btree (is_active);
 
 
 --
--- Name: idx_users_email; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_email; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_users_email ON public.users USING btree (email);
 
 
 --
--- Name: idx_users_role; Type: INDEX; Schema: public; Owner: postgres
+-- Name: idx_users_role; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX idx_users_role ON public.users USING btree (role);
 
 
 --
--- Name: bookings trg_booking_ref; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: uq_audit_payment; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX uq_audit_payment ON public.audit_log USING btree (((new_values ->> 'payment_ref'::text)), ((new_values ->> 'status_code'::text))) WHERE (((action)::text ~~ 'PAYMENT_%'::text) AND ((action)::text <> 'PAYMENT_SIG_INVALID'::text));
+
+
+--
+-- Name: bookings trg_booking_ref; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_booking_ref BEFORE INSERT ON public.bookings FOR EACH ROW WHEN (((new.booking_ref IS NULL) OR ((new.booking_ref)::text = ''::text))) EXECUTE FUNCTION public.generate_booking_ref();
 
 
 --
--- Name: bookings trg_bookings_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: bookings trg_bookings_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_bookings_updated BEFORE UPDATE ON public.bookings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: catering_orders trg_catering_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: catering_orders trg_catering_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_catering_updated BEFORE UPDATE ON public.catering_orders FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: event_pricing trg_event_pricing_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: event_pricing trg_event_pricing_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_event_pricing_updated BEFORE UPDATE ON public.event_pricing FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: hall_bookings trg_hall_bookings_capacity_cap; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: hall_bookings trg_hall_bookings_capacity_cap; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_hall_bookings_capacity_cap BEFORE INSERT OR UPDATE ON public.hall_bookings FOR EACH ROW EXECUTE FUNCTION public.check_combined_hall_capacity();
 
 
 --
--- Name: hall_bookings trg_hall_bookings_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: hall_bookings trg_hall_bookings_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_hall_bookings_updated BEFORE UPDATE ON public.hall_bookings FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: organizers trg_organizers_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: organizers trg_organizers_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_organizers_updated BEFORE UPDATE ON public.organizers FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: payments trg_payments_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: payments trg_payments_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_payments_updated BEFORE UPDATE ON public.payments FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: sponsors trg_sponsors_updated; Type: TRIGGER; Schema: public; Owner: postgres
+-- Name: sponsors trg_sponsors_updated; Type: TRIGGER; Schema: public; Owner: -
 --
 
 CREATE TRIGGER trg_sponsors_updated BEFORE UPDATE ON public.sponsors FOR EACH ROW EXECUTE FUNCTION public.update_updated_at();
 
 
 --
--- Name: audit_log audit_log_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: audit_log audit_log_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.audit_log
@@ -3184,7 +3526,7 @@ ALTER TABLE ONLY public.audit_log
 
 
 --
--- Name: booking_organizers booking_organizers_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_organizers booking_organizers_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_organizers
@@ -3192,7 +3534,7 @@ ALTER TABLE ONLY public.booking_organizers
 
 
 --
--- Name: booking_organizers booking_organizers_organizer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_organizers booking_organizers_organizer_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_organizers
@@ -3200,7 +3542,7 @@ ALTER TABLE ONLY public.booking_organizers
 
 
 --
--- Name: booking_sponsors booking_sponsors_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_sponsors booking_sponsors_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_sponsors
@@ -3208,7 +3550,7 @@ ALTER TABLE ONLY public.booking_sponsors
 
 
 --
--- Name: booking_sponsors booking_sponsors_responded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_sponsors booking_sponsors_responded_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_sponsors
@@ -3216,7 +3558,7 @@ ALTER TABLE ONLY public.booking_sponsors
 
 
 --
--- Name: booking_sponsors booking_sponsors_sponsor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: booking_sponsors booking_sponsors_sponsor_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.booking_sponsors
@@ -3224,7 +3566,7 @@ ALTER TABLE ONLY public.booking_sponsors
 
 
 --
--- Name: bookings bookings_confirmed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bookings bookings_confirmed_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookings
@@ -3232,7 +3574,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- Name: bookings bookings_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bookings bookings_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookings
@@ -3240,7 +3582,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- Name: catering_orders catering_orders_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: catering_orders catering_orders_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.catering_orders
@@ -3248,7 +3590,7 @@ ALTER TABLE ONLY public.catering_orders
 
 
 --
--- Name: event_timelines event_timelines_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: event_timelines event_timelines_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.event_timelines
@@ -3256,7 +3598,7 @@ ALTER TABLE ONLY public.event_timelines
 
 
 --
--- Name: event_timelines event_timelines_hall_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: event_timelines event_timelines_hall_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.event_timelines
@@ -3264,7 +3606,7 @@ ALTER TABLE ONLY public.event_timelines
 
 
 --
--- Name: feedback feedback_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: feedback feedback_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.feedback
@@ -3272,7 +3614,7 @@ ALTER TABLE ONLY public.feedback
 
 
 --
--- Name: feedback feedback_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: feedback feedback_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.feedback
@@ -3280,7 +3622,7 @@ ALTER TABLE ONLY public.feedback
 
 
 --
--- Name: bookings fk_bookings_event_type; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: bookings fk_bookings_event_type; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.bookings
@@ -3288,7 +3630,7 @@ ALTER TABLE ONLY public.bookings
 
 
 --
--- Name: hall_bookings hall_bookings_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hall_bookings hall_bookings_assigned_by_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hall_bookings
@@ -3296,7 +3638,7 @@ ALTER TABLE ONLY public.hall_bookings
 
 
 --
--- Name: hall_bookings hall_bookings_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hall_bookings hall_bookings_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hall_bookings
@@ -3304,7 +3646,7 @@ ALTER TABLE ONLY public.hall_bookings
 
 
 --
--- Name: hall_bookings hall_bookings_hall_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: hall_bookings hall_bookings_hall_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.hall_bookings
@@ -3312,7 +3654,7 @@ ALTER TABLE ONLY public.hall_bookings
 
 
 --
--- Name: menu_items menu_items_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: menu_items menu_items_restaurant_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.menu_items
@@ -3320,7 +3662,7 @@ ALTER TABLE ONLY public.menu_items
 
 
 --
--- Name: notifications notifications_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: notifications notifications_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications
@@ -3328,7 +3670,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: notifications notifications_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.notifications
@@ -3336,7 +3678,7 @@ ALTER TABLE ONLY public.notifications
 
 
 --
--- Name: organizers organizers_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: organizers organizers_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.organizers
@@ -3344,7 +3686,7 @@ ALTER TABLE ONLY public.organizers
 
 
 --
--- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: password_reset_tokens password_reset_tokens_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.password_reset_tokens
@@ -3352,7 +3694,7 @@ ALTER TABLE ONLY public.password_reset_tokens
 
 
 --
--- Name: payments payments_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: payments payments_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.payments
@@ -3360,7 +3702,31 @@ ALTER TABLE ONLY public.payments
 
 
 --
--- Name: sponsors sponsors_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+-- Name: room_reservations room_reservations_booking_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations
+    ADD CONSTRAINT room_reservations_booking_id_fkey FOREIGN KEY (booking_id) REFERENCES public.bookings(booking_id);
+
+
+--
+-- Name: room_reservations room_reservations_room_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations
+    ADD CONSTRAINT room_reservations_room_id_fkey FOREIGN KEY (room_id) REFERENCES public.rooms(room_id);
+
+
+--
+-- Name: room_reservations room_reservations_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public.room_reservations
+    ADD CONSTRAINT room_reservations_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(user_id);
+
+
+--
+-- Name: sponsors sponsors_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public.sponsors
@@ -3371,5 +3737,5 @@ ALTER TABLE ONLY public.sponsors
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Qed21i943wR8Wc0XgH0t7KnvtvJOlDgkK75EBw6bdM0A80Rwqf6AgdFPbuAhywG
+\unrestrict RQSs5Bj1N4plS1YvO85uboRvZTNBO6B2lgmbxtuQ7eMIwvmx5Hh4aOBGzEpyNYF
 
