@@ -1,232 +1,183 @@
-<div align="center">
+# Events Management System for Aazath Plaza Reception Hall
 
-# Events Management System (EMS) – Aazath Plaza
+MIT 32046 – Software Development Project
+South Eastern University of Sri Lanka, Department of Management and Information Technology
+Student: R. Fathima Thiraya (SEU/IS/21/MIT/066)
 
-**A full-stack, role-based web platform that digitises hall booking, catering, event coordination and business analytics for Aazath Plaza Reception Hall, Sri Lanka.**
+A full-stack web application for online hall booking, event coordination, catering, payments and business analytics at Aazath Plaza Reception Hall.
 
-![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=white)
-![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)
-![Vite](https://img.shields.io/badge/Vite-8-646CFF?logo=vite&logoColor=white)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)
-![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=nodedotjs&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-4169E1?logo=postgresql&logoColor=white)
-
-Final Year Project · MIT 32046 Software Development Project · Department of Management and Information Technology, South Eastern University of Sri Lanka
-
-<!-- Add once available: [Live Demo](https://your-demo-url) · [Project Report](link) · [Demo Video](link) -->
-
-<img src="docs/screenshots/01-home-light.jpg" alt="EMS home page" width="900">
-
-</div>
+This README is the setup guide. Follow the steps in order to run the system from scratch.
 
 ---
 
-## Table of Contents
+## 1. Technology Stack
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [User Roles](#user-roles)
-- [Screenshots](#screenshots)
-- [Tech Stack](#tech-stack)
-- [Getting Started](#getting-started)
-- [Project Structure](#project-structure)
-- [Author](#author)
+| Layer          | Technology                                                                               |
+| -------------- | ---------------------------------------------------------------------------------------- |
+| Frontend       | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Chart.js                            |
+| Backend        | Node.js, Express (CommonJS)                                                              |
+| Database       | PostgreSQL (database name: `EMS_DB`)                                                     |
+| Authentication | JWT (access token + refresh token cookie), bcrypt, role-based access control             |
+| Integrations   | PayHere sandbox (payments), SendGrid (email), SMS gateway (text.lk), Cloudinary (images) |
+
+Default ports: backend `http://localhost:5000`, frontend `http://localhost:5173`.
 
 ---
 
-## Overview
+## 2. Prerequisites
 
-Aazath Plaza Reception Hall (est. 2016) ran on phone calls and paper registers. Customers could not see availability, bookings could exceed the 1,200-seat combined capacity of its two halls, and there was no audit trail for payments.
+Install these before starting:
 
-EMS replaces that with a single integrated platform built around four modules:
+| Tool                 | Version         | Check with              |
+| -------------------- | --------------- | ----------------------- |
+| Node.js              | 20 LTS or later | `node -v`               |
+| npm                  | 10 or later     | `npm -v`                |
+| PostgreSQL           | 15 or later     | `psql --version`        |
+| pgAdmin 4 (optional) | any             | graphical database tool |
+| Git                  | any             | `git --version`         |
 
-| Module | Purpose |
-| --- | --- |
-| **1. Administration & Analytics** | Back-office management, reports, staff and customer records, revenue and utilisation dashboards |
-| **2. Event Organizer & Sponsor Connect** | Organizers publish portfolios and receive event requests; sponsors browse events and send offers |
-| **3. Restaurant & Catering Integration** | Partner restaurants publish menus; customers add catering during booking |
-| **4. Online Hall Booking** | Real-time availability, multi-step booking wizard, automated pricing, payment and invoicing |
+---
 
-## Key Features
-
-- **Real-time availability calendar** showing free, partially booked and fully booked days across both halls
-- **Multi-step booking wizard**: date and time → hall → event details → catering → review and confirmation
-- **Double-booking and capacity protection** that blocks conflicting bookings and over-capacity guest counts
-- **Automated pricing** by event type plus accommodation room charges, shown live as the customer chooses
-- **Online payment and PDF invoices** generated automatically after payment
-- **Email and SMS notifications** for booking, payment and status updates
-- **Restaurant and catering ordering** linked to each booking
-- **Organizer and sponsor marketplace** with portfolios, event requests and sponsorship tracking
-- **Event timeline scheduling** for setup, decoration, catering and cleanup tasks
-- **Analytics dashboard** with revenue trends, hall utilisation, booking status and event-type breakdowns
-- **Report generation and export** to PDF
-- **Customer feedback and reviews** surfaced on the public site
-- **Light and dark themes** across the public site and all dashboards
-- **JWT authentication with role-based access control** across seven roles
-
-## User Roles
-
-| Role | What they do |
-| --- | --- |
-| **Customer** | Check availability, book halls and rooms, add catering, pay, track bookings, leave feedback |
-| **Front Desk Staff** | Handle walk-in bookings, view schedules, process payments |
-| **Manager** | Approve bookings, view analytics and reports |
-| **Administrator** | Full system access: staff, customers, partners, reports, settings |
-| **Event Organizer** | Maintain a portfolio, accept or decline event requests |
-| **Sponsor** | Browse upcoming events, send and track sponsorship offers |
-| **Restaurant Partner** | Manage menus and receive catering orders |
-
-## Screenshots
-
-### Public Site & Account
-
-| **Home (Light)** | **Home (Dark)** |
-| :---: | :---: |
-| <img src="docs/screenshots/01-home-light.jpg" width="420"> | <img src="docs/screenshots/02-home-dark.jpg" width="420"> |
-| **About** | **Contact** |
-| <img src="docs/screenshots/03-about.jpg" width="420"> | <img src="docs/screenshots/04-contact.jpg" width="420"> |
-| **Login** |  |
-| <img src="docs/screenshots/05-login.jpg" width="420"> |  |
-
-### Customer Booking & Account
-
-| **Booking Wizard – Date & Time** | **Booking Wizard – Catering Category** |
-| :---: | :---: |
-| <img src="docs/screenshots/06-booking-date-time.jpg" width="420"> | <img src="docs/screenshots/07-booking-catering-category.jpg" width="420"> |
-| **Booking Wizard – Catering Items** | **Booking Review** |
-| <img src="docs/screenshots/08-booking-catering-items.jpg" width="420"> | <img src="docs/screenshots/09-booking-review.png" width="420"> |
-| **Booking Confirmed** | **Customer Dashboard** |
-| <img src="docs/screenshots/10-booking-confirmed.png" width="420"> | <img src="docs/screenshots/11-customer-dashboard.jpg" width="420"> |
-| **My Bookings** | **Profile Settings** |
-| <img src="docs/screenshots/12-my-bookings.jpg" width="420"> | <img src="docs/screenshots/13-profile-settings.png" width="420"> |
-
-### Administration & Analytics
-
-| **Dashboard** | **Collapsed Sidebar** |
-| :---: | :---: |
-| <img src="docs/screenshots/14-admin-dashboard.jpg" width="420"> | <img src="docs/screenshots/15-admin-collapsed-sidebar.jpg" width="420"> |
-| **Bookings** | **Catering Orders** |
-| <img src="docs/screenshots/16-admin-bookings.png" width="420"> | <img src="docs/screenshots/17-admin-catering-orders.png" width="420"> |
-| **Analytics** | **Reports** |
-| <img src="docs/screenshots/18-admin-analytics.jpg" width="420"> | <img src="docs/screenshots/19-admin-reports.jpg" width="420"> |
-| **Staff Management** | **Organizers & Sponsors** |
-| <img src="docs/screenshots/20-admin-staff.png" width="420"> | <img src="docs/screenshots/21-admin-organizers-sponsors.png" width="420"> |
-| **Customer Feedback** |  |
-| <img src="docs/screenshots/22-admin-feedback.png" width="420"> |  |
-
-### Manager & Front Desk
-
-| **Manager Dashboard** | **Customer Management** |
-| :---: | :---: |
-| <img src="docs/screenshots/23-manager-dashboard.png" width="420"> | <img src="docs/screenshots/24-manager-customers.png" width="420"> |
-| **Front Desk Dashboard** | **Event Scheduling** |
-| <img src="docs/screenshots/25-front-desk-dashboard.jpg" width="420"> | <img src="docs/screenshots/26-front-desk-schedule.png" width="420"> |
-| **Add Activity** |  |
-| <img src="docs/screenshots/27-front-desk-add-activity.png" width="420"> |  |
-
-### Organizer & Sponsor Connect
-
-| **Organizer Dashboard** | **Organizer Portfolio** |
-| :---: | :---: |
-| <img src="docs/screenshots/28-organizer-dashboard.png" width="420"> | <img src="docs/screenshots/29-organizer-portfolio.png" width="420"> |
-| **Sponsor Dashboard** | **Sponsor Offering** |
-| <img src="docs/screenshots/30-sponsor-dashboard.png" width="420"> | <img src="docs/screenshots/31-sponsor-offering.png" width="420"> |
-| **Sponsorships** |  |
-| <img src="docs/screenshots/32-sponsor-sponsorships.png" width="420"> |  |
-
-### Restaurant & Catering
-
-| **Restaurant Dashboard** | **Menu Items** |
-| :---: | :---: |
-| <img src="docs/screenshots/33-restaurant-dashboard.png" width="420"> | <img src="docs/screenshots/34-restaurant-menu-items.png" width="420"> |
-
-## Tech Stack
-
-### Frontend
-- React 19 + TypeScript
-- Vite 8
-- Tailwind CSS 4
-- React Router 7
-- Recharts (analytics charts)
-- React Big Calendar (availability and scheduling)
-
-### Backend
-- Node.js + Express
-- PostgreSQL
-- JWT authentication with role-based access control
-- Cloudinary (media uploads)
-- Nodemailer (email)
-- Text.LK (SMS)
-- PDFKit (invoices and reports)
-
-### Architecture
-Three-tier architecture: React single-page client → Express REST API → PostgreSQL. Developed using a Waterfall methodology with iterative client feedback.
-
-## Getting Started
-
-### Prerequisites
-- Node.js 18+
-- PostgreSQL (run the db file in query tool)
-
-### Installation
+## 3. Get the Code
 
 ```bash
-# Install server dependencies
-cd server
-npm install (run on cmd)
+git clone https://github.com/THIRAYA-git/events-management-system.git
+cd events-management-system
+```
 
-# Install client dependencies
-cd ../client
+Project structure:
+
+```
+events-management-system/
+├── client/             React frontend
+├── server/             Express backend
+├── docs/screenshots/   System screenshots
+├── EMS_DB_Schema.sql   Database schema
+└── README.md
+```
+
+---
+
+## 4. Set Up the Database
+
+1. Open pgAdmin 4 (or `psql`) and create an empty database named **EMS_DB**.
+2. Restore the supplied backup:
+
+```bash
+psql -U postgres -d EMS_DB -f EMS_DB_backup.sql
+```
+
+The backup contains the full schema and the demo data, including the accounts in Section 8.
+
+## 5. Configure and Start the Backend
+
+```bash
+cd server
 npm install
+cp .env.example .env
 ```
 
-### Environment Variables
-Copy the .env.example file and fill in your values:
-Rename the server/.env.example to server/.env
+Open `server/.env` and fill in the values. Every variable is listed in `.env.example`. At a minimum:
 
-### ngrok Download, install & VS Code extension to run.
-1. Go to this link "https://ngrok.com/download/windows?tab=download"
+| Setting                   | What to provide                                                                                       |
+| ------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Database connection       | Your local PostgreSQL host, port, user, password and the database name `EMS_DB`                       |
+| JWT secrets               | Any long random strings for the access and refresh tokens                                             |
+| Client URL                | `http://localhost:5173`                                                                               |
+| PayHere                   | Sandbox merchant ID and secret (for payment testing)                                                  |
+| SendGrid, SMS, Cloudinary | API keys. Optional: without them, the system still runs but email, SMS and image upload will not work |
 
-2. sign up & get Auth Token from dashboard.
-
-3. ngrok for VSCode by Phill Nash
-
-4. Press Ctrl + Shift + P (or F1) on your keyboard to open the VS Code Command Palette dropdown at the top of your editor.
-
-5. Type ngrok set auth token & paste the token.
-ngrok: start inside that top search bar.
-
-6. Press Enter Type ngrok: start. 
-
-Why it is needed: Malicious actors frequently use free TCP tunnels to launch malware and phishing campaigns anonymously. Ngrok requires a valid debit or credit card purely as an identity check to stop automated bots. As long as you stay within free limits, it costs $0.
-
-### Running the App
+Start the server:
 
 ```bash
-# Terminal 1 - Server
-cd server
 npm run dev
+```
 
-# Terminal 2 - Client
+The backend is ready when the terminal shows it is listening on port 5000.
+
+---
+
+## 6. Configure and Start the Frontend
+
+Open a second terminal:
+
+```bash
 cd client
+npm install
+cp .env.example .env     # only if client/.env.example exists
 npm run dev
 ```
 
-The client runs on `http://localhost:5173` and the server on `http://localhost:5000`.
+Open **http://localhost:5173** in Chrome, Firefox or Edge.
 
-## Project Structure
+---
 
+## 7. Quick Verification
+
+1. The home page loads at `http://localhost:5173` with Home, About, Contact and a **Sign in** button.
+2. Sign in with the customer account below. The navbar should show Book a Hall, My Bookings and Dashboard.
+3. Open **Book a Hall**. The availability calendar should load.
+
+If the calendar or login fails, check that the backend terminal shows no database connection error.
+
+---
+
+## 8. Demo Accounts
+
+Use these accounts to demonstrate each role.
+
+| Role                 | Email                      | Password         | Portal                                |
+| -------------------- | -------------------------- | ---------------- | ------------------------------------- |
+| System Administrator | `admin@aazathplaza.lk`     | `NewAdmin@123`   | `/admin`                              |
+| Front Desk Staff     | `staff@aazathplaza.lk`     | `Staff@1234`     | `/admin`                              |
+| Customer             | `thirayafathima@gmail.com` | `customer@123`   | `/book`, `/my-bookings`, `/dashboard` |
+| Event Organizer      | `fathima@decorations.lk`   | `Organizer@1234` | `/organizer`                          |
+| Sponsor              | `sponsor@akbartraders.lk`  | `Sponsor@123`    | `/sponsor`                            |
+| Restaurant Partner   | `althab@restaurant.lk`     | `Restaurant@123` | `/restaurant`                         |
+
+These are demo credentials for examination only. They exist in the supplied database backup.
+
+---
+
+## 9. Modules
+
+1. **Administration and Analytics:** user and staff management, bookings, reports, analytics dashboard, PDF export.
+2. **Event Organizer and Sponsor Connect:** organizer portfolios, event requests, sponsorship offers.
+3. **Restaurant and Catering Integration:** menu management and catering orders (Althab Restaurant).
+4. **Online Hall Booking Management:** availability calendar, booking workflow, automated pricing, PayHere payment, PDF invoices.
+
+Supporting features: SMS and email notifications, event timeline management, customer feedback, role-based access control.
+
+### Business rules to note during the demo
+
+- Two halls with a combined capacity of 1,200 seats. Bookings that exceed capacity are rejected or flagged.
+- Double booking of the same hall at the same date and time is prevented.
+- Hall prices by event type: School LKR 20,000, Political LKR 30,000 or 35,000, Birthday LKR 60,000, Wedding LKR 40,000.
+- Accommodation: 5 rooms at LKR 5,000 per room per day.
+
+---
+
+## 10. Testing
+
+```bash
+cd server
+npm test
 ```
-.
-├── client/          # React + TypeScript frontend (Vite)
-├── server/          # Express API, database access, integrations
-└── docs/
-    └── screenshots/ # Images used in this README
-```
 
-## Author
+API testing was also done with Postman. Test documentation is included in the project report.
 
-**R. Fathima Thiraya**
-Final Year Project, Department of Management and Information Technology, Faculty of Management and Commerce, South Eastern University of Sri Lanka.
+---
 
-[LinkedIn](https://www.linkedin.com/in/fathima-thiraya) · [Email](mailto:thirayafathima@gmail.com)
+## 11. Troubleshooting
+
+| Problem                                          | Fix                                                                                                                                       |
+| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `ECONNREFUSED` or database error on server start | PostgreSQL is not running, or the credentials in `server/.env` are wrong                                                                  |
+| `database "EMS_DB" does not exist`               | Create the database first (Section 4, step 1). The name is case-sensitive                                                                 |
+| Port 5000 or 5173 already in use                 | Stop the other process, or change the port in the `.env` or Vite config                                                                   |
+| Login fails for demo accounts                    | The full backup was not restored. Repeat Section 4, Option A                                                                              |
+| Frontend shows a network error                   | The backend is not running, or the client API URL does not point to `http://localhost:5000`                                               |
+| Payment page does not complete                   | PayHere sandbox needs a public URL for its notify callback. Use ngrok and set it in `server/.env`, or demonstrate up to the checkout page |
+| Emails, SMS or image uploads do nothing          | The corresponding API keys are not set in `server/.env`                                                                                   |
+
+---
