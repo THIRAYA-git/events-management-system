@@ -49,10 +49,9 @@ Project structure:
 
 ```
 events-management-system/
-├── client/             React frontend
-├── server/             Express backend
-├── docs/screenshots/   System screenshots
-├── EMS_DB_Schema.sql   Database schema
+├── client/               React frontend
+├── server/               Express backend
+├── EMS_DB_backup.sql     Full database backup (schema and demo data)
 └── README.md
 ```
 
@@ -69,6 +68,8 @@ psql -U postgres -d EMS_DB -f EMS_DB_backup.sql
 
 The backup contains the full schema and the demo data, including the accounts in Section 8.
 
+---
+
 ## 5. Configure and Start the Backend
 
 ```bash
@@ -79,13 +80,13 @@ cp .env.example .env
 
 Open `server/.env` and fill in the values. Every variable is listed in `.env.example`. At a minimum:
 
-| Setting                   | What to provide                                                                                       |
-| ------------------------- | ----------------------------------------------------------------------------------------------------- |
-| Database connection       | Your local PostgreSQL host, port, user, password and the database name `EMS_DB`                       |
-| JWT secrets               | Any long random strings for the access and refresh tokens                                             |
-| Client URL                | `http://localhost:5173`                                                                               |
-| PayHere                   | Sandbox merchant ID and secret (for payment testing)                                                  |
-| SendGrid, SMS, Cloudinary | API keys. Optional: without them, the system still runs but email, SMS and image upload will not work |
+| Setting                   | What to provide                                                                                          |
+| ------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Database                  | Set `DB_MODE=local` and `LOCAL_DATABASE_URL=postgresql://postgres:<your_password>@localhost:5432/EMS_DB` |
+| JWT secrets               | Any long random strings for the access and refresh tokens                                                |
+| Client URL                | `http://localhost:5173`                                                                                  |
+| PayHere                   | Sandbox merchant ID and secret (for payment testing)                                                     |
+| SendGrid, SMS, Cloudinary | API keys. Optional: without them, the system still runs but email, SMS and image upload will not work    |
 
 Start the server:
 
@@ -170,14 +171,14 @@ API testing was also done with Postman. Test documentation is included in the pr
 
 ## 11. Troubleshooting
 
-| Problem                                          | Fix                                                                                                                                       |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
-| `ECONNREFUSED` or database error on server start | PostgreSQL is not running, or the credentials in `server/.env` are wrong                                                                  |
-| `database "EMS_DB" does not exist`               | Create the database first (Section 4, step 1). The name is case-sensitive                                                                 |
-| Port 5000 or 5173 already in use                 | Stop the other process, or change the port in the `.env` or Vite config                                                                   |
-| Login fails for demo accounts                    | The full backup was not restored. Repeat Section 4, Option A                                                                              |
-| Frontend shows a network error                   | The backend is not running, or the client API URL does not point to `http://localhost:5000`                                               |
-| Payment page does not complete                   | PayHere sandbox needs a public URL for its notify callback. Use ngrok and set it in `server/.env`, or demonstrate up to the checkout page |
-| Emails, SMS or image uploads do nothing          | The corresponding API keys are not set in `server/.env`                                                                                   |
+| Problem                                           | Fix                                                                                                                                       |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `ECONNREFUSED` or database error on server start  | PostgreSQL is not running, or the credentials in `server/.env` are wrong                                                                  |
+| `database "EMS_DB" does not exist`                | Create the database first (Section 4, step 1). The name is case-sensitive                                                                 |
+| Port 5000 or 5173 already in use                  | Stop the other process, or change the port in the `.env` or Vite config                                                                   |
+| Login fails for demo accounts                     | The backup was not restored. Repeat Section 4                                                                                             |
+| Frontend shows a network error                    | The backend is not running, or the client API URL does not point to `http://localhost:5000`                                               |
+| Payment completes but the booking stays "pending" | PayHere's server callback cannot reach localhost. This is demonstrated by the student during the viva. All other features work without it |
+| Emails, SMS or image uploads do nothing           | The corresponding API keys are not set in `server/.env`                                                                                   |
 
 ---
