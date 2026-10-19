@@ -100,18 +100,22 @@ export function AdminBookingsPage() {
       setOffset(0);
     };
 
-  const handleConfirm = async (booking: AdminBooking) => {
-    setActionLoadingId(booking.booking_id);
-    try {
-      await updateBookingStatus(booking.booking_id, { status: "confirmed" });
-      await fetchBookings();
-    } catch (err) {
-      alert("Failed to confirm booking. Please try again.");
-      console.error(err);
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
+  const errorMessage = (err: unknown, fallback: string) =>
+  (err as { response?: { data?: { message?: string } } })?.response?.data
+    ?.message ?? fallback;
+
+const handleConfirm = async (booking: AdminBooking) => {
+  setActionLoadingId(booking.booking_id);
+  try {
+    await updateBookingStatus(booking.booking_id, { status: "confirmed" });
+    await fetchBookings();
+  } catch (err) {
+    alert(errorMessage(err, "Failed to confirm booking. Please try again."));
+    console.error(err);
+  } finally {
+    setActionLoadingId(null);
+  }
+};
 
   const openCancelModal = (booking: AdminBooking) => {
     setCancelTarget(booking);
@@ -178,7 +182,7 @@ export function AdminBookingsPage() {
         );
       } catch (err) {
         console.error(err);
-        failed.push(b.booking_ref);
+        failed.push(`${b.booking_ref} (${errorMessage(err, "error")})`);
       }
     }
     setBulkRunning(false);

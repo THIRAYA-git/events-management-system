@@ -369,37 +369,51 @@ const updateBookingStatus = async (
   bookingId,
   { status, staffId, cancelReason }
 ) => {
-  const result = await query(
-    `
-    WITH updated_booking AS (
-      UPDATE bookings
-      SET
-        status        = $1::booking_status,
-        confirmed_by  = CASE WHEN $1 = 'confirmed' THEN $2::integer ELSE confirmed_by END,
-        confirmed_at  = CASE WHEN $1 = 'confirmed' THEN NOW() ELSE confirmed_at END,
-        cancelled_at  = CASE WHEN $1 = 'cancelled' THEN NOW() ELSE cancelled_at END,
-        cancel_reason = CASE WHEN $1 = 'cancelled' THEN $3::text ELSE cancel_reason END,
-        updated_at    = NOW()
-      WHERE booking_id = $4::integer
-      RETURNING *
-    ),
-    updated_halls AS (
-      UPDATE hall_bookings hb
-      SET
-        status     = $1::booking_status,
-        updated_at = NOW()
-      FROM updated_booking ub
-      WHERE hb.booking_id = ub.booking_id
-      RETURNING hb.booking_id, hb.hall_id, hb.hall_booking_id, hb.is_complimentary
-    )
-    SELECT ub.*, uh.hall_id, uh.hall_booking_id
-      FROM updated_booking ub
-      JOIN updated_halls uh ON uh.booking_id = ub.booking_id
-     ORDER BY uh.is_complimentary ASC
-     LIMIT 1
-    `,
-    [status, staffId || null, cancelReason || null, bookingId]
-  );
+  let result;
+  try {
+    result = await query(
+      `
+      WITH updated_booking AS (
+        UPDATE bookings
+        SET
+          status        = $1::booking_status,
+          confirmed_by  = CASE WHEN $1 = 'confirmed' THEN $2::integer ELSE confirmed_by END,
+          confirmed_at  = CASE WHEN $1 = 'confirmed' THEN NOW() ELSE confirmed_at END,
+          cancelled_at  = CASE WHEN $1 = 'cancelled' THEN NOW() ELSE cancelled_at END,
+          cancel_reason = CASE WHEN $1 = 'cancelled' THEN $3::text ELSE cancel_reason END,
+          updated_at    = NOW()
+        WHERE booking_id = $4::integer
+        RETURNING *
+      ),
+      updated_halls AS (
+        UPDATE hall_bookings hb
+        SET
+          status     = $1::booking_status,
+          updated_at = NOW()
+        FROM updated_booking ub
+        WHERE hb.booking_id = ub.booking_id
+        RETURNING hb.booking_id, hb.hall_id, hb.hall_booking_id, hb.is_complimentary
+      )
+      SELECT ub.*, uh.hall_id, uh.hall_booking_id
+        FROM updated_booking ub
+        JOIN updated_halls uh ON uh.booking_id = ub.booking_id
+       ORDER BY uh.is_complimentary ASC
+       LIMIT 1
+      `,
+      [status, staffId || null, cancelReason || null, bookingId]
+    );
+  } catch (err) {
+    if (
+      err.code === "23505" &&
+      (err.constraint === "idx_no_double_booking" ||
+        err.message?.includes("idx_no_double_booking"))
+    ) {
+      const e = new Error("Another booking is already confirmed for this date.");
+      e.statusCode = 409;
+      throw e;
+    }
+    throw err;
+  }
 
   if (result.rows.length === 0) {
     throw new Error(`Booking ID ${bookingId} not found.`);

@@ -288,9 +288,21 @@ const updateBookingStatusHandler = async (req, res, next) => {
     if (status === "confirmed" || status === "cancelled") {
       notifyStatusChange(updated, status);
     }
-  } catch (err) {
+   } catch (err) {
     if (err.message?.includes("not found")) {
       return res.status(404).json({ success: false, message: err.message });
+    }
+    // BR-01: one confirmed event per date (unique index idx_no_double_booking)
+    if (
+      err.statusCode === 409 ||
+      (err.code === "23505" &&
+        (err.constraint === "idx_no_double_booking" ||
+          err.message?.includes("idx_no_double_booking")))
+    ) {
+      return res.status(409).json({
+        success: false,
+        message: "Another booking is already confirmed for this date.",
+      });
     }
     next(err);
   }
