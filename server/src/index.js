@@ -27,6 +27,8 @@ const { startReminderJob } = require("./services/reminder.service");
 const reportRoutes = require("./routes/report.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const { startBackupJob } = require("./jobs/backup.job");
+const roomRoutes = require("./routes/room.routes");
+const backupRoutes = require("./routes/backup.routes");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -69,8 +71,8 @@ app.use("/api/staff", staffRoutes);
 app.use("/api/partner-accounts", partnerAccountRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/notifications", notificationRoutes);
-app.use("/api/rooms", require("./routes/room.routes"));
-app.use("/api/admin/backups", require("./routes/backup.routes"));
+app.use("/api/rooms", roomRoutes);
+app.use("/api/admin/backups", backupRoutes);
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");
@@ -100,7 +102,7 @@ const start = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
     startReminderJob();
-    startBackupJob();          // ← add this line
+    startBackupJob(); // ← add this line
   } catch (err) {
     console.error("Failed to start server:", err.message);
     process.exit(1);
