@@ -43,7 +43,6 @@ import RoomsPage from "./pages/customer/RoomsPage";
 import RoomPaymentCheckoutPage from "@/pages/customer/RoomPaymentCheckoutPage";
 import AdminBackupsPage from "@/pages/admin/AdminBackupsPage";
 
-
 function Home() {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
@@ -93,11 +92,23 @@ function App() {
             {/* Customer only — booking history + account settings */}
             <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
               <Route path="/my-bookings" element={<MyBookingsPage />} />
-              <Route path="/rooms" element={<RoomsPage />} />
               <Route path="/my-rooms" element={<MyRoomsPage />} />
-              <Route path="/room-payment/:groupRef" element={<RoomPaymentCheckoutPage />} />
+              <Route
+                path="/room-payment/:groupRef"
+                element={<RoomPaymentCheckoutPage />}
+              />
               <Route path="/dashboard" element={<CustomerDashboardPage />} />
               <Route path="/settings" element={<AccountSettingsPage />} />
+            </Route>
+            {/* Rooms: customers + staff */}
+            <Route
+              element={
+                <ProtectedRoute
+                  allowedRoles={["customer", "front_desk", "admin"]}
+                />
+              }
+            >
+              <Route path="/rooms" element={<RoomsPage />} />
             </Route>
           </Route>
 
@@ -122,8 +133,7 @@ function App() {
               </Route>
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="reports" element={<AdminReportsPage />} />
-                  <Route path="backups" element={<AdminBackupsPage />} />
-
+                <Route path="backups" element={<AdminBackupsPage />} />
               </Route>
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>

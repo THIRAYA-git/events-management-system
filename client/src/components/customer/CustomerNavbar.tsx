@@ -35,14 +35,28 @@ const CustomerNavbar = () => {
   { to: "/about", label: "About" },
   { to: "/contact", label: "Contact" },
 ];
+// const links = [
+//   ...(!user ? publicLinks : []),
+//   { to: "/book", label: "Book a Hall" },
+//   ...(user?.role === "customer"
+//     ? [
+//         { to: "/rooms", label: "Book a Room" },
+//         { to: "/my-bookings", label: "My Bookings" },
+//         { to: "/my-rooms", label: "My Rooms" },
+//         { to: "/dashboard", label: "Dashboard" },
+//       ]
+//     : []),
+//   ...(isStaff ? [{ to: "/admin", label: "Dashboard" }] : []),
+// ];
 const links = [
   ...(!user ? publicLinks : []),
   { to: "/book", label: "Book a Hall" },
+  ...(user ? [{ to: "/rooms", label: "Book a Room" }] : []),
   ...(user?.role === "customer"
     ? [
-        { to: "/rooms", label: "Book a Room" },
         { to: "/my-bookings", label: "My Bookings" },
         { to: "/my-rooms", label: "My Rooms" },
+        // { to: "/rooms", label: "Book a Room" },
         { to: "/dashboard", label: "Dashboard" },
       ]
     : []),
