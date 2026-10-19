@@ -31,6 +31,7 @@ export interface AvailableHallsResponse {
 export interface EventPricingOption {
   eventType: string;
   basePrice: number;
+  bothHallsPrice: number | null;
   description: string | null;
   isActive: boolean;
 }

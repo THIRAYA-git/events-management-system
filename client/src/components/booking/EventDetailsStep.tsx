@@ -23,9 +23,15 @@ interface EventDetailsStepProps {
     pricing: PriceCalculation;
   }) => void;
   onBack: () => void;
+  // True when the customer picked the two-hall option in the previous step
+  useBothHalls?: boolean;
 }
 
-export function EventDetailsStep({ onSubmit, onBack }: EventDetailsStepProps) {
+export function EventDetailsStep({
+  onSubmit,
+  onBack,
+  useBothHalls = false,
+}: EventDetailsStepProps) {
   const [eventTypes, setEventTypes] = useState<EventPricingOption[]>([]);
   const [eventType, setEventType] = useState("");
   const [customEventType, setCustomEventType] = useState("");
@@ -37,6 +43,9 @@ export function EventDetailsStep({ onSubmit, onBack }: EventDetailsStepProps) {
   const [error, setError] = useState<string | null>(null);
 
   const isOther = eventType === OTHER_EVENT_TYPE;
+
+  const displayPrice = (t: EventPricingOption) =>
+    useBothHalls && t.bothHallsPrice != null ? t.bothHallsPrice : t.basePrice;
 
   useEffect(() => {
     fetchEventPricing()
@@ -51,11 +60,15 @@ export function EventDetailsStep({ onSubmit, onBack }: EventDetailsStepProps) {
       return;
     }
     setIsCalculating(true);
-    calculatePrice({ event_type: eventType, room_count: parseInt(roomCount, 10) || 0 })
+    calculatePrice({
+      event_type: eventType,
+      use_both_halls: useBothHalls,
+      room_count: parseInt(roomCount, 10) || 0,
+    })
       .then(setPricing)
       .catch(() => setError("Could not calculate price for this selection."))
       .finally(() => setIsCalculating(false));
-  }, [eventType, roomCount]);
+  }, [eventType, roomCount, useBothHalls]);
 
   const handleContinue = () => {
     if (!eventType) return setError("Please select an event type.");
@@ -111,7 +124,7 @@ export function EventDetailsStep({ onSubmit, onBack }: EventDetailsStepProps) {
           {eventTypes.map((t) => (
             <option key={t.eventType} value={t.eventType}>
               {t.eventType === OTHER_EVENT_TYPE ? "Other (type your own)" : t.eventType} — LKR{" "}
-              {t.basePrice.toLocaleString()}
+              {displayPrice(t).toLocaleString()}
             </option>
           ))}
         </select>

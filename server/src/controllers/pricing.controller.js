@@ -6,11 +6,6 @@ const {
   calculateBookingTotal,
 } = require('../services/pricing.service');
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  GET /api/pricing/event-types
-//  List all active event types + rates — populates the booking form's
-//  event-type dropdown and the calculator's rate display.
-// ─────────────────────────────────────────────────────────────────────────────
 const getEventPricing = async (req, res, next) => {
   try {
     const { include_inactive } = req.query;
@@ -28,17 +23,13 @@ const getEventPricing = async (req, res, next) => {
   }
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
 //  POST /api/pricing/calculate
-//  Body: { event_type, room_count?, extra_addons?, discount_amount?, tax_amount? }
-//  Pure calculation — does not create a booking or write to the DB.
-//  Used by both the customer-facing calculator widget and the
-//  booking-creation flow (to populate base_amount/total_amount before insert).
-// ─────────────────────────────────────────────────────────────────────────────
+//  Body: { event_type, use_both_halls?, room_count?, extra_addons?, discount_amount?, tax_amount? }
 const calculatePrice = async (req, res, next) => {
   try {
     const {
       event_type,
+      use_both_halls  = false,
       room_count      = 0,
       extra_addons    = 0,
       discount_amount = 0,
@@ -47,6 +38,7 @@ const calculatePrice = async (req, res, next) => {
 
     const result = await calculateBookingTotal({
       eventType:      event_type,
+      useBothHalls:   use_both_halls === true || use_both_halls === 'true',
       roomCount:      room_count,
       extraAddons:    extra_addons,
       discountAmount: discount_amount,
@@ -65,10 +57,9 @@ const calculatePrice = async (req, res, next) => {
   }
 };
 
-// ── Only treat known business-rule errors as 4xx ──────────────────────────────
 const SERVICE_ERROR_PATTERNS = [
-  'unknown event_type', 'not currently available', 'must be between',
-  'must not be negative', 'cannot exceed',
+  'unknown event_type', 'currently not available', 'not currently available',
+  'must be between', 'must not be negative', 'cannot exceed',
 ];
 const isServiceError = (err) =>
   SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));

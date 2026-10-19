@@ -75,6 +75,8 @@ const createBooking = async ({
     extraAddons,
     discountAmount,
     taxAmount,
+    useBothHalls,
+    roomCount,
   });
 
   const hallResult = await query(

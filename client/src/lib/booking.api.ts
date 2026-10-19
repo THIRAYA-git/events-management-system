@@ -29,56 +29,43 @@ interface PaginatedApiEnvelope<T> extends ApiEnvelope<T> {
 }
 
 export const fetchAvailableHalls = async (slot: SlotSelection) => {
-  const { data } = await api.get<ApiEnvelope<AvailableHallsResponse>>(
-    "/halls/available",
-    {
-      params: {
-        event_date: slot.event_date,
-        start_time: slot.start_time,
-        end_time: slot.end_time,
-        guest_count: slot.guest_count,
-      },
-    }
-  );
+  const { data } = await api.get<ApiEnvelope<AvailableHallsResponse>>("/halls/available", {
+    params: {
+      event_date: slot.event_date,
+      start_time: slot.start_time,
+      end_time: slot.end_time,
+      guest_count: slot.guest_count,
+    },
+  });
   return data.data;
 };
 
 export const fetchEventPricing = async () => {
-  const { data } = await api.get<ApiEnvelope<EventPricingOption[]>>(
-    "/pricing/event-types"
-  );
+  const { data } = await api.get<ApiEnvelope<EventPricingOption[]>>("/pricing/event-types");
   return data.data;
 };
 
 export const calculatePrice = async (payload: {
   event_type: string;
+  use_both_halls?: boolean;
   room_count?: number;
   extra_addons?: number;
   discount_amount?: number;
   tax_amount?: number;
 }) => {
-  const { data } = await api.post<ApiEnvelope<PriceCalculation>>(
-    "/pricing/calculate",
-    payload
-  );
+  const { data } = await api.post<ApiEnvelope<PriceCalculation>>("/pricing/calculate", payload);
   return data.data;
 };
 
 export const createBooking = async (payload: CreateBookingPayload) => {
-  const { data } = await api.post<ApiEnvelope<BookingResult>>(
-    "/bookings",
-    payload
-  );
+  const { data } = await api.post<ApiEnvelope<BookingResult>>("/bookings", payload);
   return data.data;
 };
 
 // ── Admin booking management ──────────────────────────────────────────
 
 export const listBookings = async (params: ListBookingsParams = {}) => {
-  const { data } = await api.get<PaginatedApiEnvelope<AdminBooking[]>>(
-    "/bookings",
-    { params }
-  );
+  const { data } = await api.get<PaginatedApiEnvelope<AdminBooking[]>>("/bookings", { params });
   return { bookings: data.data, meta: data.meta };
 };
 
@@ -87,12 +74,9 @@ export const listBookings = async (params: ListBookingsParams = {}) => {
 export const fetchMyBookings = async (
   params: { status?: BookingStatus; limit?: number; offset?: number } = {}
 ) => {
-  const { data } = await api.get<PaginatedApiEnvelope<AdminBooking[]>>(
-    "/bookings/mine",
-    {
-      params,
-    }
-  );
+  const { data } = await api.get<PaginatedApiEnvelope<AdminBooking[]>>("/bookings/mine", {
+    params,
+  });
   return { bookings: data.data, meta: data.meta };
 };
 

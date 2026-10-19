@@ -2,18 +2,14 @@
 //  src/services/pricing.service.js
 //  Single source of truth for booking pricing — replaces the old
 //  `packages` table. Reads from event_pricing (see migration_003).
+//  both_halls_price (nullable) overrides base_price when the customer
+//  books both halls; NULL means the price is the same for one or two halls.
 // ─────────────────────────────────────────────────────────────────────────────
 const { query } = require('../config/db');
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  getEventPrice
-//  Look up the base LKR rate for a given event_type.
-//  Throws if the event_type is unknown or has been deactivated —
-//  callers should surface this as a 400, not silently default to 0.
-// ─────────────────────────────────────────────────────────────────────────────
-const getEventPrice = async (eventType) => {
+const getEventPrice = async (eventType, { useBothHalls = false } = {}) => {
   const result = await query(
-    `SELECT event_type, base_price, is_active
+    `SELECT event_type, base_price, both_halls_price, is_active
        FROM event_pricing
       WHERE event_type = $1`,
     [eventType]
@@ -31,47 +27,40 @@ const getEventPrice = async (eventType) => {
     throw new Error(`event_type "${eventType}" is currently not available for booking.`);
   }
 
+  const singlePrice = parseFloat(row.base_price);
+  const bothPrice =
+    row.both_halls_price !== null ? parseFloat(row.both_halls_price) : null;
+
   return {
     eventType: row.event_type,
-    basePrice: parseFloat(row.base_price),
+    basePrice: useBothHalls && bothPrice !== null ? bothPrice : singlePrice,
   };
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  listEventPricing
-//  All active event types + rates — for populating booking-form
-//  dropdowns on the frontend.
-// ─────────────────────────────────────────────────────────────────────────────
 const listEventPricing = async ({ includeInactive = false } = {}) => {
   const result = await query(
     includeInactive
-      ? `SELECT event_type, base_price, description, is_active FROM event_pricing ORDER BY base_price`
-      : `SELECT event_type, base_price, description, is_active FROM event_pricing WHERE is_active = true ORDER BY base_price`
+      ? `SELECT event_type, base_price, both_halls_price, description, is_active
+           FROM event_pricing ORDER BY base_price, event_type`
+      : `SELECT event_type, base_price, both_halls_price, description, is_active
+           FROM event_pricing WHERE is_active = true ORDER BY base_price, event_type`
   );
 
   return result.rows.map((r) => ({
-    eventType:   r.event_type,
-    basePrice:   parseFloat(r.base_price),
-    description: r.description,
-    isActive:    r.is_active,
+    eventType:     r.event_type,
+    basePrice:     parseFloat(r.base_price),
+    bothHallsPrice: r.both_halls_price !== null ? parseFloat(r.both_halls_price) : null,
+    description:   r.description,
+    isActive:      r.is_active,
   }));
 };
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  calculateBookingTotal
-//  Composes base event-type price + optional accommodation rooms
-//  + optional addon/discount/tax inputs into the same fields
-//  bookings already has (base_amount, addon_amount, discount_amount,
-//  tax_amount, total_amount). Pure calculation — does not write to DB.
-//
-//  roomCount: number of accommodation rooms (LKR 5,000/room/day —
-//  per AZATH_PLAZA FR-009). Billed as part of addon_amount.
-// ─────────────────────────────────────────────────────────────────────────────
 const ROOM_RATE_PER_DAY = 5000;
 const MAX_ROOMS = 5;
 
 const calculateBookingTotal = async ({
   eventType,
+  useBothHalls   = false,
   roomCount      = 0,
   extraAddons    = 0,
   discountAmount = 0,
@@ -84,7 +73,7 @@ const calculateBookingTotal = async ({
     throw new Error('extraAddons, discountAmount, and taxAmount must not be negative.');
   }
 
-  const { basePrice } = await getEventPrice(eventType);
+  const { basePrice } = await getEventPrice(eventType, { useBothHalls });
 
   const roomCost     = roomCount * ROOM_RATE_PER_DAY;
   const addonAmount  = roomCost + extraAddons;

@@ -162,8 +162,9 @@ export default function BookingWizardPage() {
           />
         )}
 
-        {step === "details" && (
+               {step === "details" && (
           <EventDetailsStep
+            useBothHalls={secondHall !== null}
             onSubmit={(d) => {
               setDetails(d);
               setStep("catering");
