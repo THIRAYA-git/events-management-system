@@ -34,7 +34,7 @@ export const adminNavItems: AdminNavItem[] = [
     roles: ["front_desk", "admin"],
   },
   {
-    label: "Schedule Event",
+    label: "Scheduled Events",
     path: "/admin/schedule",
     icon: CalendarClock,
     roles: ["admin", "front_desk"],
