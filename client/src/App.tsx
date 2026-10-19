@@ -41,6 +41,8 @@ import CustomerDashboardPage from "@/pages/customer/CustomerDashboardPage";
 import MyRoomsPage from "./pages/customer/MyRoomsPage";
 import RoomsPage from "./pages/customer/RoomsPage";
 import RoomPaymentCheckoutPage from "@/pages/customer/RoomPaymentCheckoutPage";
+import AdminBackupsPage from "@/pages/admin/AdminBackupsPage";
+
 
 function Home() {
   const { user, isLoading } = useAuth();
@@ -120,6 +122,8 @@ function App() {
               </Route>
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="reports" element={<AdminReportsPage />} />
+                  <Route path="backups" element={<AdminBackupsPage />} />
+
               </Route>
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>

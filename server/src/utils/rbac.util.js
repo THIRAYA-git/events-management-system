@@ -41,12 +41,7 @@ const PERMISSIONS = {
   "menu:delete": ["admin"],
 
   // ── Catering orders ───────────────────────────────────────
-  "catering:create": [
-    "admin",
-    "front_desk",
-    "customer",
-    "restaurant",
-  ],
+  "catering:create": ["admin", "front_desk", "customer", "restaurant"],
   "catering:read": ["admin", "front_desk", "restaurant", "customer"],
   "catering:update": ["restaurant"],
 
@@ -99,6 +94,9 @@ const PERMISSIONS = {
   // ── Audit log ─────────────────────────────────────────────
   "audit:view": ["admin"],
 
+  // ── Database backups (NFR-017) ────────────────────────────
+  "backup:manage": ["admin"],
+
   // ── Settings ──────────────────────────────────────────────
   "settings:manage": ["admin"],
 
@@ -109,7 +107,7 @@ const PERMISSIONS = {
   "sponsor_request:respond": ["admin", "sponsor"],
   "sponsor_request:withdraw": ["customer"],
 
-    // ── Room reservations (FR-009) ────────────────────────────
+  // ── Room reservations (FR-009) ────────────────────────────
   "room:browse": ["admin", "front_desk", "customer"],
   "room:create": ["customer"],
   "room:read_own": ["customer"],

@@ -8,6 +8,7 @@ import {
   CalendarClock,
   MessageSquare,
   FileText,
+  DatabaseBackup,
 } from "lucide-react";
 
 export type AdminRole = "front_desk" | "admin";
@@ -68,4 +69,10 @@ export const adminNavItems: AdminNavItem[] = [
     icon: FileText,
     roles: ["admin"],
   },
+  {
+  label: "Backups",
+  path: "/admin/backups",
+  icon: DatabaseBackup,
+  roles: ["admin"],
+},
 ];

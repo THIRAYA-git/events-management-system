@@ -26,6 +26,7 @@ const partnerAccountRoutes = require("./routes/partnerAccount.routes");
 const { startReminderJob } = require("./services/reminder.service");
 const reportRoutes = require("./routes/report.routes");
 const notificationRoutes = require("./routes/notification.routes");
+const { startBackupJob } = require("./jobs/backup.job");
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -69,6 +70,7 @@ app.use("/api/partner-accounts", partnerAccountRoutes);
 app.use("/api/reports", reportRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/rooms", require("./routes/room.routes"));
+app.use("/api/admin/backups", require("./routes/backup.routes"));
 
 // ── Health check ──────────────────────────────────────────────
 const db = require("./config/db");
@@ -98,6 +100,7 @@ const start = async () => {
       console.log(`🚀 Server running on port ${PORT}`);
     });
     startReminderJob();
+    startBackupJob();          // ← add this line
   } catch (err) {
     console.error("Failed to start server:", err.message);
     process.exit(1);
