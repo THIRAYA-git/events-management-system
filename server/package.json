@@ -3,10 +3,12 @@
   "version": "1.0.0",
   "description": "Events Management System - Backend API for Aazath Plaza",
   "main": "src/index.js",
-  "scripts": {
-    "start": "node src/index.js",
-    "dev": "nodemon src/index.js"
-  },
+ "scripts": {
+  "start": "node src/server.js",
+  "dev": "nodemon src/server.js",
+  "test": "jest --runInBand --verbose",
+  "test:coverage": "jest --runInBand --coverage"
+},
   "dependencies": {
     "@neondatabase/serverless": "^1.1.0",
     "bcrypt": "^5.1.1",
@@ -31,7 +33,9 @@
     "@types/node": "^25.9.1",
     "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.10",
+    "jest": "^30.5.2",
     "nodemon": "^3.1.0",
+    "supertest": "^7.3.1",
     "tsx": "^4.22.3",
     "typescript": "^6.0.3"
   }
