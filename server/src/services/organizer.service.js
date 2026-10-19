@@ -200,6 +200,19 @@ const updateOrganizerProfile = async (userId, fields) => {
   return result.rows[0];
 };
 
+const createOrganizerProfile = async (
+  userId,
+  { businessName, specialty } = {}
+) => {
+  const result = await db.query(
+    `INSERT INTO organizers (user_id, business_name, specialty)
+     VALUES ($1, $2, $3)
+     RETURNING organizer_id, user_id, business_name, specialty`,
+    [userId, businessName, specialty || "General"]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllOrganizers,
   getOrganizerById,
@@ -208,4 +221,5 @@ module.exports = {
   getOrganizerByUserId,
   getBookingsForOrganizerUser,
   updateOrganizerProfile,
+  createOrganizerProfile,
 };

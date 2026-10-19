@@ -41,8 +41,14 @@ export default function SponsorDashboardPage() {
         ]);
         setSponsor(profile);
         setRequests(reqs);
-      } catch {
-        setError("Failed to load dashboard data.");
+           } catch (err: any) {
+        if (err?.response?.status === 404) {
+          setError(
+            "Your sponsor profile has not been set up yet. Please contact Aazath Plaza staff."
+          );
+        } else {
+          setError("Failed to load dashboard data.");
+        }
       } finally {
         setLoading(false);
       }

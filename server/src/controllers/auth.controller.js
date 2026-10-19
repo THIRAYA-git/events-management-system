@@ -33,6 +33,8 @@ const {
 
 const { query } = require("../config/db");
 const { getPermissions } = require("../utils/rbac.util");
+const sponsorService = require("../services/sponsor.service");
+const organizerService = require("../services/organizer.service");
 
 // Roles a self-registering user is allowed to pick
 const PUBLIC_ROLES = ["customer", "organizer", "sponsor", "restaurant"];
@@ -66,7 +68,7 @@ const getIp = (req) =>
 // ── POST /api/auth/register ───────────────────────────────────
 const register = async (req, res) => {
   try {
-    const { full_name, email, password, phone, role } = req.body;
+    const { full_name, email, password, phone, role, company_name } = req.body;
 
     // Input validation
     if (!full_name || !email || !password || !phone) {
@@ -80,7 +82,7 @@ const register = async (req, res) => {
         .json({ message: "Password must be at least 8 characters." });
     }
 
-    // ✅ SECURITY FIX: only allow safe public roles on self-register
+    // Only allow safe public roles on self-register
     // Admin can assign any role only if they are logged in as admin
     const assignedRole =
       role && PUBLIC_ROLES.includes(role)
@@ -102,6 +104,27 @@ const register = async (req, res) => {
       assignedRole,
       phone || null
     );
+
+        // Sponsor and organizer accounts need a matching profile row, otherwise
+    // their portal calls return 404. If it fails, remove the user so we
+    // never leave a half-registered account behind.
+    if (user.role === "sponsor" || user.role === "organizer") {
+      try {
+        const displayName = (company_name || full_name).trim();
+        if (user.role === "sponsor") {
+          await sponsorService.createSponsorProfile(user.user_id, {
+            companyName: displayName,
+          });
+        } else {
+          await organizerService.createOrganizerProfile(user.user_id, {
+            businessName: displayName,
+          });
+        }
+      } catch (profileErr) {
+        await query(`DELETE FROM users WHERE user_id = $1`, [user.user_id]);
+        throw profileErr;
+      }
+    }
 
     // Issue tokens
     const accessToken = generateToken(user);

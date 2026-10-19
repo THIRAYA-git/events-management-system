@@ -288,6 +288,29 @@ const getSponsorByUserId = async (userId) => {
   return result.rows[0] || null;
 };
 
+const createSponsorProfile = async (
+  userId,
+  { companyName, industry, websiteUrl, budgetRange, preferredEvents, description } = {}
+) => {
+  const result = await db.query(
+    `INSERT INTO sponsors
+       (user_id, company_name, industry, website_url, budget_range,
+        preferred_events, description, status)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, 'active')
+     RETURNING sponsor_id, user_id, company_name, status`,
+    [
+      userId,
+      companyName,
+      industry || null,
+      websiteUrl || null,
+      budgetRange || null,
+      preferredEvents || null,
+      description || null,
+    ]
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllSponsors,
   getSponsorById,
@@ -299,5 +322,5 @@ module.exports = {
   withdrawSponsorRequest,
   updateSponsorLogo,
   getSponsorByUserId,
-  // updateSponsorLogo,
+  createSponsorProfile,
 };
