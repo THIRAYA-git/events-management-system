@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { CalendarClock, Loader2, Search } from "lucide-react";
 import { listBookings } from "@/lib/booking.api";
 import type { AdminBooking, BookingStatus } from "@/types/booking.types";
+import { PaymentBadge } from "@/components/admin/PaymentBadge";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
 const HALLS = [
@@ -11,8 +12,10 @@ const HALLS = [
 ];
 
 const STATUS_BADGE: Record<BookingStatus, string> = {
-  pending: "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  confirmed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  pending:
+    "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  confirmed:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
   cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
   completed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
 };
@@ -31,7 +34,9 @@ const startOfDay = (d: Date) =>
   new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
 
 const daysFromToday = (dateStr: string) =>
-  Math.round((startOfDay(new Date(dateStr)) - startOfDay(new Date())) / 86_400_000);
+  Math.round(
+    (startOfDay(new Date(dateStr)) - startOfDay(new Date())) / 86_400_000
+  );
 
 const relativeLabel = (days: number) => {
   if (days === 0) return "Today";
@@ -132,19 +137,37 @@ export function AdminSchedulePage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Scheduled Events</h1>
+      <h1 className="text-2xl font-semibold text-foreground">
+        Scheduled Events
+      </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Plan setup, catering, decoration and cleanup tasks for each booked event.
+        Plan setup, catering, decoration and cleanup tasks for each booked
+        event.
       </p>
 
       {/* ── Stats ───────────────────────────────────────────────────── */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
-          { label: `${range === "upcoming" ? "Upcoming" : "Past"} events`, value: stats.total, tone: "text-foreground" },
-          { label: "Confirmed", value: stats.confirmed, tone: "text-green-600 dark:text-green-400" },
-          { label: "Awaiting confirmation", value: stats.pending, tone: "text-amber-600 dark:text-amber-400" },
+          {
+            label: `${range === "upcoming" ? "Upcoming" : "Past"} events`,
+            value: stats.total,
+            tone: "text-foreground",
+          },
+          {
+            label: "Confirmed",
+            value: stats.confirmed,
+            tone: "text-green-600 dark:text-green-400",
+          },
+          {
+            label: "Awaiting confirmation",
+            value: stats.pending,
+            tone: "text-amber-600 dark:text-amber-400",
+          },
         ].map((s) => (
-          <div key={s.label} className="rounded-lg border border-border bg-card px-4 py-3">
+          <div
+            key={s.label}
+            className="rounded-lg border border-border bg-card px-4 py-3"
+          >
             <div className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
               {s.label}
             </div>
@@ -158,7 +181,9 @@ export function AdminSchedulePage() {
       {/* ── Filters ─────────────────────────────────────────────────── */}
       <div className="mt-4 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Show</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Show
+          </label>
           <div className="flex overflow-hidden rounded-md border border-input text-sm">
             {(["upcoming", "past"] as Range[]).map((r) => (
               <button
@@ -177,7 +202,9 @@ export function AdminSchedulePage() {
         </div>
 
         <div>
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Hall</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Hall
+          </label>
           <select
             value={hallFilter}
             onChange={(e) => {
@@ -196,7 +223,9 @@ export function AdminSchedulePage() {
         </div>
 
         <div className="ml-auto w-full sm:w-64">
-          <label className="block text-xs font-medium text-muted-foreground mb-1">Search</label>
+          <label className="block text-xs font-medium text-muted-foreground mb-1">
+            Search
+          </label>
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-2 h-4 w-4 text-muted-foreground" />
             <input
@@ -220,7 +249,9 @@ export function AdminSchedulePage() {
             Loading events…
           </div>
         ) : error ? (
-          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
+          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
         ) : filtered.length === 0 ? (
           <div className="flex flex-col items-center py-16 text-center text-muted-foreground">
             <CalendarClock className="mb-2 h-8 w-8" />
@@ -241,6 +272,7 @@ export function AdminSchedulePage() {
                 <th className="px-4 py-3">Hall</th>
                 <th className="px-4 py-3">Guests</th>
                 <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Payment</th>
                 <th className="px-4 py-3 text-right">Timeline</th>
               </tr>
             </thead>
@@ -251,7 +283,11 @@ export function AdminSchedulePage() {
                 return (
                   <tr
                     key={b.booking_id}
-                    className={days === 0 ? "bg-blue-50/40 dark:bg-blue-500/10 hover:bg-blue-50 dark:hover:bg-blue-500/20" : "hover:bg-muted"}
+                    className={
+                      days === 0
+                        ? "bg-blue-50/40 dark:bg-blue-500/10 hover:bg-blue-50 dark:hover:bg-blue-500/20"
+                        : "hover:bg-muted"
+                    }
                   >
                     <td className="px-4 py-3">
                       <div
@@ -273,11 +309,15 @@ export function AdminSchedulePage() {
                         </div>
                         <div>
                           <div className="text-foreground">
-                            {d.toLocaleDateString("en-LK", { weekday: "short" })}
+                            {d.toLocaleDateString("en-LK", {
+                              weekday: "short",
+                            })}
                           </div>
                           <div
                             className={`text-xs ${
-                              days === 0 ? "font-medium text-blue-600 dark:text-blue-400" : "text-muted-foreground"
+                              days === 0
+                                ? "font-medium text-blue-600 dark:text-blue-400"
+                                : "text-muted-foreground"
                             }`}
                           >
                             {relativeLabel(days)}
@@ -286,19 +326,28 @@ export function AdminSchedulePage() {
                       </div>
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap text-muted-foreground">
-                      {formatTime(b.event_start_time)}–{formatTime(b.event_end_time)}
+                      {formatTime(b.event_start_time)}–
+                      {formatTime(b.event_end_time)}
                     </td>
                     <td className="px-4 py-3">
-                      <div className="text-foreground">{b.event_type_label ?? b.event_type}</div>
-                      <div className="text-xs text-muted-foreground">{b.booking_ref}</div>
+                      <div className="text-foreground">
+                        {b.event_type_label ?? b.event_type}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {b.booking_ref}
+                      </div>
                     </td>
-                    <td className="px-4 py-3 text-foreground">{b.customer_name}</td>
+                    <td className="px-4 py-3 text-foreground">
+                      {b.customer_name}
+                    </td>
                     <td className="px-4 py-3 text-muted-foreground">
                       {b.second_hall_name
                         ? `${b.hall_name} + ${b.second_hall_name}`
                         : b.hall_name}
                     </td>
-                    <td className="px-4 py-3 text-muted-foreground">{b.guest_count}</td>
+                    <td className="px-4 py-3 text-muted-foreground">
+                      {b.guest_count}
+                    </td>
                     <td className="px-4 py-3">
                       <span
                         className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
@@ -308,6 +357,14 @@ export function AdminSchedulePage() {
                         {b.status}
                       </span>
                     </td>
+                    <td className="px-4 py-3">
+                      <PaymentBadge status={b.payment_status} />
+                      {days === 0 && b.payment_status !== "paid" && (
+                        <div className="mt-0.5 text-[11px] font-medium text-rose-600 dark:text-rose-400">
+                          Collect payment
+                        </div>
+                      )}
+                    </td>{" "}
                     <td className="px-4 py-3 text-right">
                       <Link
                         to={`/admin/bookings/${b.booking_id}/timeline`}
@@ -329,7 +386,8 @@ export function AdminSchedulePage() {
       {!isLoading && !error && filtered.length > 0 && (
         <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
           <span>
-            Showing {startIdx + 1}–{Math.min(startIdx + PAGE_SIZE, filtered.length)} of{" "}
+            Showing {startIdx + 1}–
+            {Math.min(startIdx + PAGE_SIZE, filtered.length)} of{" "}
             {filtered.length}
           </span>
           <div className="flex items-center gap-1">

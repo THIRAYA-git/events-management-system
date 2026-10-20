@@ -283,6 +283,22 @@ const getBookingById = async (bookingId) => {
   return result.rows[0];
 };
 
+// Counts only 'completed' payments as money received (enum: pending | completed | failed | refunded)
+const PAID_JOIN = `
+  LEFT JOIN (
+    SELECT booking_id, SUM(amount) AS paid
+      FROM payments
+     WHERE status = 'completed'
+     GROUP BY booking_id
+  ) p ON p.booking_id = b.booking_id`;
+
+const PAYMENT_STATUS_SQL = `
+  CASE
+    WHEN COALESCE(p.paid, 0) <= 0      THEN 'unpaid'
+    WHEN p.paid < b.total_amount       THEN 'partial'
+    ELSE 'paid'
+  END`;
+
 // ─────────────────────────────────────────────────────────────────────────────
 //  listBookings
 // ─────────────────────────────────────────────────────────────────────────────
@@ -292,6 +308,7 @@ const listBookings = async ({
   dateFrom,
   dateTo,
   customerId,
+  paymentStatus,
   limit = 20,
   offset = 0,
 }) => {
@@ -303,6 +320,8 @@ const listBookings = async ({
       COALESCE(b.custom_event_type, b.event_type) AS event_type_label,
       b.guest_count, b.status,
       b.total_amount, b.special_requests, b.created_at, b.room_count,
+      COALESCE(p.paid, 0) AS amount_paid,
+      ${PAYMENT_STATUS_SQL} AS payment_status,
       u.user_id AS customer_id, u.full_name AS customer_name,
       u.email   AS customer_email, u.phone AS customer_phone,
       hb.hall_booking_id, h.hall_id, h.hall_name,
@@ -314,11 +333,13 @@ const listBookings = async ({
     JOIN users u          ON u.user_id = b.user_id
     JOIN hall_bookings hb ON hb.booking_id = b.booking_id AND NOT hb.is_complimentary
     JOIN halls h          ON h.hall_id = hb.hall_id
+    ${PAID_JOIN}
     WHERE ($1::booking_status IS NULL OR b.status = $1::booking_status)
       AND ($2::integer IS NULL OR h.hall_id = $2::integer)
       AND ($3::date IS NULL OR b.event_date >= $3::date)
       AND ($4::date IS NULL OR b.event_date <= $4::date)
       AND ($7::integer IS NULL OR u.user_id = $7::integer)
+      AND ($8::text IS NULL OR ${PAYMENT_STATUS_SQL} = $8::text)
     ORDER BY b.event_date DESC, b.created_at DESC
     LIMIT $5::integer OFFSET $6::integer
     `,
@@ -330,6 +351,7 @@ const listBookings = async ({
       limit,
       offset,
       customerId || null,
+      paymentStatus || null,
     ]
   );
 
@@ -338,11 +360,13 @@ const listBookings = async ({
     SELECT COUNT(*)::integer AS total
     FROM bookings b
     JOIN hall_bookings hb ON hb.booking_id = b.booking_id AND NOT hb.is_complimentary
+    ${PAID_JOIN}
     WHERE ($1::booking_status IS NULL OR b.status = $1::booking_status)
       AND ($2::integer IS NULL OR hb.hall_id = $2::integer)
       AND ($3::date IS NULL OR b.event_date >= $3::date)
       AND ($4::date IS NULL OR b.event_date <= $4::date)
       AND ($5::integer IS NULL OR b.user_id = $5::integer)
+      AND ($6::text IS NULL OR ${PAYMENT_STATUS_SQL} = $6::text)
     `,
     [
       status || null,
@@ -350,6 +374,7 @@ const listBookings = async ({
       dateFrom || null,
       dateTo || null,
       customerId || null,
+      paymentStatus || null,
     ]
   );
 

@@ -8,9 +8,13 @@ import {
   CalendarClock,
   UserPlus,
   Check,
-  
 } from "lucide-react";
-import type { AdminBooking, BookingStatus } from "@/types/booking.types";
+import { PaymentBadge } from "@/components/admin/PaymentBadge";
+import type {
+  AdminBooking,
+  BookingStatus,
+  PaymentStatus,
+} from "@/types/booking.types";
 import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
 import { Link } from "react-router-dom";
 
@@ -26,13 +30,18 @@ const STATUS_OPTIONS: BookingStatus[] = [
   "cancelled",
   "completed",
 ];
+const PAYMENT_OPTIONS: PaymentStatus[] = ["paid", "partial", "unpaid"];
 const PAGE_SIZE = 10;
 
 const STATUS_BADGE: Record<BookingStatus, string> = {
-  pending: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30",
-  confirmed: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-500/30",
-  cancelled: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-200 dark:ring-rose-500/30",
-  completed: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-500/30",
+  pending:
+    "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30",
+  confirmed:
+    "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-500/30",
+  cancelled:
+    "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-200 dark:ring-rose-500/30",
+  completed:
+    "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-500/30",
 };
 
 const inputClass =
@@ -40,6 +49,9 @@ const inputClass =
 
 const iconBtn =
   "inline-flex h-8 w-8 items-center justify-center rounded-md transition-colors disabled:opacity-50";
+
+// en-CA gives YYYY-MM-DD in the browser's local timezone
+const todayStr = () => new Date().toLocaleDateString("en-CA");
 
 export function AdminBookingsPage() {
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
@@ -51,6 +63,7 @@ export function AdminBookingsPage() {
 
   const [statusFilter, setStatusFilter] = useState<BookingStatus | "">("");
   const [hallFilter, setHallFilter] = useState<string>("");
+  const [paymentFilter, setPaymentFilter] = useState<PaymentStatus | "">("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
@@ -73,6 +86,7 @@ export function AdminBookingsPage() {
       const res = await listBookings({
         status: statusFilter || undefined,
         hall_id: hallFilter ? Number(hallFilter) : undefined,
+        payment_status: paymentFilter || undefined,
         date_from: dateFrom || undefined,
         date_to: dateTo || undefined,
         limit: PAGE_SIZE,
@@ -86,7 +100,7 @@ export function AdminBookingsPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [statusFilter, hallFilter, dateFrom, dateTo, offset]);
+  }, [statusFilter, hallFilter, paymentFilter, dateFrom, dateTo, offset]);
 
   useEffect(() => {
     fetchBookings();
@@ -101,21 +115,21 @@ export function AdminBookingsPage() {
     };
 
   const errorMessage = (err: unknown, fallback: string) =>
-  (err as { response?: { data?: { message?: string } } })?.response?.data
-    ?.message ?? fallback;
+    (err as { response?: { data?: { message?: string } } })?.response?.data
+      ?.message ?? fallback;
 
-const handleConfirm = async (booking: AdminBooking) => {
-  setActionLoadingId(booking.booking_id);
-  try {
-    await updateBookingStatus(booking.booking_id, { status: "confirmed" });
-    await fetchBookings();
-  } catch (err) {
-    alert(errorMessage(err, "Failed to confirm booking. Please try again."));
-    console.error(err);
-  } finally {
-    setActionLoadingId(null);
-  }
-};
+  const handleConfirm = async (booking: AdminBooking) => {
+    setActionLoadingId(booking.booking_id);
+    try {
+      await updateBookingStatus(booking.booking_id, { status: "confirmed" });
+      await fetchBookings();
+    } catch (err) {
+      alert(errorMessage(err, "Failed to confirm booking. Please try again."));
+      console.error(err);
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   const openCancelModal = (booking: AdminBooking) => {
     setCancelTarget(booking);
@@ -217,6 +231,9 @@ const handleConfirm = async (booking: AdminBooking) => {
   const bulkDisabled =
     bulkPreparing || (!!statusFilter && statusFilter !== "pending");
 
+  const hasFilters =
+    statusFilter || hallFilter || paymentFilter || dateFrom || dateTo;
+
   return (
     <div className="min-w-0">
       {/* ── Header ──────────────────────────────────────────────────── */}
@@ -250,7 +267,7 @@ const handleConfirm = async (booking: AdminBooking) => {
       </div>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
-      <div className="mt-6 grid grid-cols-2 items-end gap-3 rounded-xl border border-border bg-card p-4 shadow-sm md:grid-cols-4 xl:grid-cols-5">
+      <div className="mt-6 grid grid-cols-2 items-end gap-3 rounded-xl border border-border bg-card p-4 shadow-sm md:grid-cols-4 xl:grid-cols-6">
         <div>
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
             Status
@@ -293,6 +310,28 @@ const handleConfirm = async (booking: AdminBooking) => {
 
         <div>
           <label className="mb-1 block text-xs font-medium text-muted-foreground">
+            Payment
+          </label>
+          <select
+            value={paymentFilter}
+            onChange={(e) =>
+              handleFilterChange(setPaymentFilter)(
+                e.target.value as PaymentStatus | ""
+              )
+            }
+            className={inputClass}
+          >
+            <option value="">All payments</option>
+            {PAYMENT_OPTIONS.map((p) => (
+              <option key={p} value={p}>
+                {p.charAt(0).toUpperCase() + p.slice(1)}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-muted-foreground">
             From
           </label>
           <input
@@ -315,173 +354,208 @@ const handleConfirm = async (booking: AdminBooking) => {
           />
         </div>
 
-        {(statusFilter || hallFilter || dateFrom || dateTo) && (
+        <div className="flex items-end gap-3">
           <button
             onClick={() => {
-              setStatusFilter("");
-              setHallFilter("");
-              setDateFrom("");
-              setDateTo("");
+              const t = todayStr();
+              setDateFrom(t);
+              setDateTo(t);
               setOffset(0);
             }}
-            className="h-9 text-left text-sm text-muted-foreground underline hover:text-foreground"
+            className="h-9 rounded-md border border-input bg-card px-3 text-sm text-foreground hover:bg-muted"
           >
-            Clear filters
+            Today
           </button>
-        )}
+
+          {hasFilters && (
+            <button
+              onClick={() => {
+                setStatusFilter("");
+                setHallFilter("");
+                setPaymentFilter("");
+                setDateFrom("");
+                setDateTo("");
+                setOffset(0);
+              }}
+              className="h-9 text-left text-sm text-muted-foreground underline hover:text-foreground"
+            >
+              Clear filters
+            </button>
+          )}
+        </div>
       </div>
 
-      {/* ── Table card (no horizontal scroll) ───────────────────────── */}
+      {/* ── Table card ──────────────────────────────────────────────── */}
       <div className="mt-4 overflow-hidden rounded-xl border border-border bg-card shadow-sm">
-  {isLoading ? (
+        {isLoading ? (
           <div className="flex items-center justify-center py-16 text-muted-foreground">
             <Loader2 className="mr-2 h-5 w-5 animate-spin" />
             Loading bookings…
           </div>
         ) : error ? (
-          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
+          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
         ) : bookings.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted-foreground">
             No bookings match these filters.
           </div>
         ) : (
           <div className="overflow-x-auto">
-      <table className="w-full min-w-[1040px] table-fixed text-sm">
-        <colgroup>
-          <col className="w-[22%]" />
-          <col className="w-[16%]" />
-          <col className="w-[13%]" />
-          <col className="w-[7%]" />
-          <col className="w-[13%]" />
-          <col className="w-[12%]" />
-          <col className="w-[17%]" />
-        </colgroup>
-            <thead className="bg-muted">
-              <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-3">Customer</th>
-                <th className="px-4 py-3">Hall / Type</th>
-                <th className="px-4 py-3">Date &amp; Time</th>
-                <th className="px-4 py-3 text-right">Guests</th>
-                <th className="px-4 py-3 text-right">Total</th>
-                <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {bookings.map((b) => (
-                <tr
-                  key={b.booking_id}
-                  className="transition-colors hover:bg-muted/70"
-                >
-                  <td className="px-4 py-3 align-top">
-                    <div className="truncate font-medium text-foreground">
-                      {b.customer_name}
-                    </div>
-                    <div className="truncate text-xs text-muted-foreground">
-                      {b.customer_email}
-                    </div>
-                    <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
-                      {b.booking_ref}
-                    </div>
-                  </td>
+            <table className="w-full min-w-[1140px] table-fixed text-sm">
+              <colgroup>
+                <col className="w-[20%]" />
+                <col className="w-[15%]" />
+                <col className="w-[12%]" />
+                <col className="w-[7%]" />
+                <col className="w-[12%]" />
+                <col className="w-[11%]" />
+                <col className="w-[10%]" />
+                <col className="w-[13%]" />
+              </colgroup>
+              <thead className="bg-muted">
+                <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+                  <th className="px-4 py-3">Customer</th>
+                  <th className="px-4 py-3">Hall / Type</th>
+                  <th className="px-4 py-3">Date &amp; Time</th>
+                  <th className="px-4 py-3 text-right">Guests</th>
+                  <th className="px-4 py-3 text-right">Total</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Payment</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {bookings.map((b) => (
+                  <tr
+                    key={b.booking_id}
+                    className="transition-colors hover:bg-muted/70"
+                  >
+                    <td className="px-4 py-3 align-top">
+                      <div className="truncate font-medium text-foreground">
+                        {b.customer_name}
+                      </div>
+                      <div className="truncate text-xs text-muted-foreground">
+                        {b.customer_email}
+                      </div>
+                      <div className="mt-0.5 truncate font-mono text-[11px] text-muted-foreground">
+                        {b.booking_ref}
+                      </div>
+                    </td>
 
-                  <td className="px-4 py-3 align-top">
-                    <div className="font-medium text-foreground">
-                      {b.second_hall_name
-                        ? `${b.hall_name} + ${b.second_hall_name}`
-                        : b.hall_name}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {b.event_type_label ?? b.event_type}
-                    </div>
-                  </td>
+                    <td className="px-4 py-3 align-top">
+                      <div className="font-medium text-foreground">
+                        {b.second_hall_name
+                          ? `${b.hall_name} + ${b.second_hall_name}`
+                          : b.hall_name}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {b.event_type_label ?? b.event_type}
+                      </div>
+                    </td>
 
-                  <td className="whitespace-nowrap px-4 py-3 align-top">
-                    <div className="font-medium text-foreground">
-                      {formatDate(b.event_date)}
-                    </div>
-                    <div className="text-xs text-muted-foreground">
-                      {formatTime(b.event_start_time)}–
-                      {formatTime(b.event_end_time)}
-                    </div>
-                  </td>
+                    <td className="whitespace-nowrap px-4 py-3 align-top">
+                      <div className="font-medium text-foreground">
+                        {formatDate(b.event_date)}
+                      </div>
+                      <div className="text-xs text-muted-foreground">
+                        {formatTime(b.event_start_time)}–
+                        {formatTime(b.event_end_time)}
+                      </div>
+                    </td>
 
-                  <td className="px-4 py-3 text-right align-top tabular-nums text-foreground">
-                    {b.guest_count}
-                  </td>
+                    <td className="px-4 py-3 text-right align-top tabular-nums text-foreground">
+                      {b.guest_count}
+                    </td>
 
-                  <td className="whitespace-nowrap px-4 py-3 text-right align-top font-medium tabular-nums text-foreground">
-                    {formatCurrency(b.total_amount)}
-                  </td>
+                    <td className="whitespace-nowrap px-4 py-3 text-right align-top font-medium tabular-nums text-foreground">
+                      {formatCurrency(b.total_amount)}
+                    </td>
 
-                  <td className="px-4 py-3 align-top">
-                    <span
-                      className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
-                        STATUS_BADGE[b.status]
-                      }`}
-                    >
-                      {b.status}
-                    </span>
-                  </td>
+                    <td className="px-4 py-3 align-top">
+                      <span
+                        className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize ring-1 ring-inset ${
+                          STATUS_BADGE[b.status]
+                        }`}
+                      >
+                        {b.status}
+                      </span>
+                    </td>
 
-                  <td className="px-4 py-3 align-top">
-                    <div className="flex items-center justify-end gap-1">
-                      {b.status === "pending" && (
+                    <td className="px-4 py-3 align-top">
+                      {b.status === "cancelled" ? (
+                        <span className="text-muted-foreground">—</span>
+                      ) : (
                         <>
-                          <button
-                            onClick={() => handleConfirm(b)}
-                            disabled={actionLoadingId === b.booking_id}
-                            title="Confirm booking"
-                            aria-label="Confirm booking"
-                            className={`${iconBtn} text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20`}
-                          >
-                            {actionLoadingId === b.booking_id ? (
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                            ) : (
-                              <Check className="h-4 w-4" />
-                            )}
-                          </button>
-                          <button
-                            onClick={() => openCancelModal(b)}
-                            disabled={actionLoadingId === b.booking_id}
-                            title="Reject booking"
-                            aria-label="Reject booking"
-                            className={`${iconBtn} text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/20`}
-                          >
-                            <X className="h-4 w-4" />
-                          </button>
+                          <PaymentBadge status={b.payment_status} />
+                          {b.payment_status === "partial" && (
+                            <div className="mt-0.5 whitespace-nowrap text-[11px] tabular-nums text-muted-foreground">
+                              {Number(b.amount_paid).toLocaleString("en-LK")}{" "}
+                              paid
+                            </div>
+                          )}
                         </>
                       )}
+                    </td>
 
-                      {b.status !== "cancelled" && (
-                        <Link
-                          to={`/admin/bookings/${b.booking_id}/timeline`}
-                          title="Event timeline"
-                          aria-label="Event timeline"
-                          className={`${iconBtn} text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20`}
-                        >
-                          <CalendarClock className="h-4 w-4" />
-                        </Link>
-                      )}
+                    <td className="px-4 py-3 align-top">
+                      <div className="flex items-center justify-end gap-1">
+                        {b.status === "pending" && (
+                          <>
+                            <button
+                              onClick={() => handleConfirm(b)}
+                              disabled={actionLoadingId === b.booking_id}
+                              title="Confirm booking"
+                              aria-label="Confirm booking"
+                              className={`${iconBtn} text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-500/20`}
+                            >
+                              {actionLoadingId === b.booking_id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Check className="h-4 w-4" />
+                              )}
+                            </button>
+                            <button
+                              onClick={() => openCancelModal(b)}
+                              disabled={actionLoadingId === b.booking_id}
+                              title="Reject booking"
+                              aria-label="Reject booking"
+                              className={`${iconBtn} text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-500/20`}
+                            >
+                              <X className="h-4 w-4" />
+                            </button>
+                          </>
+                        )}
 
-                      <AssignOrganizerDialog
-                        bookingId={b.booking_id}
-                        trigger={
-                          <button
-                            title="Assign organizer"
-                            aria-label="Assign organizer"
-                            className={`${iconBtn} text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/20`}
+                        {b.status !== "cancelled" && (
+                          <Link
+                            to={`/admin/bookings/${b.booking_id}/timeline`}
+                            title="Event timeline"
+                            aria-label="Event timeline"
+                            className={`${iconBtn} text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20`}
                           >
-                            <UserPlus className="h-4 w-4" />
-                          </button>
-                        }
-                      />
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                            <CalendarClock className="h-4 w-4" />
+                          </Link>
+                        )}
+
+                        <AssignOrganizerDialog
+                          bookingId={b.booking_id}
+                          trigger={
+                            <button
+                              title="Assign organizer"
+                              aria-label="Assign organizer"
+                              className={`${iconBtn} text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/20`}
+                            >
+                              <UserPlus className="h-4 w-4" />
+                            </button>
+                          }
+                        />
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         )}
 

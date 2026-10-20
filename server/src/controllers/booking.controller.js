@@ -153,6 +153,9 @@ const getBookingHandler = async (req, res, next) => {
 //  GET /api/bookings?status=&hall_id=&date_from=&date_to=&limit=&offset=
 //  Staff/admin only — paginated, filterable list of all bookings.
 // ─────────────────────────────────────────────────────────────────────────────
+
+const PAYMENT_STATUSES = ["paid", "partial", "unpaid"];
+
 const listBookingsHandler = async (req, res, next) => {
   try {
     const {
@@ -161,9 +164,17 @@ const listBookingsHandler = async (req, res, next) => {
       date_from,
       date_to,
       customer_id,
+      payment_status,
       limit = 20,
       offset = 0,
     } = req.query;
+
+    if (payment_status && !PAYMENT_STATUSES.includes(payment_status)) {
+      return res.status(400).json({
+        success: false,
+        message: `payment_status must be one of: ${PAYMENT_STATUSES.join(", ")}`,
+      });
+    }
 
     const result = await listBookings({
       status: status || null,
@@ -171,6 +182,7 @@ const listBookingsHandler = async (req, res, next) => {
       dateFrom: date_from || null,
       dateTo: date_to || null,
       customerId: customer_id ? Number(customer_id) : null,
+      paymentStatus: payment_status || null,
       limit: Number(limit),
       offset: Number(offset),
     });

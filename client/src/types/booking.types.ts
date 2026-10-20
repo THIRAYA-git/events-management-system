@@ -1,3 +1,5 @@
+export type PaymentStatus = "unpaid" | "partial" | "paid";
+
 export interface Hall {
   hall_id: number;
   hall_name: string;
@@ -96,6 +98,8 @@ export interface AdminBooking {
   guest_count: number;
   status: BookingStatus;
   total_amount: string;
+  payment_status: PaymentStatus;
+  amount_paid: string;
   special_requests: string | null;
   created_at: string;
   customer_id: number;
@@ -114,6 +118,7 @@ export interface AdminBooking {
 
 export interface ListBookingsParams {
   status?: BookingStatus;
+  payment_status?: PaymentStatus;
   hall_id?: number;
   date_from?: string;
   date_to?: string;
