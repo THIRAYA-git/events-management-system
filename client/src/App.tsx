@@ -2,7 +2,8 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Toaster } from "@/components/ui/sonner";
 import { AuthProvider, useAuth } from "@/context/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { getHomePath, isPartnerRole } from "@/utils/navigation";
+import type { ReactNode } from "react";
+import { getHomePath, isPartnerRole, isStaffRole } from "@/utils/navigation";
 import LoginPage from "@/pages/auth/LoginPage";
 import RegisterPage from "@/pages/auth/RegisterPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
@@ -43,13 +44,13 @@ import RoomsPage from "./pages/customer/RoomsPage";
 import RoomPaymentCheckoutPage from "@/pages/customer/RoomPaymentCheckoutPage";
 import AdminBackupsPage from "@/pages/admin/AdminBackupsPage";
 
-function Home() {
+function PublicOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
   if (isLoading) return null;
-  if (user && isPartnerRole(user.role)) {
+  if (user && (isStaffRole(user.role) || isPartnerRole(user.role))) {
     return <Navigate to={getHomePath(user.role)} replace />;
   }
-  return <HomePage />;
+  return <>{children}</>;
 }
 
 function App() {
@@ -65,10 +66,30 @@ function App() {
 
           <Route element={<CustomerLayout />}>
             {/* Public: no login needed */}
-            <Route path="/" element={<Home />} />
-            <Route path="/about" element={<AboutPage />} />
-            <Route path="/contact" element={<ContactPage />} />
-
+            <Route
+              path="/"
+              element={
+                <PublicOnly>
+                  <HomePage />
+                </PublicOnly>
+              }
+            />
+            <Route
+              path="/about"
+              element={
+                <PublicOnly>
+                  <AboutPage />
+                </PublicOnly>
+              }
+            />
+            <Route
+              path="/contact"
+              element={
+                <PublicOnly>
+                  <ContactPage />
+                </PublicOnly>
+              }
+            />
             {/* Only roles allowed to create bookings */}
             <Route
               element={

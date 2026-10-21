@@ -22,13 +22,26 @@ export default function LoginPage() {
   // Where ProtectedRoute sent the user from, if anywhere
   const from = (location.state as { from?: string })?.from;
 
+  const fromPath =
+  (location.state as { from?: { pathname: string } })?.from?.pathname;
+
+// Only honour the old destination if it belongs to the role that just logged in
+const resolveRedirect = (role: string) => {
+  const home = getHomePath(role); // "/admin", "/restaurant", "/"
+  if (fromPath && (role === "customer" ? !/^\/(admin|organizer|sponsor|restaurant)/.test(fromPath)
+                                       : fromPath.startsWith(home))) {
+    return fromPath;
+  }
+  return home;
+};
+
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
-      navigate(from || getHomePath(loggedInUser.role), { replace: true });
-    } catch (err: any) {
+navigate(resolveRedirect(loggedInUser.role), { replace: true });   
+ } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -47,7 +60,7 @@ export default function LoginPage() {
     setIsSubmitting(true);
     try {
       const loggedInUser = await loginWithGoogle(cred.credential);
-      navigate(from || getHomePath(loggedInUser.role), { replace: true });
+navigate(resolveRedirect(loggedInUser.role), { replace: true });
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Google sign-in failed.");
     } finally {
