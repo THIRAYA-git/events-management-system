@@ -33,6 +33,7 @@ const PERMISSIONS = {
   "payment:read_own": ["admin", "front_desk", "customer"],
   "payment:read_all": ["admin"],
   "payment:refund": ["admin"],
+  "payment:record_cash": ["admin", "front_desk"],
 
   // ── Menu items ────────────────────────────────────────────
   "menu:create": ["admin", "restaurant"],

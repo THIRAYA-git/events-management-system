@@ -46,6 +46,9 @@ const {
   validateUpdateTimeline,
   validateDeleteTimeline,
 } = require("../validators/timeline.validator");
+const {
+  recordCashPaymentHandler,
+} = require("../controllers/cashPayment.controller");
 
 const router = express.Router();
 
@@ -208,6 +211,12 @@ router.get(
   validateGetBooking,
   validate,
   getBookingHandler
+);
+
+router.patch(
+  "/:bookingId/payment/cash",
+  authorize("payment:record_cash"),
+  recordCashPaymentHandler
 );
 
 router.patch(

@@ -8,7 +8,9 @@ import {
   CalendarClock,
   UserPlus,
   Check,
+  Download,
 } from "lucide-react";
+import { downloadInvoice } from "@/api/payment.api";
 import { PaymentBadge } from "@/components/admin/PaymentBadge";
 import type {
   AdminBooking,
@@ -16,6 +18,7 @@ import type {
   PaymentStatus,
 } from "@/types/booking.types";
 import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
+import MarkPaidDialog from "@/components/admin/MarkPaidDialog";
 import { Link } from "react-router-dom";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
@@ -68,6 +71,8 @@ export function AdminBookingsPage() {
   const [dateTo, setDateTo] = useState("");
 
   const [cancelTarget, setCancelTarget] = useState<AdminBooking | null>(null);
+  const [payTarget, setPayTarget] = useState<AdminBooking | null>(null);
+  const [downloadingId, setDownloadingId] = useState<number | null>(null);
   const [cancelReason, setCancelReason] = useState("");
 
   // Bulk confirm / reject of pending bookings
@@ -128,6 +133,21 @@ export function AdminBookingsPage() {
       console.error(err);
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  const handleDownloadInvoice = async (booking: AdminBooking) => {
+    setDownloadingId(booking.booking_id);
+    try {
+      await downloadInvoice(
+        booking.booking_id,
+        `invoice-${booking.booking_ref}.pdf`
+      );
+    } catch (err) {
+      alert("Failed to download the invoice. Please try again.");
+      console.error(err);
+    } finally {
+      setDownloadingId(null);
     }
   };
 
@@ -494,6 +514,16 @@ export function AdminBookingsPage() {
                               paid
                             </div>
                           )}
+                          {b.payment_status !== "paid" &&
+                            (b.status === "confirmed" ||
+                              b.status === "completed") && (
+                              <button
+                                onClick={() => setPayTarget(b)}
+                                className="mt-1 block text-[11px] font-medium text-emerald-600 dark:text-emerald-400 underline-offset-2 hover:underline"
+                              >
+                                Mark as paid
+                              </button>
+                            )}
                         </>
                       )}
                     </td>
@@ -526,6 +556,23 @@ export function AdminBookingsPage() {
                             </button>
                           </>
                         )}
+
+                        {b.payment_status === "paid" &&
+                          b.status !== "cancelled" && (
+                            <button
+                              onClick={() => handleDownloadInvoice(b)}
+                              disabled={downloadingId === b.booking_id}
+                              title="Download invoice"
+                              aria-label="Download invoice"
+                              className={`${iconBtn} text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-500/20`}
+                            >
+                              {downloadingId === b.booking_id ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}
+                            </button>
+                          )}
 
                         {b.status !== "cancelled" && (
                           <Link
@@ -588,6 +635,17 @@ export function AdminBookingsPage() {
           </div>
         )}
       </div>
+
+      {payTarget && (
+        <MarkPaidDialog
+          booking={payTarget}
+          onClose={() => setPayTarget(null)}
+          onDone={() => {
+            setPayTarget(null);
+            fetchBookings();
+          }}
+        />
+      )}
 
       {/* ── Cancel/Reject Modal ─────────────────────────────────────── */}
       {cancelTarget && (
