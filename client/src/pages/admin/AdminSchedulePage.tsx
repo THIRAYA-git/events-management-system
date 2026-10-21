@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
 import { CalendarClock, Loader2, Search } from "lucide-react";
 import { listBookings } from "@/lib/booking.api";
-import type { AdminBooking, BookingStatus } from "@/types/booking.types";
+import type { AdminBooking } from "@/types/booking.types";
 import { PaymentBadge } from "@/components/admin/PaymentBadge";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
@@ -10,15 +10,6 @@ const HALLS = [
   { hall_id: 5, hall_name: "Hall 1 - Grand" },
   { hall_id: 6, hall_name: "Hall 2 - Banquet" },
 ];
-
-const STATUS_BADGE: Record<BookingStatus, string> = {
-  pending:
-    "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  confirmed:
-    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
-  cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
-  completed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
-};
 
 const PAGE_SIZE = 10;
 
@@ -80,11 +71,12 @@ export function AdminSchedulePage() {
         offset: 0,
       });
 
+      // Only confirmed bookings are scheduled here.
       // Sorted client-side (nearest first for upcoming, latest first for past),
       // so pagination below is also client-side over this one result set.
       const direction = range === "upcoming" ? 1 : -1;
       const rows = res.bookings
-        .filter((b) => b.status !== "cancelled")
+        .filter((b) => b.status === "confirmed")
         .sort((a, b) => {
           const byDate =
             new Date(a.event_date).getTime() - new Date(b.event_date).getTime();
@@ -119,8 +111,8 @@ export function AdminSchedulePage() {
   const stats = useMemo(
     () => ({
       total: bookings.length,
-      confirmed: bookings.filter((b) => b.status === "confirmed").length,
-      pending: bookings.filter((b) => b.status === "pending").length,
+      today: bookings.filter((b) => daysFromToday(b.event_date) === 0).length,
+      unpaid: bookings.filter((b) => b.payment_status !== "paid").length,
     }),
     [bookings]
   );
@@ -138,30 +130,30 @@ export function AdminSchedulePage() {
   return (
     <div>
       <h1 className="text-2xl font-semibold text-foreground">
-        Scheduled Events
+        Manage Scheduled Events
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Plan setup, catering, decoration and cleanup tasks for each booked
-        event.
+        Confirmed events only. Plan setup, catering, decoration and cleanup
+        tasks for each one.
       </p>
 
       {/* ── Stats ───────────────────────────────────────────────────── */}
       <div className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
         {[
           {
-            label: `${range === "upcoming" ? "Upcoming" : "Past"} events`,
+            label: `Confirmed ${range} events`,
             value: stats.total,
-            tone: "text-foreground",
-          },
-          {
-            label: "Confirmed",
-            value: stats.confirmed,
             tone: "text-green-600 dark:text-green-400",
           },
           {
-            label: "Awaiting confirmation",
-            value: stats.pending,
-            tone: "text-amber-600 dark:text-amber-400",
+            label: "Happening today",
+            value: stats.today,
+            tone: "text-blue-600 dark:text-blue-400",
+          },
+          {
+            label: "Payment outstanding",
+            value: stats.unpaid,
+            tone: "text-rose-600 dark:text-rose-400",
           },
         ].map((s) => (
           <div
@@ -211,7 +203,7 @@ export function AdminSchedulePage() {
               setHallFilter(e.target.value);
               setPage(1);
             }}
-            className="rounded-md border border-input px-3 py-1.5 text-sm"
+            className="rounded-md border border-input bg-card px-3 py-1.5 text-sm text-foreground"
           >
             <option value="">All halls</option>
             {HALLS.map((h) => (
@@ -258,7 +250,7 @@ export function AdminSchedulePage() {
             <p className="text-sm">
               {search
                 ? "No events match your search."
-                : `No ${range} events to schedule.`}
+                : `No confirmed ${range} events to schedule.`}
             </p>
           </div>
         ) : (
@@ -271,7 +263,6 @@ export function AdminSchedulePage() {
                 <th className="px-4 py-3">Customer</th>
                 <th className="px-4 py-3">Hall</th>
                 <th className="px-4 py-3">Guests</th>
-                <th className="px-4 py-3">Status</th>
                 <th className="px-4 py-3">Payment</th>
                 <th className="px-4 py-3 text-right">Timeline</th>
               </tr>
@@ -349,22 +340,13 @@ export function AdminSchedulePage() {
                       {b.guest_count}
                     </td>
                     <td className="px-4 py-3">
-                      <span
-                        className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
-                          STATUS_BADGE[b.status]
-                        }`}
-                      >
-                        {b.status}
-                      </span>
-                    </td>
-                    <td className="px-4 py-3">
                       <PaymentBadge status={b.payment_status} />
                       {days === 0 && b.payment_status !== "paid" && (
                         <div className="mt-0.5 text-[11px] font-medium text-rose-600 dark:text-rose-400">
                           Collect payment
                         </div>
                       )}
-                    </td>{" "}
+                    </td>
                     <td className="px-4 py-3 text-right">
                       <Link
                         to={`/admin/bookings/${b.booking_id}/timeline`}
