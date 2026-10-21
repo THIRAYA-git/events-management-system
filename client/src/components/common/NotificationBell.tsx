@@ -19,6 +19,7 @@ import {
   listNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  clearNotifications,
 } from "@/api/notification.api";
 import type {
   AppNotification,
@@ -98,11 +99,24 @@ const NotificationBell = ({
     }
   };
 
+  const handleClearAll = async () => {
+    setItems([]);
+    setUnread(0);
+    try {
+      await clearNotifications();
+    } catch {
+      load();
+    }
+  };
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-<button aria-label="Notifications" className={`relative rounded-md p-2 ${buttonClassName}`}>
-            <Bell className="h-5 w-5" />
+        <button
+          aria-label="Notifications"
+          className={`relative rounded-md p-2 ${buttonClassName}`}
+        >
+          <Bell className="h-5 w-5" />
           {unread > 0 && (
             <span className="absolute right-0.5 top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-semibold leading-none text-white">
               {unread > 9 ? "9+" : unread}
@@ -119,14 +133,24 @@ const NotificationBell = ({
           <span className="text-sm font-semibold text-foreground">
             Notifications
           </span>
-          {unread > 0 && (
-            <button
-              onClick={handleReadAll}
-              className="text-xs font-medium text-violet-700 dark:text-violet-400 hover:underline"
-            >
-              Mark all as read
-            </button>
-          )}
+          <div className="flex items-center gap-3">
+            {unread > 0 && (
+              <button
+                onClick={handleReadAll}
+                className="text-xs font-medium text-violet-700 dark:text-violet-400 hover:underline"
+              >
+                Mark all as read
+              </button>
+            )}
+            {items.length > 0 && (
+              <button
+                onClick={handleClearAll}
+                className="text-xs font-medium text-muted-foreground hover:underline"
+              >
+                Clear all
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="max-h-96 overflow-y-auto">
@@ -140,7 +164,7 @@ const NotificationBell = ({
               return (
                 <Link
                   key={n.notification_id}
-                  to="/my-bookings"
+                  to={n.link}
                   onClick={() => {
                     handleRead(n);
                     setOpen(false);

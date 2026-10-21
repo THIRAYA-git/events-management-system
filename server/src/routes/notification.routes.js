@@ -5,6 +5,18 @@
 const router = require("express").Router();
 const { authenticate } = require("../middleware/auth.middleware");
 const { query } = require("../config/db");
+const ROLE_HOME = {
+  admin: "/admin",
+  staff: "/staff",
+  sponsor: "/sponsor",
+  organizer: "/organizer",
+  restaurant: "/restaurant",
+  customer: "/my-bookings",
+};
+const withLink = (role) => (row) => ({
+  ...row,
+  link: ROLE_HOME[role] ?? "/",
+});
 
 router.use(authenticate);
 
@@ -34,9 +46,9 @@ router.get("/", async (req, res, next) => {
     ]);
 
     res.json({
-      notifications: list.rows,
-      unreadCount: unread.rows[0].count,
-    });
+  notifications: list.rows.map(withLink(req.user.role)),
+  unreadCount: unread.rows[0].count,
+});
   } catch (err) {
     next(err);
   }
@@ -66,6 +78,33 @@ router.patch("/:id/read", async (req, res, next) => {
     await query(
       `UPDATE notifications SET is_read = TRUE
         WHERE notification_id = $1 AND user_id = $2`,
+      [id, req.user.id]
+    );
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/notifications  → clear all of my notifications
+router.delete("/", async (req, res, next) => {
+  try {
+    await query(`DELETE FROM notifications WHERE user_id = $1`, [req.user.id]);
+    res.json({ success: true });
+  } catch (err) {
+    next(err);
+  }
+});
+
+// DELETE /api/notifications/:id
+router.delete("/:id", async (req, res, next) => {
+  try {
+    const id = Number(req.params.id);
+    if (!Number.isInteger(id)) {
+      return res.status(400).json({ message: "Invalid notification id" });
+    }
+    await query(
+      `DELETE FROM notifications WHERE notification_id = $1 AND user_id = $2`,
       [id, req.user.id]
     );
     res.json({ success: true });

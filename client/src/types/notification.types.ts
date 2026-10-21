@@ -15,6 +15,7 @@ export interface AppNotification {
   created_at: string;
   booking_id: number | null;
   booking_ref: string | null;
+  link: string;
 }
 
 export interface NotificationListResponse {

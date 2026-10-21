@@ -15,3 +15,5 @@ export const markNotificationRead = async (id: number): Promise<void> => {
 export const markAllNotificationsRead = async (): Promise<void> => {
   await api.patch("/notifications/read-all");
 };
+
+export const clearNotifications = () => api.delete("/notifications");
