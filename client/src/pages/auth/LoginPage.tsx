@@ -19,8 +19,19 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Where ProtectedRoute sent the user from, if anywhere
-  const from = (location.state as { from?: string })?.from;
+
+  const fromPath =
+  (location.state as { from?: { pathname: string } })?.from?.pathname;
+
+// Only honour the old destination if it belongs to the role that just logged in
+const resolveRedirect = (role: string) => {
+  const home = getHomePath(role); // "/admin", "/restaurant", "/"
+  if (fromPath && (role === "customer" ? !/^\/(admin|organizer|sponsor|restaurant)/.test(fromPath)
+                                       : fromPath.startsWith(home))) {
+    return fromPath;
+  }
+  return home;
+};
 
   const fromPath =
   (location.state as { from?: { pathname: string } })?.from?.pathname;
