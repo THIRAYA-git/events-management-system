@@ -47,12 +47,29 @@ ChartJS.register(
 );
 
 const HALL_COLORS = ["#3b82f6", "#8b5cf6"];
-const EVENT_TYPE_COLORS = ["#3b82f6", "#22c55e", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4"];
+const EVENT_TYPE_COLOR_MAP: Record<string, string> = {
+  school: "#3b82f6",
+  political: "#ef4444",
+  birthday: "#f59e0b",
+  wedding: "#8b5cf6",
+  walima: "#22c55e",
+};
+const FALLBACK_COLORS = ["#06b6d4", "#ec4899", "#14b8a6", "#f97316", "#64748b"];
+
+const eventTypeColor = (type: string, i: number) => {
+  const t = type.toLowerCase();
+  const key = Object.keys(EVENT_TYPE_COLOR_MAP).find((k) => t.includes(k));
+  return key
+    ? EVENT_TYPE_COLOR_MAP[key]
+    : FALLBACK_COLORS[i % FALLBACK_COLORS.length];
+};
 const CHART_HEIGHT = 220;
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
-  confirmed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  pending:
+    "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  confirmed:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
   cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
   completed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
 };
@@ -100,15 +117,21 @@ function AttentionCard({ icon, label, value, hint, to }: AttentionCardProps) {
     >
       <p
         className={`flex items-center gap-1 text-xs font-medium uppercase ${
-          needsAction ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"
+          needsAction
+            ? "text-amber-700 dark:text-amber-400"
+            : "text-muted-foreground"
         }`}
       >
         {icon} {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold text-foreground">{value ?? "—"}</p>
+      <p className="mt-1 text-2xl font-semibold text-foreground">
+        {value ?? "—"}
+      </p>
       <p
         className={`mt-1 text-xs ${
-          needsAction ? "text-amber-700 dark:text-amber-400" : "text-muted-foreground"
+          needsAction
+            ? "text-amber-700 dark:text-amber-400"
+            : "text-muted-foreground"
         }`}
       >
         {hint}
@@ -134,7 +157,10 @@ export function AdminDashboardHome() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
 
-  const [statusCounts, setStatusCounts] = useState<Record<string, number> | null>(null);
+  const [statusCounts, setStatusCounts] = useState<Record<
+    string,
+    number
+  > | null>(null);
   const [recentBookings, setRecentBookings] = useState<RecentBookingRow[]>([]);
   const [attention, setAttention] = useState<DashboardAttention | null>(null);
   const [loading, setLoading] = useState(true);
@@ -180,7 +206,8 @@ export function AdminDashboardHome() {
         if (!cancelled) setAnalytics(res);
       } catch (err) {
         console.error(err);
-        if (!cancelled) setAnalyticsError("Failed to load analytics. Please try again.");
+        if (!cancelled)
+          setAnalyticsError("Failed to load analytics. Please try again.");
       } finally {
         if (!cancelled) setAnalyticsLoading(false);
       }
@@ -202,7 +229,11 @@ export function AdminDashboardHome() {
   }
 
   if (error) {
-    return <div className="py-24 text-center text-sm text-red-600 dark:text-red-400">{error}</div>;
+    return (
+      <div className="py-24 text-center text-sm text-red-600 dark:text-red-400">
+        {error}
+      </div>
+    );
   }
 
   const hasFilter = Boolean(dateFrom || dateTo);
@@ -220,11 +251,15 @@ export function AdminDashboardHome() {
 
   // Status split for the doughnut
   const rawCounts: Record<string, number> = analytics
-    ? Object.fromEntries(analytics.statusBreakdown.map((s) => [s.status, s.count]))
+    ? Object.fromEntries(
+        analytics.statusBreakdown.map((s) => [s.status, s.count])
+      )
     : statusCounts ?? {};
   const statusEntries = [
     ...STATUS_ORDER.filter((k) => (rawCounts[k] ?? 0) > 0),
-    ...Object.keys(rawCounts).filter((k) => !STATUS_ORDER.includes(k) && rawCounts[k] > 0),
+    ...Object.keys(rawCounts).filter(
+      (k) => !STATUS_ORDER.includes(k) && rawCounts[k] > 0
+    ),
   ].map((status) => ({ status, count: rawCounts[status] }));
 
   const organizerHint =
@@ -236,19 +271,27 @@ export function AdminDashboardHome() {
 
   const statusCard = (
     <div className="rounded-lg border border-border bg-card p-5">
-      <h3 className="mb-4 text-sm font-medium text-foreground">Booking Status</h3>
+      <h3 className="mb-4 text-sm font-medium text-foreground">
+        Booking Status
+      </h3>
       {statusEntries.length === 0 ? (
-        <p className="py-10 text-center text-sm text-muted-foreground">No bookings yet.</p>
+        <p className="py-10 text-center text-sm text-muted-foreground">
+          No bookings yet.
+        </p>
       ) : (
         <div style={{ height: CHART_HEIGHT }} className="mx-auto max-w-[280px]">
           <Doughnut
             key={theme}
             data={{
-              labels: statusEntries.map((e) => `${capitalize(e.status)} (${e.count})`),
+              labels: statusEntries.map(
+                (e) => `${capitalize(e.status)} (${e.count})`
+              ),
               datasets: [
                 {
                   data: statusEntries.map((e) => e.count),
-                  backgroundColor: statusEntries.map((e) => STATUS_COLORS[e.status] ?? "#9ca3af"),
+                  backgroundColor: statusEntries.map(
+                    (e) => STATUS_COLORS[e.status] ?? "#9ca3af"
+                  ),
                   borderWidth: 2,
                   // White borders look like outlines on a dark card
                   borderColor: dark ? "transparent" : "#ffffff",
@@ -297,7 +340,9 @@ export function AdminDashboardHome() {
           <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
             <CalendarClock className="h-3.5 w-3.5" /> Total Bookings
           </p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{totalBookings}</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">
+            {totalBookings}
+          </p>
           <p className="mt-1 text-xs text-muted-foreground">
             All statuses{canSeeAnalytics ? `, ${periodLabel}` : ""}
           </p>
@@ -306,15 +351,21 @@ export function AdminDashboardHome() {
           <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
             <Users className="h-3.5 w-3.5" /> Pending Approval
           </p>
-          <p className="mt-1 text-2xl font-semibold text-foreground">{pendingCount}</p>
-          <p className="mt-1 text-xs text-muted-foreground">Awaiting confirmation</p>
+          <p className="mt-1 text-2xl font-semibold text-foreground">
+            {pendingCount}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Awaiting confirmation
+          </p>
         </div>
       </div>
 
       {/* ── Needs attention ─────────────────────────────────── */}
       {attention && (
         <div className="mt-6">
-          <h2 className="mb-3 text-sm font-medium text-foreground">Needs attention</h2>
+          <h2 className="mb-3 text-sm font-medium text-foreground">
+            Needs attention
+          </h2>
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <AttentionCard
               icon={<UserCheck className="h-3.5 w-3.5" />}
@@ -337,7 +388,9 @@ export function AdminDashboardHome() {
                 value={fb.lowRated}
                 hint={
                   fb.avgRating !== null && fb.total !== null
-                    ? `2★ or below · avg ${fb.avgRating.toFixed(1)} from ${fb.total} reviews`
+                    ? `2★ or below · avg ${fb.avgRating.toFixed(1)} from ${
+                        fb.total
+                      } reviews`
                     : "2★ or below"
                 }
                 to="/admin/feedback"
@@ -352,7 +405,9 @@ export function AdminDashboardHome() {
         <>
           <div className="mt-6 flex flex-wrap items-end gap-3 rounded-lg border border-border bg-card p-4">
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">From</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                From
+              </label>
               <input
                 type="date"
                 value={dateFrom}
@@ -361,7 +416,9 @@ export function AdminDashboardHome() {
               />
             </div>
             <div>
-              <label className="block text-xs font-medium text-muted-foreground mb-1">To</label>
+              <label className="block text-xs font-medium text-muted-foreground mb-1">
+                To
+              </label>
               <input
                 type="date"
                 value={dateTo}
@@ -386,7 +443,9 @@ export function AdminDashboardHome() {
           </div>
 
           {analyticsError && (
-            <p className="mt-4 text-sm text-red-600 dark:text-red-400">{analyticsError}</p>
+            <p className="mt-4 text-sm text-red-600 dark:text-red-400">
+              {analyticsError}
+            </p>
           )}
 
           {analytics && (
@@ -397,7 +456,9 @@ export function AdminDashboardHome() {
             >
               {/* Revenue Over Time */}
               <div className="rounded-lg border border-border bg-card p-5">
-                <h3 className="text-sm font-medium text-foreground mb-4">Revenue Over Time</h3>
+                <h3 className="text-sm font-medium text-foreground mb-4">
+                  Revenue Over Time
+                </h3>
                 {analytics.revenueOverTime.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-10 text-center">
                     No revenue data yet.
@@ -407,11 +468,15 @@ export function AdminDashboardHome() {
                     <Line
                       key={theme}
                       data={{
-                        labels: analytics.revenueOverTime.map((p) => formatMonth(p.month)),
+                        labels: analytics.revenueOverTime.map((p) =>
+                          formatMonth(p.month)
+                        ),
                         datasets: [
                           {
                             label: "Revenue (LKR)",
-                            data: analytics.revenueOverTime.map((p) => Number(p.revenue)),
+                            data: analytics.revenueOverTime.map((p) =>
+                              Number(p.revenue)
+                            ),
                             borderColor: "#3b82f6",
                             backgroundColor: "rgba(59, 130, 246, 0.1)",
                             fill: true,
@@ -424,7 +489,10 @@ export function AdminDashboardHome() {
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                          x: { ticks: { color: tickColor }, grid: { color: gridColor } },
+                          x: {
+                            ticks: { color: tickColor },
+                            grid: { color: gridColor },
+                          },
                           y: {
                             beginAtZero: true,
                             ticks: { color: tickColor },
@@ -451,12 +519,19 @@ export function AdminDashboardHome() {
                     <Bar
                       key={theme}
                       data={{
-                        labels: analytics.roomAccommodationsByEventType.map((r) => r.event_type),
+                        labels: analytics.roomAccommodationsByEventType.map(
+                          (r) => r.event_type
+                        ),
                         datasets: [
                           {
                             label: "Rooms booked",
-                            data: analytics.roomAccommodationsByEventType.map((r) => r.total_rooms),
-                            backgroundColor: EVENT_TYPE_COLORS,
+                            data: analytics.roomAccommodationsByEventType.map(
+                              (r) => r.total_rooms
+                            ),
+                            backgroundColor:
+                              analytics.roomAccommodationsByEventType.map(
+                                (r, i) => eventTypeColor(r.event_type, i)
+                              ),
                           },
                         ],
                       }}
@@ -465,7 +540,10 @@ export function AdminDashboardHome() {
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                          x: { ticks: { color: tickColor }, grid: { display: false } },
+                          x: {
+                            ticks: { color: tickColor },
+                            grid: { display: false },
+                          },
                           y: {
                             beginAtZero: true,
                             ticks: { stepSize: 1, color: tickColor },
@@ -480,20 +558,30 @@ export function AdminDashboardHome() {
 
               {/* Revenue by Event Type */}
               <div className="rounded-lg border border-border bg-card p-5">
-                <h3 className="text-sm font-medium text-foreground mb-4">Revenue by Event Type</h3>
+                <h3 className="text-sm font-medium text-foreground mb-4">
+                  Revenue by Event Type
+                </h3>
                 {analytics.revenueByEventType.length === 0 ? (
-                  <p className="text-sm text-muted-foreground py-10 text-center">No data yet.</p>
+                  <p className="text-sm text-muted-foreground py-10 text-center">
+                    No data yet.
+                  </p>
                 ) : (
                   <div style={{ height: CHART_HEIGHT }}>
                     <Bar
                       key={theme}
                       data={{
-                        labels: analytics.revenueByEventType.map((e) => e.event_type),
+                        labels: analytics.revenueByEventType.map(
+                          (e) => e.event_type
+                        ),
                         datasets: [
                           {
                             label: "Revenue (LKR)",
-                            data: analytics.revenueByEventType.map((e) => Number(e.revenue)),
-                            backgroundColor: EVENT_TYPE_COLORS,
+                            data: analytics.revenueByEventType.map((e) =>
+                              Number(e.revenue)
+                            ),
+                            backgroundColor: analytics.revenueByEventType.map(
+                              (e, i) => eventTypeColor(e.event_type, i)
+                            ),
                           },
                         ],
                       }}
@@ -502,7 +590,10 @@ export function AdminDashboardHome() {
                         maintainAspectRatio: false,
                         plugins: { legend: { display: false } },
                         scales: {
-                          x: { ticks: { color: tickColor }, grid: { display: false } },
+                          x: {
+                            ticks: { color: tickColor },
+                            grid: { display: false },
+                          },
                           y: {
                             beginAtZero: true,
                             ticks: { color: tickColor },
@@ -517,7 +608,9 @@ export function AdminDashboardHome() {
 
               {/* Hall Utilization */}
               <div className="rounded-lg border border-border bg-card p-5">
-                <h3 className="text-sm font-medium text-foreground mb-4">Hall Utilization</h3>
+                <h3 className="text-sm font-medium text-foreground mb-4">
+                  Hall Utilization
+                </h3>
                 {analytics.hallUtilization.length === 0 ? (
                   <p className="text-sm text-muted-foreground py-10 text-center">
                     No bookings yet.
@@ -527,11 +620,15 @@ export function AdminDashboardHome() {
                     <Bar
                       key={theme}
                       data={{
-                        labels: analytics.hallUtilization.map((h) => h.hall_name),
+                        labels: analytics.hallUtilization.map(
+                          (h) => h.hall_name
+                        ),
                         datasets: [
                           {
                             label: "Bookings",
-                            data: analytics.hallUtilization.map((h) => h.booking_count),
+                            data: analytics.hallUtilization.map(
+                              (h) => h.booking_count
+                            ),
                             backgroundColor: HALL_COLORS,
                           },
                         ],
@@ -547,7 +644,10 @@ export function AdminDashboardHome() {
                             ticks: { stepSize: 1, color: tickColor },
                             grid: { color: gridColor },
                           },
-                          y: { ticks: { color: tickColor }, grid: { display: false } },
+                          y: {
+                            ticks: { color: tickColor },
+                            grid: { display: false },
+                          },
                         },
                       }}
                     />
@@ -562,9 +662,13 @@ export function AdminDashboardHome() {
       {/* ── Recent bookings + status / top customers ────────── */}
       <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="rounded-lg border border-border bg-card p-5 lg:col-span-2">
-          <h3 className="mb-4 text-sm font-medium text-foreground">Recent Bookings</h3>
+          <h3 className="mb-4 text-sm font-medium text-foreground">
+            Recent Bookings
+          </h3>
           {recentBookings.length === 0 ? (
-            <p className="py-10 text-center text-sm text-muted-foreground">No bookings yet.</p>
+            <p className="py-10 text-center text-sm text-muted-foreground">
+              No bookings yet.
+            </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -580,11 +684,15 @@ export function AdminDashboardHome() {
                   {recentBookings.map((b) => (
                     <tr key={b.booking_id} className="border-b last:border-0">
                       <td className="py-2 pr-4">{b.customer_name}</td>
-                      <td className="py-2 pr-4">{new Date(b.event_date).toLocaleDateString()}</td>
+                      <td className="py-2 pr-4">
+                        {new Date(b.event_date).toLocaleDateString()}
+                      </td>
                       <td className="py-2 pr-4">{b.hall_name}</td>
                       <td className="py-2">
                         <span
-                          className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[b.status] ?? ""}`}
+                          className={`rounded-full px-2 py-0.5 text-xs ${
+                            STATUS_STYLES[b.status] ?? ""
+                          }`}
                         >
                           {b.status}
                         </span>
@@ -611,9 +719,13 @@ export function AdminDashboardHome() {
       {/* Top Customers (admin only) */}
       {canSeeAnalytics && analytics && (
         <div className="mt-4 rounded-lg border border-border bg-card p-5">
-          <h3 className="text-sm font-medium text-foreground mb-4">Top Customers by Spend</h3>
+          <h3 className="text-sm font-medium text-foreground mb-4">
+            Top Customers by Spend
+          </h3>
           {analytics.topCustomers.length === 0 ? (
-            <p className="text-sm text-muted-foreground py-10 text-center">No data yet.</p>
+            <p className="text-sm text-muted-foreground py-10 text-center">
+              No data yet.
+            </p>
           ) : (
             <div className="grid grid-cols-1 gap-3 lg:grid-cols-2">
               {analytics.topCustomers.map((c, i) => (
@@ -626,15 +738,21 @@ export function AdminDashboardHome() {
                       {i + 1}
                     </span>
                     <div>
-                      <p className="text-sm font-medium text-foreground">{c.customer_name}</p>
-                      <p className="text-xs text-muted-foreground">{c.customer_email}</p>
+                      <p className="text-sm font-medium text-foreground">
+                        {c.customer_name}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.customer_email}
+                      </p>
                     </div>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-medium text-foreground">
                       {formatCurrency(c.total_spend)}
                     </p>
-                    <p className="text-xs text-muted-foreground">{c.booking_count} bookings</p>
+                    <p className="text-xs text-muted-foreground">
+                      {c.booking_count} bookings
+                    </p>
                   </div>
                 </div>
               ))}
