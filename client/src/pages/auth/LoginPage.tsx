@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type SyntheticEvent } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { GoogleLogin, type CredentialResponse } from "@react-oauth/google";
@@ -19,40 +19,30 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const fromPath = (location.state as { from?: { pathname: string } })?.from
+    ?.pathname;
 
-  const fromPath =
-  (location.state as { from?: { pathname: string } })?.from?.pathname;
+  // Only honour the old destination if it belongs to the role that just logged in
+  const resolveRedirect = (role: string) => {
+    const home = getHomePath(role); // "/admin", "/restaurant", "/"
+    if (
+      fromPath &&
+      (role === "customer"
+        ? !/^\/(admin|organizer|sponsor|restaurant)/.test(fromPath)
+        : fromPath.startsWith(home))
+    ) {
+      return fromPath;
+    }
+    return home;
+  };
 
-// Only honour the old destination if it belongs to the role that just logged in
-const resolveRedirect = (role: string) => {
-  const home = getHomePath(role); // "/admin", "/restaurant", "/"
-  if (fromPath && (role === "customer" ? !/^\/(admin|organizer|sponsor|restaurant)/.test(fromPath)
-                                       : fromPath.startsWith(home))) {
-    return fromPath;
-  }
-  return home;
-};
-
-  const fromPath =
-  (location.state as { from?: { pathname: string } })?.from?.pathname;
-
-// Only honour the old destination if it belongs to the role that just logged in
-const resolveRedirect = (role: string) => {
-  const home = getHomePath(role); // "/admin", "/restaurant", "/"
-  if (fromPath && (role === "customer" ? !/^\/(admin|organizer|sponsor|restaurant)/.test(fromPath)
-                                       : fromPath.startsWith(home))) {
-    return fromPath;
-  }
-  return home;
-};
-
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+const handleSubmit = async (e: SyntheticEvent) => {
+      e.preventDefault();
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
-navigate(resolveRedirect(loggedInUser.role), { replace: true });   
- } catch (err: any) {
+      navigate(resolveRedirect(loggedInUser.role), { replace: true });
+    } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
         err?.response?.data?.error ||
@@ -71,7 +61,7 @@ navigate(resolveRedirect(loggedInUser.role), { replace: true });
     setIsSubmitting(true);
     try {
       const loggedInUser = await loginWithGoogle(cred.credential);
-navigate(resolveRedirect(loggedInUser.role), { replace: true });
+      navigate(resolveRedirect(loggedInUser.role), { replace: true });
     } catch (err: any) {
       toast.error(err?.response?.data?.message || "Google sign-in failed.");
     } finally {
@@ -109,8 +99,8 @@ navigate(resolveRedirect(loggedInUser.role), { replace: true });
         </>
       }
     >
-<form onSubmit={handleSubmit} className="min-w-0 space-y-5">
-          <div>
+      <form onSubmit={handleSubmit} className="min-w-0 space-y-5">
+        <div>
           <label htmlFor="email" className={authLabelClass}>
             Email
           </label>
