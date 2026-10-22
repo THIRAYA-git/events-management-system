@@ -2,6 +2,7 @@
 //  src/controllers/pricing.controller.js
 // ─────────────────────────────────────────────────────────────────────────────
 const {
+  updateEventPricing,
   listEventPricing,
   calculateBookingTotal,
 } = require('../services/pricing.service');
@@ -20,6 +21,30 @@ const getEventPricing = async (req, res, next) => {
     });
   } catch (err) {
     next(err);
+  }
+};
+
+//  PUT /api/pricing/event-types/:eventType   (admin)
+const updateEventPricingHandler = async (req, res) => {
+  try {
+    const { base_price, both_halls_price, description, is_active } = req.body;
+    const data = await updateEventPricing(
+      req.params.eventType,
+      {
+        basePrice:      base_price,
+        bothHallsPrice: both_halls_price,
+        description,
+        isActive:       is_active,
+      },
+      {
+        userId: req.user.id,
+        ip: req.headers['x-forwarded-for']?.split(',')[0] || req.socket?.remoteAddress,
+      }
+    );
+    return res.status(200).json({ success: true, data, message: 'Price updated.' });
+  } catch (err) {
+    if (!err.statusCode) console.error('[pricing:update]', err);
+    return res.status(err.statusCode || 500).json({ success: false, message: err.message });
   }
 };
 
@@ -65,6 +90,7 @@ const isServiceError = (err) =>
   SERVICE_ERROR_PATTERNS.some((p) => err.message?.toLowerCase().includes(p));
 
 module.exports = {
+  updateEventPricingHandler,
   getEventPricing,
   calculatePrice,
 };

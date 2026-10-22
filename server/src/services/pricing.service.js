@@ -95,8 +95,70 @@ const calculateBookingTotal = async ({
   };
 };
 
+// FR-023 — admin edits a price. Old row + new row are written to audit_log in the
+// same transaction-less pair of statements (audit failure must not block the update).
+// Existing bookings are unaffected: bookings.base_amount/total_amount are stored at creation.
+const updateEventPricing = async (
+  eventType,
+  { basePrice, bothHallsPrice, description, isActive },
+  { userId, ip } = {}
+) => {
+  const before = await query(
+    `SELECT event_type, base_price, both_halls_price, description, is_active
+       FROM event_pricing WHERE event_type = $1`,
+    [eventType]
+  );
+  if (before.rows.length === 0) {
+    const e = new Error(`Unknown event_type "${eventType}".`);
+    e.statusCode = 404;
+    throw e;
+  }
+  const old = before.rows[0];
+
+  const next = {
+    base_price:       basePrice,
+    both_halls_price: bothHallsPrice === undefined ? old.both_halls_price : bothHallsPrice,
+    description:      description === undefined ? old.description : description,
+    is_active:        isActive === undefined ? old.is_active : isActive,
+  };
+
+  if (next.both_halls_price !== null && Number(next.both_halls_price) < Number(next.base_price)) {
+    const e = new Error('both_halls_price cannot be lower than base_price.');
+    e.statusCode = 400;
+    throw e;
+  }
+
+  const res = await query(
+    `UPDATE event_pricing
+        SET base_price = $2, both_halls_price = $3, description = $4, is_active = $5
+      WHERE event_type = $1
+      RETURNING event_type, base_price, both_halls_price, description, is_active`,
+    [eventType, next.base_price, next.both_halls_price, next.description, next.is_active]
+  );
+  const row = res.rows[0];
+
+  try {
+    await query(
+      `INSERT INTO audit_log (user_id, action, table_name, old_values, new_values, ip_address)
+       VALUES ($1, 'PRICING_UPDATED', 'event_pricing', $2, $3, $4)`,
+      [userId || null, JSON.stringify(old), JSON.stringify(row), ip || null]
+    );
+  } catch (e) {
+    console.error('[audit_log]', e.message);
+  }
+
+  return {
+    eventType:      row.event_type,
+    basePrice:      parseFloat(row.base_price),
+    bothHallsPrice: row.both_halls_price !== null ? parseFloat(row.both_halls_price) : null,
+    description:    row.description,
+    isActive:       row.is_active,
+  };
+};
+
 module.exports = {
   getEventPrice,
+  updateEventPricing,
   listEventPricing,
   calculateBookingTotal,
   ROOM_RATE_PER_DAY,

@@ -1,7 +1,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  src/validators/pricing.validator.js
 // ─────────────────────────────────────────────────────────────────────────────
-const { body, query } = require('express-validator');
+const { body, query, param } = require('express-validator');
 
 // ─────────────────────────────────────────────────────────────────────────────
 //  GET /api/pricing/event-types
@@ -43,7 +43,35 @@ const validateCalculatePrice = [
     .toFloat(),
 ];
 
+// ─────────────────────────────────────────────────────────────────────────────
+//  PUT /api/pricing/event-types/:eventType   (FR-023, admin only)
+// ─────────────────────────────────────────────────────────────────────────────
+const validateUpdateEventPricing = [
+  param('eventType').isString().trim().notEmpty().isLength({ max: 80 }),
+
+  body('base_price')
+    .exists().withMessage('base_price is required')
+    .isFloat({ min: 0, max: 99999999.99 }).withMessage('base_price must be a number of 0 or more')
+    .toFloat(),
+
+  body('both_halls_price')
+    .optional({ nullable: true })
+    .isFloat({ min: 0, max: 99999999.99 }).withMessage('both_halls_price must be a number of 0 or more')
+    .toFloat(),
+
+  body('description')
+    .optional({ nullable: true })
+    .isString().trim()
+    .isLength({ max: 500 }).withMessage('description must not exceed 500 characters'),
+
+  body('is_active')
+    .optional()
+    .isBoolean().withMessage('is_active must be true or false')
+    .toBoolean(),
+];
+
 module.exports = {
+  validateUpdateEventPricing,
   validateGetEventPricing,
   validateCalculatePrice,
 };

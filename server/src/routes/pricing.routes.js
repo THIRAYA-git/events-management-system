@@ -3,13 +3,15 @@
 // ─────────────────────────────────────────────────────────────────────────────
 const express = require('express');
 
-const { authenticate, restrictTo } = require('../middleware/auth.middleware');
+const { authenticate, authorize, restrictTo } = require('../middleware/auth.middleware');
 const { validate }                 = require('../middleware/validate');
 const {
+  validateUpdateEventPricing,
   validateGetEventPricing,
   validateCalculatePrice,
 } = require('../validators/pricing.validator');
 const {
+  updateEventPricingHandler,
   getEventPricing,
   calculatePrice,
 } = require('../controllers/pricing.controller');
@@ -29,6 +31,18 @@ router.get(
   validateGetEventPricing,
   validate,
   getEventPricing
+);
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  UPDATE — admin changes a price (FR-023). Applies to NEW bookings only.
+//  PUT /api/pricing/event-types/:eventType
+// ─────────────────────────────────────────────────────────────────────────────
+router.put(
+  '/event-types/:eventType',
+  authorize('pricing:update'),
+  validateUpdateEventPricing,
+  validate,
+  updateEventPricingHandler
 );
 
 // ─────────────────────────────────────────────────────────────────────────────

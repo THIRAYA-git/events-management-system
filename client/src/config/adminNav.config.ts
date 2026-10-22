@@ -9,6 +9,7 @@ import {
   MessageSquare,
   FileText,
   DatabaseBackup,
+  Tag,
 } from "lucide-react";
 
 export type AdminRole = "front_desk" | "admin";
@@ -32,6 +33,12 @@ export const adminNavItems: AdminNavItem[] = [
     path: "/admin/bookings",
     icon: CalendarCheck,
     roles: ["front_desk", "admin"],
+  },
+  {
+    label: "Event Pricing",
+    path: "/admin/pricing",
+    icon: Tag,
+    roles: ["admin"],
   },
   {
     label: "Scheduled Events",
@@ -58,12 +65,6 @@ export const adminNavItems: AdminNavItem[] = [
     roles: ["admin"],
   },
   {
-    label: "Settings",
-    path: "/admin/settings",
-    icon: Settings,
-    roles: ["front_desk", "admin"],
-  },
-  {
     label: "Reports",
     path: "/admin/reports",
     icon: FileText,
@@ -75,4 +76,10 @@ export const adminNavItems: AdminNavItem[] = [
   icon: DatabaseBackup,
   roles: ["admin"],
 },
+ {
+    label: "Settings",
+    path: "/admin/settings",
+    icon: Settings,
+    roles: ["front_desk", "admin"],
+  },
 ];

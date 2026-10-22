@@ -15,6 +15,9 @@ const PERMISSIONS = {
   "booking:cancel": ["admin", "front_desk"],
   "booking:read_upcoming": ["sponsor"],
 
+  // ── Event pricing (FR-023) ────────────────────────────────
+  "pricing:update": ["admin"],
+
   // ── Packages ──────────────────────────────────────────────
   "package:create": ["admin"],
   "package:read": [

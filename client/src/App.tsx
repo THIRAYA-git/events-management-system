@@ -43,6 +43,7 @@ import MyRoomsPage from "./pages/customer/MyRoomsPage";
 import RoomsPage from "./pages/customer/RoomsPage";
 import RoomPaymentCheckoutPage from "@/pages/customer/RoomPaymentCheckoutPage";
 import AdminBackupsPage from "@/pages/admin/AdminBackupsPage";
+import AdminPricingPage from "@/pages/admin/AdminPricingPage";
 
 function PublicOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -155,6 +156,7 @@ function App() {
               <Route element={<ProtectedRoute allowedRoles={["admin"]} />}>
                 <Route path="reports" element={<AdminReportsPage />} />
                 <Route path="backups" element={<AdminBackupsPage />} />
+                <Route path="pricing" element={<AdminPricingPage />} />
               </Route>
               <Route path="settings" element={<AdminSettingsPage />} />
             </Route>
