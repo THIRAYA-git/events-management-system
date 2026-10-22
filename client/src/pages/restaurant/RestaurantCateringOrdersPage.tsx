@@ -7,10 +7,13 @@ import {
 import type { CateringOrder } from "@/types/catering.types";
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  pending:
+    "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
   confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  preparing: "bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400",
-  delivered: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  preparing:
+    "bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400",
+  delivered:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
   cancelled: "bg-muted text-muted-foreground",
 };
 
@@ -168,9 +171,9 @@ export default function RestaurantCateringOrdersPage() {
 
   return (
     <div>
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+      <div className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
         <h1 className="text-xl font-semibold">Catering Orders</h1>
-        <div className="flex items-center gap-2">
+        <div className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
           {canClear && (
             <button
               onClick={handleClearDelivered}
@@ -246,7 +249,9 @@ export default function RestaurantCateringOrdersPage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : orders.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No catering orders found.</p>
+        <p className="text-sm text-muted-foreground">
+          No catering orders found.
+        </p>
       ) : (
         <>
           <div className="space-y-3">
@@ -333,7 +338,7 @@ export default function RestaurantCateringOrdersPage() {
                       </span>
                     </span>
 
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-2 text-sm">
                       {NEXT_ACTIONS[order.status]?.map((action) => (
                         <button
                           key={action.to}
@@ -341,10 +346,10 @@ export default function RestaurantCateringOrdersPage() {
                             handleTransition(order.order_id, action.to)
                           }
                           disabled={updatingId === order.order_id}
-                          className={`rounded-md border px-3 py-1 text-xs disabled:opacity-50 ${
+                          className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-purple-400 disabled:opacity-50 ${
                             action.to === "cancelled"
-                              ? "border-red-200 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20"
-                              : "hover:bg-muted"
+                              ? "border border-red-500/60 bg-red-500/10 text-red-600 hover:bg-red-500/20 dark:border-red-400/50 dark:text-red-300"
+                              : "bg-purple-600 text-white hover:bg-purple-700"
                           }`}
                         >
                           {updatingId === order.order_id ? "…" : action.label}
