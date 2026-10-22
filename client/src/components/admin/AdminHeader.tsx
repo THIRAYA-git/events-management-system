@@ -16,7 +16,14 @@ const AdminHeader = ({ onMenuClick }: AdminHeaderProps) => {
 
   return (
     <header className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-white/15 bg-violet-700 px-4 text-white dark:bg-slate-900 lg:px-6">
-      <div className="flex items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
+        <button
+          onClick={onMenuClick}
+          className="rounded-md p-1.5 hover:bg-white/10 lg:hidden"
+          aria-label="Open menu"
+        >
+          <Menu className="h-6 w-6" />
+        </button>
         <button onClick={toggle} aria-label="Toggle theme">
           {theme === "dark" ? (
             <Moon className="h-5 w-5" />
@@ -31,8 +38,8 @@ const AdminHeader = ({ onMenuClick }: AdminHeaderProps) => {
           title="Account settings"
         >
           <UserAvatar src={user?.profile_image} name={user?.name} size={32} />
-          <span className="font-medium">{user?.name ?? user?.email}</span>
-          <span className="text-xs text-white/60 capitalize">
+          <span className="hidden truncate font-medium sm:inline">{user?.name ?? user?.email}</span>
+          <span className="hidden text-xs text-white/60 capitalize md:inline">
             ({user?.role?.replace("_", " ")})
           </span>
         </Link>
