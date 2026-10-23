@@ -6,6 +6,7 @@ import type { Organizer, OrganizerAssignment } from "@/types/organizer.types";
 const STATUS_STYLES: Record<string, string> = {
   assigned: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
   confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
+  in_progress: "bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400",
   completed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
 };
 
@@ -54,6 +55,7 @@ export default function OrganizerDashboardPage() {
   const counts = {
     assigned: assignments.filter((a) => a.status === "assigned").length,
     confirmed: assignments.filter((a) => a.status === "confirmed").length,
+    in_progress: assignments.filter((a) => a.status === "in_progress").length,
     completed: assignments.filter((a) => a.status === "completed").length,
   };
 
@@ -92,14 +94,18 @@ export default function OrganizerDashboardPage() {
         )}
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-md border border-border bg-card p-4 text-center">
           <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">{counts.assigned}</div>
           <div className="text-xs text-muted-foreground">Assigned</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
           <div className="text-2xl font-semibold text-blue-700 dark:text-blue-400">{counts.confirmed}</div>
-          <div className="text-xs text-muted-foreground">Confirmed</div>
+          <div className="text-xs text-muted-foreground">Scheduled</div>
+        </div>
+        <div className="rounded-md border border-border bg-card p-4 text-center">
+          <div className="text-2xl font-semibold text-violet-700 dark:text-violet-400">{counts.in_progress}</div>
+          <div className="text-xs text-muted-foreground">In progress</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
           <div className="text-2xl font-semibold text-green-700 dark:text-green-400">{counts.completed}</div>
@@ -124,7 +130,7 @@ export default function OrganizerDashboardPage() {
                   <span className="ml-2 text-xs text-muted-foreground">{a.event_type}</span>
                 </div>
                 <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[a.status] ?? ""}`}>
-                  {a.status}
+                  {a.status === "confirmed" ? "scheduled" : a.status.replace("_", " ")}
                 </span>
               </div>
             ))}

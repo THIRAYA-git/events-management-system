@@ -4,19 +4,6 @@ import { toast } from "sonner";
 import { getMyBookingAssignments, respondToAssignment } from "@/api/organizer.api";
 import type { OrganizerAssignment, RespondAction } from "@/types/organizer.types";
 
-const STATUS_STYLES: Record<string, string> = {
-  assigned: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
-  confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  completed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
-  declined: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
-};
-
-const STATUS_LABELS: Record<string, string> = {
-  assigned: "Awaiting your response",
-};
-
-const STATUS_OPTIONS = ["all", "assigned", "confirmed", "completed", "declined"];
-
 type DateFilter = "all" | "overdue" | "today" | "upcoming";
 type DateBucket = "overdue" | "today" | "upcoming" | "past";
 
@@ -62,7 +49,6 @@ const getBucket = (a: OrganizerAssignment): DateBucket => {
 
 export default function OrganizerEventRequestsPage() {
   const [assignments, setAssignments] = useState<OrganizerAssignment[]>([]);
-  const [statusFilter, setStatusFilter] = useState("all");
   const [dateFilter, setDateFilter] = useState<DateFilter>("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -82,7 +68,9 @@ export default function OrganizerEventRequestsPage() {
       setError(null);
       try {
         const data = await getMyBookingAssignments();
-        setAssignments(data);
+        // This page is only for requests still waiting for a decision.
+        // Accepted events live under "Manage Confirmed Events".
+        setAssignments(data.filter((a) => a.status === "assigned"));
       } catch {
         setError("Failed to load event assignments.");
       } finally {
@@ -95,7 +83,7 @@ export default function OrganizerEventRequestsPage() {
   // Back to page 1 whenever the result set changes
   useEffect(() => {
     setPage(1);
-  }, [statusFilter, dateFilter, pageSize]);
+  }, [dateFilter, pageSize]);
 
   const handleRespond = async (a: OrganizerAssignment, action: RespondAction) => {
     if (
@@ -106,24 +94,18 @@ export default function OrganizerEventRequestsPage() {
 
     setBusyId(a.id);
     try {
-      const updated = await respondToAssignment(
+      await respondToAssignment(
         a.id,
         action,
         action === "decline" ? reason.trim() : undefined
       );
-      setAssignments((prev) =>
-        prev.map((x) =>
-          x.id === a.id
-            ? {
-                ...x,
-                status: updated.status,
-                decline_reason: updated.decline_reason ?? null,
-                responded_at: updated.responded_at ?? null,
-              }
-            : x
-        )
+      // Decided requests leave this page: accepted ones move to Manage Confirmed Events
+      setAssignments((prev) => prev.filter((x) => x.id !== a.id));
+      toast.success(
+        action === "accept"
+          ? "Request accepted. You can manage it under Manage Confirmed Events."
+          : "Request declined."
       );
-      toast.success(action === "accept" ? "Request accepted." : "Request declined.");
       setDecliningId(null);
       setReason("");
     } catch (err: any) {
@@ -137,24 +119,21 @@ export default function OrganizerEventRequestsPage() {
   const counts = useMemo(() => {
     const c: Record<DateFilter, number> = { all: 0, overdue: 0, today: 0, upcoming: 0 };
     assignments
-      .filter((a) => statusFilter === "all" || a.status === statusFilter)
       .forEach((a) => {
         c.all++;
         const b = getBucket(a);
         if (b !== "past") c[b]++;
       });
     return c;
-  }, [assignments, statusFilter]);
+  }, [assignments]);
 
   const filtered = useMemo(() => {
-    const list = assignments
-      .filter((a) => statusFilter === "all" || a.status === statusFilter)
-      .filter((a) => dateFilter === "all" || getBucket(a) === dateFilter);
+    const list = assignments.filter((a) => dateFilter === "all" || getBucket(a) === dateFilter);
 
     // Overdue: most recent first. Everything else: nearest date first.
     const dir = dateFilter === "overdue" ? -1 : 1;
     return [...list].sort((a, b) => dir * (toDay(a.event_date) - toDay(b.event_date)));
-  }, [assignments, statusFilter, dateFilter]);
+  }, [assignments, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
   const currentPage = Math.min(page, totalPages);
@@ -169,30 +148,15 @@ export default function OrganizerEventRequestsPage() {
   const pageBtn =
     "inline-flex h-9 min-w-9 items-center justify-center rounded-md px-3 text-sm font-medium transition";
 
-  const pendingCount = assignments.filter((a) => a.status === "assigned").length;
-
   return (
     <div>
-      <div className="mb-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold">Event Requests</h1>
-          {pendingCount > 0 && (
-            <p className="mt-0.5 text-sm text-yellow-700 dark:text-yellow-400">
-              {pendingCount} request{pendingCount === 1 ? "" : "s"} waiting for your response
-            </p>
-          )}
-        </div>
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-md border px-3 py-2 text-sm"
-        >
-          {STATUS_OPTIONS.map((s) => (
-            <option key={s} value={s}>
-              {s === "all" ? "All statuses" : s.charAt(0).toUpperCase() + s.slice(1)}
-            </option>
-          ))}
-        </select>
+      <div className="mb-4">
+        <h1 className="text-xl font-semibold">Event Requests</h1>
+        <p className="mt-0.5 text-sm text-muted-foreground">
+          {assignments.length > 0
+            ? `${assignments.length} request${assignments.length === 1 ? "" : "s"} waiting for your response`
+            : "Requests that need your accept or decline appear here."}
+        </p>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">
@@ -224,7 +188,7 @@ export default function OrganizerEventRequestsPage() {
           <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
         </div>
       ) : filtered.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No event assignments match these filters.</p>
+        <p className="text-sm text-muted-foreground">No pending requests.</p>
       ) : (
         <div className="space-y-3">
           {visible.map((a) => {
@@ -239,8 +203,8 @@ export default function OrganizerEventRequestsPage() {
                     <span className="text-muted-foreground">— {a.customer_name}</span>
                     <span className="ml-2 text-xs text-muted-foreground">{a.event_type}</span>
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[a.status] ?? ""}`}>
-                    {STATUS_LABELS[a.status] ?? a.status}
+                  <span className="rounded-full bg-yellow-100 dark:bg-yellow-500/15 px-2 py-0.5 text-xs text-yellow-700 dark:text-yellow-400">
+                    Awaiting your response
                   </span>
                 </div>
 
@@ -274,11 +238,7 @@ export default function OrganizerEventRequestsPage() {
 
                 {a.notes && <p className="mt-2 text-xs italic text-muted-foreground">Note: {a.notes}</p>}
 
-                {a.status === "declined" && a.decline_reason && (
-                  <p className="mt-2 text-xs text-red-600 dark:text-red-400">Your reason: {a.decline_reason}</p>
-                )}
-
-                {a.status === "assigned" && !declining && (
+                {!declining && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     <button
                       onClick={() => handleRespond(a, "accept")}
@@ -302,7 +262,7 @@ export default function OrganizerEventRequestsPage() {
                   </div>
                 )}
 
-                {a.status === "assigned" && declining && (
+                {declining && (
                   <div className="mt-3 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-500/10 p-3">
                     <label className="mb-1 block text-xs font-medium text-foreground" htmlFor={`reason-${a.id}`}>
                       Reason for declining (optional)

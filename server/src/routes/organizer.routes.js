@@ -9,6 +9,13 @@ const {
   getMyBookingAssignmentsHandler,
 } = require("../controllers/organizer.controller");
 const {
+  getAssignmentDetailHandler,
+  updateProgressHandler,
+  addChecklistItemHandler,
+  toggleChecklistItemHandler,
+  deleteChecklistItemHandler,
+} = require("../controllers/organizerWorkflow.controller");
+const {
   respondToAssignmentHandler,
   getMyBookingOrganizersHandler,
   browseOrganizersHandler,
@@ -34,6 +41,38 @@ router.patch(
   authenticate,
   authorize("organizer:respond"),
   respondToAssignmentHandler
+);
+
+// Organizer workflow: event details, progress, arrangement checklist
+router.get(
+  "/my-assignments/:assignmentId",
+  authenticate,
+  authorize("organizer:work"),
+  getAssignmentDetailHandler
+);
+router.patch(
+  "/my-assignments/:assignmentId/progress",
+  authenticate,
+  authorize("organizer:work"),
+  updateProgressHandler
+);
+router.post(
+  "/my-assignments/:assignmentId/checklist",
+  authenticate,
+  authorize("organizer:work"),
+  addChecklistItemHandler
+);
+router.patch(
+  "/my-assignments/:assignmentId/checklist/:itemId",
+  authenticate,
+  authorize("organizer:work"),
+  toggleChecklistItemHandler
+);
+router.delete(
+  "/my-assignments/:assignmentId/checklist/:itemId",
+  authenticate,
+  authorize("organizer:work"),
+  deleteChecklistItemHandler
 );
 
 // Customer: organizers on their own bookings (must stay above /:organizerId)

@@ -143,7 +143,8 @@ const getBookingsForOrganizerUser = async (organizerUserId) => {
   const result = await db.query(
     `SELECT bo.id, bo.booking_id, bo.organizer_id, bo.role_in_event,
             bo.agreed_fee, bo.status, bo.notes, bo.assigned_at,
-            b.booking_ref, b.event_type, b.event_date, u.full_name AS customer_name
+            b.booking_ref, b.event_type, b.event_date, b.guest_count,
+            u.full_name AS customer_name
      FROM booking_organizers bo
      JOIN organizers o ON o.organizer_id = bo.organizer_id
      JOIN bookings b ON b.booking_id = bo.booking_id

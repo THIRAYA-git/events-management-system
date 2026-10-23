@@ -140,6 +140,33 @@ const sendEventReminderSms = async (to, { bookingRef, eventDate, startTime }) =>
   });
 };
 
+// Organizer progress change. Customer copies are logged against the booking;
+// admin copies are not (the log is the customer's notification history).
+const sendOrganizerProgressSms = async (
+  to,
+  { audience, bookingRef, eventDate, organizerName, status }
+) => {
+  let body;
+  if (status === "in_progress") {
+    body =
+      audience === "admin"
+        ? `Aazath Plaza: ${organizerName} started preparing ${bookingRef} (${eventDate}).`
+        : `Aazath Plaza: ${organizerName} has started preparing your event ${bookingRef} on ${eventDate}.`;
+  } else if (status === "completed") {
+    body =
+      audience === "admin"
+        ? `Aazath Plaza: ${organizerName} marked ${bookingRef} (${eventDate}) as completed.`
+        : `Aazath Plaza: Your event ${bookingRef} has been marked completed. Thank you for choosing us.`;
+  } else {
+    return false;
+  }
+  return sendSms({
+    to,
+    body,
+    ...(audience === "customer" ? { log: { type: "general", bookingRef } } : {}),
+  });
+};
+
 module.exports = {
   sendSms,
   sendBookingConfirmationSms,
@@ -147,5 +174,6 @@ module.exports = {
   sendBookingStatusSms,
   sendPaymentReceivedSms,
   sendPaymentRefundNoticeSms,
+  sendOrganizerProgressSms,
   toTextLkRecipient,
 };

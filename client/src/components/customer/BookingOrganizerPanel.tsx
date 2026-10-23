@@ -7,6 +7,7 @@ import type { CustomerBookingOrganizer } from "@/types/organizer.types";
 const STATUS_META: Record<string, { label: string; className: string }> = {
   assigned: { label: "Awaiting organizer response", className: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400" },
   confirmed: { label: "Confirmed", className: "bg-green-50 dark:bg-green-500/10 text-green-700 dark:text-green-400" },
+  in_progress: { label: "Preparing your event", className: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400" },
   completed: { label: "Completed", className: "bg-muted text-muted-foreground" },
 };
 

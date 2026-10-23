@@ -54,6 +54,7 @@ const PERMISSIONS = {
   "organizer:manage": ["admin"],
   "organizer:update_own": ["organizer"],
   "organizer:respond": ["organizer"],
+  "organizer:work": ["organizer"],
   "organizer:read_own_bookings": ["customer"],
   "organizer:browse": ["customer"],
   "organizer:assign_own": ["customer"],

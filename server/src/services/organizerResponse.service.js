@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const { notifyOrganizerAssigned } = require("./notify.service");
+const { seedDefaultChecklist } = require("./organizerWorkflow.service");
 
 const httpError = (message, statusCode) => {
   const err = new Error(message);
@@ -68,6 +69,14 @@ const respondToAssignment = async (organizerUserId, assignmentId, action, reason
 
   if (result.rows.length === 0) {
     throw httpError("This request was already updated. Please refresh.", 409);
+  }
+  if (action === "accept") {
+    // Best effort: a failed checklist seed must never undo the acceptance
+    try {
+      await seedDefaultChecklist(assignmentId);
+    } catch (_) {
+      /* organizer can still add items manually */
+    }
   }
   return result.rows[0];
 };

@@ -7,6 +7,7 @@ import {
   HandshakeIcon,
   UtensilsCrossed,
   ClipboardList,
+  ClipboardCheck,
   Settings,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ export const partnerNavByRole: Record<PartnerRole, NavItem[]> = {
   organizer: [
     { label: "Dashboard", path: "/organizer", icon: LayoutDashboard },
     { label: "Event Requests", path: "/organizer/requests", icon: CalendarCheck },
+    { label: "Manage Confirmed Events", path: "/organizer/events", icon: ClipboardCheck },
     { label: "My Portfolio", path: "/organizer/portfolio", icon: Briefcase },
     { label: "Settings", path: "/organizer/settings", icon: Settings },
   ],

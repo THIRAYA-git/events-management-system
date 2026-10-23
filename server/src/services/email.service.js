@@ -430,6 +430,48 @@ const sendEventUpdateEmail = async (
   });
 };
 
+// Organizer progress change (In progress / Completed). `audience` is
+// "customer" or "admin"; admin copies are not written to the customer's log.
+const PROGRESS_COPY = {
+  in_progress: {
+    customer: "has started preparing your event.",
+    admin: "has started preparing this event.",
+    heading: "Event preparation started",
+  },
+  completed: {
+    customer: "has marked your event as completed. Thank you for choosing Aazath Plaza.",
+    admin: "has marked this event as completed.",
+    heading: "Event completed",
+  },
+};
+
+const sendOrganizerProgressEmail = async (
+  to,
+  { recipientName, audience, bookingRef, eventType, eventDate, organizerName, status }
+) => {
+  const copy = PROGRESS_COPY[status];
+  if (!copy) return false;
+  const line = `${organizerName} ${audience === "admin" ? copy.admin : copy.customer}`;
+  return sendEmail({
+    to,
+    subject: `${copy.heading} — ${bookingRef}`,
+    ...(audience === "customer" ? { log: { type: "general", bookingRef } } : {}),
+    text:
+      `Hi ${recipientName},\n\n${line}\n\n` +
+      `Booking: ${bookingRef}\nEvent: ${eventType}\nDate: ${eventDate}\nOrganizer: ${organizerName}`,
+    html: layout(
+      copy.heading,
+      `<p>Hi ${escapeHtml(recipientName)},</p><p>${escapeHtml(line)}</p>` +
+        detailsTable([
+          ["Booking", bookingRef],
+          ["Event", eventType],
+          ["Date", eventDate],
+          ["Organizer", organizerName],
+        ])
+    ),
+  });
+};
+
 module.exports = {
   sendEmail,
   sendContactMessageEmail,
@@ -442,4 +484,5 @@ module.exports = {
   sendCateringOrderPlacedEmail,
   sendCateringStatusEmail,
   sendEventUpdateEmail,
+  sendOrganizerProgressEmail,
 };

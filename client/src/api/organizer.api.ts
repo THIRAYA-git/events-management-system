@@ -8,6 +8,10 @@ import type {
   CustomerBookingOrganizer,
   BrowseOrganizer,
   CustomerAssignmentResult,
+  AssignmentDetail,
+  ProgressStatus,
+  ChecklistItem,
+  ChecklistCategory,
 } from "@/types/organizer.types";
 
 export const getAllOrganizers = async (params?: {
@@ -53,6 +57,49 @@ export const respondToAssignment = async (
     { action, reason }
   );
   return data.assignment;
+};
+
+/** Organizer: full event details for one of my assignments */
+export const getAssignmentDetail = async (assignmentId: number): Promise<AssignmentDetail> => {
+  const { data } = await api.get(`/organizers/my-assignments/${assignmentId}`);
+  return data;
+};
+
+/** Organizer: Scheduled -> In Progress -> Completed */
+export const updateAssignmentProgress = async (
+  assignmentId: number,
+  status: ProgressStatus
+): Promise<{ id: number; status: string }> => {
+  const { data } = await api.patch(`/organizers/my-assignments/${assignmentId}/progress`, { status });
+  return data.assignment;
+};
+
+export const addChecklistItem = async (
+  assignmentId: number,
+  category: ChecklistCategory,
+  itemName: string
+): Promise<ChecklistItem> => {
+  const { data } = await api.post(`/organizers/my-assignments/${assignmentId}/checklist`, {
+    category,
+    itemName,
+  });
+  return data.item;
+};
+
+export const setChecklistItemDone = async (
+  assignmentId: number,
+  itemId: number,
+  isDone: boolean
+): Promise<ChecklistItem> => {
+  const { data } = await api.patch(
+    `/organizers/my-assignments/${assignmentId}/checklist/${itemId}`,
+    { isDone }
+  );
+  return data.item;
+};
+
+export const deleteChecklistItem = async (assignmentId: number, itemId: number): Promise<void> => {
+  await api.delete(`/organizers/my-assignments/${assignmentId}/checklist/${itemId}`);
 };
 
 /** Customer: organizers assigned to my own bookings */

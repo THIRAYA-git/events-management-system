@@ -30,6 +30,8 @@ import SponsorDashboardPage from "@/pages/sponsor/SponsorDashboardPage";
 import OrganizerDashboardPage from "@/pages/organizer/OrganizerDashboardPage";
 import OrganizerEventRequestsPage from "@/pages/organizer/OrganizerEventRequestsPage";
 import OrganizerPortfolioPage from "@/pages/organizer/OrganizerPortfolioPage";
+import OrganizerEventDetailPage from "@/pages/organizer/OrganizerEventDetailPage";
+import OrganizerManageEventsPage from "@/pages/organizer/OrganizerManageEventsPage";
 import BrowseEventsPage from "@/pages/sponsor/BrowseEventsPage";
 import HomePage from "@/pages/customer/HomePage";
 import AboutPage from "@/pages/customer/AboutPage";
@@ -167,6 +169,8 @@ function App() {
             <Route path="/organizer" element={<PartnerLayout />}>
               <Route index element={<OrganizerDashboardPage />} />
               <Route path="requests" element={<OrganizerEventRequestsPage />} />
+              <Route path="events" element={<OrganizerManageEventsPage />} />
+              <Route path="events/:assignmentId" element={<OrganizerEventDetailPage />} />
               <Route path="portfolio" element={<OrganizerPortfolioPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
