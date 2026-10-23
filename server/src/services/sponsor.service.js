@@ -64,7 +64,16 @@ const getSponsorRequestsForSponsorUser = async (sponsorUserId) => {
   const result = await db.query(
     `SELECT bs.id, bs.booking_id, bs.sponsor_id, bs.proposed_amount, bs.message,
             bs.status, bs.direction, bs.responded_by, bs.responded_at, bs.requested_at,
-            b.booking_ref, b.event_type, b.event_date, u.full_name AS customer_name
+            bs.payment_status, bs.paid_at, bs.transaction_id, bs.payment_method,
+            b.booking_ref, b.event_type, b.event_date::text AS event_date,
+            to_char(b.event_start_time, 'HH24:MI') AS event_start_time,
+            to_char(b.event_end_time, 'HH24:MI') AS event_end_time,
+            b.guest_count, b.status AS booking_status, b.special_requests,
+            u.full_name AS customer_name,
+            (SELECT string_agg(h.hall_name, ' + ' ORDER BY h.floor_number)
+               FROM hall_bookings hb
+               JOIN halls h ON h.hall_id = hb.hall_id
+              WHERE hb.booking_id = b.booking_id) AS hall_names
      FROM booking_sponsors bs
      JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
      JOIN bookings b ON b.booking_id = bs.booking_id

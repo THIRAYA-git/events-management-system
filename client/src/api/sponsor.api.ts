@@ -1,5 +1,9 @@
 import { api } from "@/lib/api";
-import type { Sponsor, SponsorRequest } from "@/types/sponsor.types";
+import type {
+  Sponsor,
+  SponsorRequest,
+  SponsorPaymentStatus,
+} from "@/types/sponsor.types";
 import type { SponsorOffer } from "@/types/sponsorOffer.types";
 
 
@@ -49,4 +53,18 @@ export const uploadMySponsorLogo = async (file: File): Promise<Sponsor> => {
     headers: { "Content-Type": "multipart/form-data" },
   });
   return data.sponsor;
+};
+
+export const initiateSponsorPayment = async (
+  requestId: number
+): Promise<Record<string, unknown>> => {
+  const { data } = await api.post(`/sponsors/requests/${requestId}/pay`);
+  return data;
+};
+
+export const getSponsorPaymentStatus = async (
+  requestId: number
+): Promise<SponsorPaymentStatus> => {
+  const { data } = await api.get(`/sponsors/requests/${requestId}/payment-status`);
+  return data;
 };

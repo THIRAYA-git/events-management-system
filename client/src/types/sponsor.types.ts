@@ -23,7 +23,26 @@ export interface SponsorRequest {
   requested_at: string;
   booking_ref: string;
   event_type: string;
-  event_date: string;
+  event_date: string; // YYYY-MM-DD
+  event_start_time: string; // HH:MM
+  event_end_time: string; // HH:MM
+  guest_count: number;
+  hall_names: string | null;
+  booking_status: string;
+  special_requests: string | null;
   customer_name: string;
+  payment_status: "unpaid" | "paid";
+  paid_at: string | null;
+  transaction_id: string | null;
+  payment_method: string | null;
   direction: "customer_to_sponsor" | "sponsor_to_customer";
+}
+
+export interface SponsorPaymentStatus {
+  id: number;
+  payment_status: "unpaid" | "paid";
+  paid_at: string | null;
+  transaction_id: string | null;
+  payment_method: string | null;
+  amount: number;
 }

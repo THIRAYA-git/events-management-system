@@ -12,6 +12,8 @@ const {
   createSponsorOfferHandler,
   respondToSponsorOfferHandler,
   getMyReceivedOffersHandler,
+  initiateSponsorPaymentHandler,
+  getSponsorPaymentStatusHandler,
 } = require("../controllers/sponsor.controller");
 
 router.use(authenticate);
@@ -42,5 +44,11 @@ router.patch("/offers/:requestId/respond", authorize("sponsor_offer:respond"), r
 
 // GET /api/sponsors/offers/mine → customer's received sponsor offers
 router.get("/offers/mine", authorize("sponsor_offer:read_own"), getMyReceivedOffersHandler);
+
+// POST /api/sponsors/requests/:requestId/pay → sponsor starts PayHere checkout for an accepted sponsorship
+router.post("/requests/:requestId/pay", authorize("sponsor_payment:create"), initiateSponsorPaymentHandler);
+
+// GET /api/sponsors/requests/:requestId/payment-status → poll after the PayHere popup closes
+router.get("/requests/:requestId/payment-status", authorize("sponsor_payment:read_own"), getSponsorPaymentStatusHandler);
 
 module.exports = router;

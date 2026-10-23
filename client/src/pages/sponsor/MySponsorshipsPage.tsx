@@ -1,6 +1,20 @@
 import { useEffect, useState } from "react";
 import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
-import { getMySponsorRequests, respondToSponsorRequest } from "@/api/sponsor.api";
+import { toast } from "sonner";
+import {
+  getMySponsorRequests,
+  respondToSponsorRequest,
+  initiateSponsorPayment,
+  getSponsorPaymentStatus,
+} from "@/api/sponsor.api";
+import { ensurePayhere, PAYHERE_SANDBOX } from "@/lib/payhere";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import type { SponsorRequest } from "@/types/sponsor.types";
 
 const STATUS_STYLES: Record<string, string> = {
@@ -13,6 +27,44 @@ const STATUS_STYLES: Record<string, string> = {
 const STATUS_OPTIONS = ["all", "pending", "accepted", "rejected", "withdrawn"];
 
 const PAGE_SIZE_OPTIONS = [5, 10, 20];
+
+const fmtDate = (d: string) =>
+  new Date(`${d}T00:00:00`).toLocaleDateString(undefined, {
+    weekday: "long",
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+
+const fmtTime = (hhmm: string) => {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" });
+};
+
+const fmtLkr = (n: number | string) =>
+  `LKR ${Number(n).toLocaleString("en-LK", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  })}`;
+
+// Pay is allowed for an accepted, unpaid sponsorship on a live (not cancelled) event
+const canPay = (r: SponsorRequest) =>
+  r.status === "accepted" &&
+  r.payment_status !== "paid" &&
+  r.booking_status !== "cancelled" &&
+  r.proposed_amount != null &&
+  Number(r.proposed_amount) > 0;
+
+function DetailRow({ label, value }: { label: string; value: React.ReactNode }) {
+  return (
+    <div className="flex justify-between gap-4 border-b border-border py-2 text-sm last:border-0">
+      <span className="text-muted-foreground">{label}</span>
+      <span className="text-right font-medium">{value}</span>
+    </div>
+  );
+}
 
 /** Builds a compact page list like [1, "…", 4, 5, 6, "…", 12] */
 function getPageItems(current: number, total: number): (number | "…")[] {
@@ -33,6 +85,8 @@ export default function MySponsorshipsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [respondingId, setRespondingId] = useState<number | null>(null);
+  const [payingId, setPayingId] = useState<number | null>(null);
+  const [detail, setDetail] = useState<SponsorRequest | null>(null);
 
   // pagination
   const [page, setPage] = useState(1);
@@ -72,6 +126,64 @@ export default function MySponsorshipsPage() {
       setError(err?.response?.data?.message ?? "Failed to update request.");
     } finally {
       setRespondingId(null);
+    }
+  };
+
+  const handlePay = async (req: SponsorRequest) => {
+    setPayingId(req.id);
+    setError(null);
+    try {
+      await ensurePayhere();
+      const checkout = await initiateSponsorPayment(req.id);
+
+      window.payhere.onCompleted = async () => {
+        // The webhook is the source of truth, so poll until it lands
+        for (let i = 0; i < 8; i++) {
+          const st = await getSponsorPaymentStatus(req.id).catch(() => null);
+          if (st?.payment_status === "paid") {
+            setRequests((prev) =>
+              prev.map((r) =>
+                r.id === req.id
+                  ? {
+                      ...r,
+                      payment_status: "paid",
+                      paid_at: st.paid_at,
+                      transaction_id: st.transaction_id,
+                      payment_method: st.payment_method,
+                    }
+                  : r
+              )
+            );
+            toast.success("Payment successful. Thank you for sponsoring this event.");
+            setPayingId(null);
+            return;
+          }
+          await new Promise((r) => setTimeout(r, 1500));
+        }
+        toast.info("Payment received. Confirming with the bank, refresh in a minute.");
+        setPayingId(null);
+        load();
+      };
+      window.payhere.onDismissed = () => {
+        toast.info("Payment window closed. You have not been charged.");
+        setPayingId(null);
+      };
+      window.payhere.onError = (message: string) => {
+        setError(message || "Payment failed.");
+        setPayingId(null);
+      };
+
+      window.payhere.startPayment({
+        sandbox: PAYHERE_SANDBOX,
+        ...checkout,
+        return_url: `${window.location.origin}/sponsor/sponsorships`,
+        cancel_url: `${window.location.origin}/sponsor/sponsorships`,
+      });
+    } catch (err: any) {
+      setError(
+        err?.response?.data?.message ?? err?.message ?? "Could not start payment."
+      );
+      setPayingId(null);
     }
   };
 
@@ -143,11 +255,18 @@ export default function MySponsorshipsPage() {
                     >
                       {req.status}
                     </span>
+                    {req.payment_status === "paid" && (
+                      <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-xs text-white">
+                        paid
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="mb-2 text-sm text-muted-foreground">
-                  {new Date(req.event_date).toLocaleDateString()}
+                  {new Date(`${req.event_date}T00:00:00`).toLocaleDateString()}
+                  {" · "}
+                  {fmtTime(req.event_start_time)} – {fmtTime(req.event_end_time)}
                 </div>
 
                 {req.proposed_amount != null && (
@@ -162,6 +281,31 @@ export default function MySponsorshipsPage() {
                 {req.message && (
                   <p className="mb-2 text-xs italic text-muted-foreground">"{req.message}"</p>
                 )}
+
+                <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-2">
+                  {req.payment_status === "paid" && req.paid_at && (
+                    <span className="mr-auto text-xs text-muted-foreground">
+                      Paid on {new Date(req.paid_at).toLocaleDateString()}
+                    </span>
+                  )}
+                  <button
+                    onClick={() => setDetail(req)}
+                    className="rounded-md border px-3 py-1 text-xs hover:bg-muted"
+                  >
+                    View details
+                  </button>
+                  {canPay(req) && (
+                    <button
+                      onClick={() => handlePay(req)}
+                      disabled={payingId === req.id}
+                      className="rounded-md bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                    >
+                      {payingId === req.id
+                        ? "Opening payment…"
+                        : `Pay ${fmtLkr(req.proposed_amount as number)}`}
+                    </button>
+                  )}
+                </div>
 
                 {req.status === "pending" && isOffer && (
                   <p className="border-t pt-2 text-xs text-muted-foreground">
@@ -264,6 +408,60 @@ export default function MySponsorshipsPage() {
           )}
         </div>
       )}
+      <Dialog open={detail !== null} onOpenChange={(o) => !o && setDetail(null)}>
+        <DialogContent className="sm:max-w-md">
+          {detail && (
+            <>
+              <DialogHeader>
+                <DialogTitle>{detail.event_type}</DialogTitle>
+                <DialogDescription>{detail.booking_ref}</DialogDescription>
+              </DialogHeader>
+              <div>
+                <DetailRow label="Date" value={fmtDate(detail.event_date)} />
+                <DetailRow
+                  label="Time"
+                  value={`${fmtTime(detail.event_start_time)} – ${fmtTime(detail.event_end_time)}`}
+                />
+                <DetailRow label="Hall" value={detail.hall_names ?? "—"} />
+                <DetailRow label="Expected guests" value={detail.guest_count} />
+                <DetailRow label="Hosted by" value={detail.customer_name} />
+                <DetailRow label="Event status" value={detail.booking_status} />
+                <DetailRow
+                  label="Your sponsorship"
+                  value={
+                    detail.proposed_amount != null ? fmtLkr(detail.proposed_amount) : "—"
+                  }
+                />
+                <DetailRow
+                  label="Payment"
+                  value={detail.payment_status === "paid" ? "Paid" : "Unpaid"}
+                />
+                {detail.payment_status === "paid" && (
+                  <>
+                    <DetailRow
+                      label="Paid on"
+                      value={detail.paid_at ? new Date(detail.paid_at).toLocaleString() : "—"}
+                    />
+                    <DetailRow label="Transaction ID" value={detail.transaction_id ?? "—"} />
+                  </>
+                )}
+              </div>
+              {canPay(detail) && (
+                <button
+                  onClick={() => {
+                    const r = detail;
+                    setDetail(null);
+                    handlePay(r);
+                  }}
+                  className="w-full rounded-md bg-purple-600 px-4 py-2 text-sm font-medium text-white hover:bg-purple-700"
+                >
+                  Pay {fmtLkr(detail.proposed_amount as number)}
+                </button>
+              )}
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
