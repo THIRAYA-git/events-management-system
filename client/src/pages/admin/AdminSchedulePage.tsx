@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { CalendarClock, Loader2, Search } from "lucide-react";
+import { CalendarClock, Loader2, Search, UserPlus } from "lucide-react";
 import { listBookings } from "@/lib/booking.api";
 import type { AdminBooking } from "@/types/booking.types";
 import { PaymentBadge } from "@/components/admin/PaymentBadge";
+import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
 const HALLS = [
@@ -264,7 +265,7 @@ export function AdminSchedulePage() {
                 <th className="px-4 py-3">Hall</th>
                 <th className="px-4 py-3">Guests</th>
                 <th className="px-4 py-3">Payment</th>
-                <th className="px-4 py-3 text-right">Timeline</th>
+                <th className="px-4 py-3 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
@@ -305,7 +306,7 @@ export function AdminSchedulePage() {
                             })}
                           </div>
                           <div
-                            className={`text-xs ${
+                            className={`whitespace-nowrap text-xs ${
                               days === 0
                                 ? "font-medium text-blue-600 dark:text-blue-400"
                                 : "text-muted-foreground"
@@ -347,14 +348,25 @@ export function AdminSchedulePage() {
                         </div>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-right">
-                      <Link
-                        to={`/admin/bookings/${b.booking_id}/timeline`}
-                        className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20"
-                      >
-                        <CalendarClock className="w-3.5 h-3.5" />
-                        Manage
-                      </Link>
+                    <td className="whitespace-nowrap px-4 py-3">
+                      <div className="flex items-center justify-end gap-2">
+                        <AssignOrganizerDialog
+                          bookingId={b.booking_id}
+                          trigger={
+                            <button className="inline-flex items-center gap-1 rounded-md bg-purple-50 dark:bg-purple-500/10 px-2.5 py-1 text-xs font-medium text-purple-700 dark:text-purple-400 hover:bg-purple-100 dark:hover:bg-purple-500/20">
+                              <UserPlus className="w-3.5 h-3.5" />
+                              Assign
+                            </button>
+                          }
+                        />
+                        <Link
+                          to={`/admin/bookings/${b.booking_id}/timeline`}
+                          className="inline-flex items-center gap-1 rounded-md bg-blue-50 dark:bg-blue-500/10 px-2.5 py-1 text-xs font-medium text-blue-700 dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20"
+                        >
+                          <CalendarClock className="w-3.5 h-3.5" />
+                          Timeline
+                        </Link>
+                      </div>
                     </td>
                   </tr>
                 );

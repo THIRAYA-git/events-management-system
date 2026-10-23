@@ -5,8 +5,6 @@ import {
   CheckCircle2,
   XCircle,
   X,
-  CalendarClock,
-  UserPlus,
   Check,
   Download,
 } from "lucide-react";
@@ -17,9 +15,7 @@ import type {
   BookingStatus,
   PaymentStatus,
 } from "@/types/booking.types";
-import AssignOrganizerDialog from "@/components/admin/AssignOrganizerDialog";
 import MarkPaidDialog from "@/components/admin/MarkPaidDialog";
-import { Link } from "react-router-dom";
 
 // Hardcoded per the venue's fixed two-hall setup (hall_id 5 = Grand, 6 = Banquet)
 const HALLS = [
@@ -422,16 +418,16 @@ export function AdminBookingsPage() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[1140px] table-fixed text-sm">
+            <table className="w-full min-w-[1000px] table-fixed text-sm">
               <colgroup>
-                <col className="w-[20%]" />
-                <col className="w-[15%]" />
-                <col className="w-[12%]" />
+                <col className="w-[22%]" />
+                <col className="w-[16%]" />
+                <col className="w-[13%]" />
                 <col className="w-[7%]" />
-                <col className="w-[12%]" />
+                <col className="w-[13%]" />
                 <col className="w-[11%]" />
                 <col className="w-[10%]" />
-                <col className="w-[13%]" />
+                <col className="w-[8%]" />
               </colgroup>
               <thead className="bg-muted">
                 <tr className="border-b border-border text-left text-xs font-semibold uppercase tracking-wide text-muted-foreground">
@@ -573,30 +569,6 @@ export function AdminBookingsPage() {
                               )}
                             </button>
                           )}
-
-                        {b.status !== "cancelled" && (
-                          <Link
-                            to={`/admin/bookings/${b.booking_id}/timeline`}
-                            title="Event timeline"
-                            aria-label="Event timeline"
-                            className={`${iconBtn} text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-500/20`}
-                          >
-                            <CalendarClock className="h-4 w-4" />
-                          </Link>
-                        )}
-
-                        <AssignOrganizerDialog
-                          bookingId={b.booking_id}
-                          trigger={
-                            <button
-                              title="Assign organizer"
-                              aria-label="Assign organizer"
-                              className={`${iconBtn} text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-500/20`}
-                            >
-                              <UserPlus className="h-4 w-4" />
-                            </button>
-                          }
-                        />
                       </div>
                     </td>
                   </tr>
