@@ -144,6 +144,8 @@ const getBookingsForOrganizerUser = async (organizerUserId) => {
     `SELECT bo.id, bo.booking_id, bo.organizer_id, bo.role_in_event,
             bo.agreed_fee, bo.status, bo.notes, bo.assigned_at,
             b.booking_ref, b.event_type, b.event_date, b.guest_count,
+            to_char(b.event_start_time, 'HH24:MI') AS event_start_time,
+            to_char(b.event_end_time, 'HH24:MI') AS event_end_time,
             u.full_name AS customer_name
      FROM booking_organizers bo
      JOIN organizers o ON o.organizer_id = bo.organizer_id

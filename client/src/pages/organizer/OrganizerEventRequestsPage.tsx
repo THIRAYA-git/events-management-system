@@ -210,6 +210,11 @@ export default function OrganizerEventRequestsPage() {
 
                 <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                   {new Date(a.event_date).toLocaleDateString()}
+                  {a.event_start_time && a.event_end_time && (
+                    <span>
+                      · {a.event_start_time}–{a.event_end_time}
+                    </span>
+                  )}
                   {bucket === "overdue" && (
                     <span className="rounded-full bg-red-100 dark:bg-red-500/15 px-2 py-0.5 text-xs text-red-700 dark:text-red-400">
                       Overdue

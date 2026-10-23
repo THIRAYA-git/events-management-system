@@ -49,6 +49,8 @@ export interface OrganizerAssignment {
   event_date: string;
   customer_name: string;
   guest_count?: number;
+  event_start_time?: string; // "HH:MM"
+  event_end_time?: string;
   decline_reason?: string | null;
   responded_at?: string | null;
 }
