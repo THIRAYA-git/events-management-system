@@ -16,7 +16,7 @@ This README is the setup guide. Follow the steps in order to run the system from
 | -------------- | ---------------------------------------------------------------------------------------- |
 | Frontend       | React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Chart.js                            |
 | Backend        | Node.js, Express (CommonJS)                                                              |
-| Database       | PostgreSQL (database name: `EMS_DB`)                                                     |
+| Database       | PostgreSQL (database name: `ems_db`)                                                     |
 | Authentication | JWT (access token + refresh token cookie), bcrypt, role-based access control             |
 | Integrations   | PayHere sandbox (payments), SendGrid (email), SMS gateway (text.lk), Cloudinary (images) |
 
@@ -32,10 +32,12 @@ Install these before starting:
 | -------------------- | --------------- | ----------------------- |
 | Node.js              | 20 LTS or later | `node -v`               |
 | npm                  | 10 or later     | `npm -v`                |
-| PostgreSQL           | 15 or later     | `psql --version`        |
+| PostgreSQL           | 17 or later (backup created with 18.4) | `psql --version` |
 | pgAdmin 4 (optional) | any             | graphical database tool |
 | Git                  | any             | `git --version`         |
 | ngrok (optional)     | any             | `ngrok version`         |
+
+Use PostgreSQL 17 or later. The backup file is written by PostgreSQL 18.4, and an older `pg_restore` cannot read it.
 
 ngrok is only needed to test PayHere's real server callback (Section 9.3). It is not required to run or demonstrate the system.
 
@@ -54,7 +56,9 @@ Project structure:
 events-management-system/
 ├── client/               React frontend
 ├── server/               Express backend
-├── EMS_DB_backup.sql     Full database backup (schema and demo data)
+├── ems_db_backup.dump    Database backup (schema and reference data, no bookings)
+├── seed_sample_data.sql  Optional sample data for the dashboard demonstration
+├── cleanup_for_submission.sql  Removes sample and test data
 └── README.md
 ```
 
@@ -62,14 +66,126 @@ events-management-system/
 
 ## 4. Set Up the Database
 
-1. Open pgAdmin 4 (or `psql`) and create an empty database named **EMS_DB**.
+1. Open pgAdmin 4 (or `psql`) and create an empty database named **ems_db**.
 2. Restore the supplied backup:
 
 ```bash
-psql -U postgres -d EMS_DB -f EMS_DB_backup.sql
+pg_restore -U postgres -d ems_db --no-owner ems_db_backup.dump
 ```
 
-The backup contains the full schema and the demo data, including the accounts in Section 8.
+The backup is a PostgreSQL custom-format archive, so it is restored with `pg_restore`, not `psql`. Use the `pg_restore` that ships with PostgreSQL 17 or later.
+
+The backup contains the full schema and the reference data needed to run the system:
+
+| Data                         | Contents                                                              |
+| ---------------------------- | --------------------------------------------------------------------- |
+| Halls                        | 2 halls, 600 seats each (1,200 combined)                              |
+| Rooms                        | 5 accommodation rooms, LKR 5,000 per room per day                     |
+| Event pricing                | Price list by event type (Section 10)                                 |
+| Restaurant menu              | Althab Restaurant menu items and packages                             |
+| Demo accounts                | One account per role (Section 8)                                      |
+| Sample partner profiles      | 2 event organizer profiles and 2 sponsor profiles                     |
+
+**The database contains no bookings, payments, room reservations, catering orders, feedback or notifications.** The system starts clean, and all of these are created live during the demonstration (Section 11). The first booking will be numbered 1.
+
+### 4.1 Restore using Windows Command Prompt (cmd)
+
+Open **Command Prompt** (not PowerShell) and run the steps below in order. Copy each block as it is, and change only the three values marked in step 1.
+
+**Step 1: set the PostgreSQL folder, the password and the backup folder**
+
+```cmd
+set PGBIN=C:\Program Files\PostgreSQL\18\bin
+set PGPASSWORD=your_postgres_password
+cd /d D:\path\to\events-management-system
+```
+
+- Change `18` to the installed PostgreSQL version (check `C:\Program Files\PostgreSQL`).
+- Change `your_postgres_password` to the password of the `postgres` user. Do not leave a space after it.
+- Change the last line to the folder that contains `ems_db_backup.dump`.
+
+**Step 2: create the empty database**
+
+```cmd
+"%PGBIN%\createdb.exe" -U postgres ems_db
+```
+
+If it answers `database "ems_db" already exists`, remove it and create it again:
+
+```cmd
+"%PGBIN%\dropdb.exe" -U postgres ems_db
+"%PGBIN%\createdb.exe" -U postgres ems_db
+```
+
+**Step 3: restore the backup**
+
+```cmd
+"%PGBIN%\pg_restore.exe" -U postgres -d ems_db --no-owner ems_db_backup.dump
+```
+
+**Step 4: check the result**
+
+```cmd
+"%PGBIN%\psql.exe" -U postgres -d ems_db -c "SELECT (SELECT COUNT(*) FROM users) AS users, (SELECT COUNT(*) FROM bookings) AS bookings, (SELECT COUNT(*) FROM halls) AS halls, (SELECT COUNT(*) FROM rooms) AS rooms, (SELECT COUNT(*) FROM event_pricing) AS prices, (SELECT COUNT(*) FROM menu_items) AS menu_items;"
+```
+
+Expected result: `users 8`, `bookings 0`, `halls 2`, `rooms 5`, `prices 7`, `menu_items 21`.
+
+**Step 5: point the backend at the database**
+
+In `server/.env` set:
+
+```
+DB_MODE=local
+LOCAL_DATABASE_URL=postgresql://postgres:your_postgres_password@localhost:5432/ems_db
+```
+
+Then continue with Section 5.
+
+If a command answers `password authentication failed`, the password in step 1 is wrong. Repeat step 1 with the correct one.
+
+### 4.1.1 Optional: load sample data for the dashboard demonstration
+
+The restored database has no bookings, so the dashboards start empty. To show how the dashboards, calendar, reports and portals respond to data, load the sample data script. It is optional and can be removed again.
+
+Run from the folder that contains `seed_sample_data.sql`:
+
+```cmd
+"%PGBIN%\psql.exe" -U postgres -d ems_db -v ON_ERROR_STOP=1 -f seed_sample_data.sql
+```
+
+| Added by the script                  | Quantity                                                             |
+| ------------------------------------ | -------------------------------------------------------------------- |
+| Bookings                             | 17: 8 completed, 5 confirmed (one is today), 3 pending, 1 cancelled   |
+| Hall bookings, payments and invoices | 20 hall rows, 14 payments (12 with invoice numbers)                   |
+| Catering orders                      | 10, from the Althab Restaurant menu                                   |
+| Other records                        | Event timelines, organizer assignments and checklists, sponsorship requests, 6 feedback entries, 5 room reservations, notifications |
+| Sample customers                     | 4, without passwords (they cannot sign in)                            |
+
+- All dates are relative to the day the script is run, so there are always past events for the revenue charts and upcoming events for the schedule.
+- The `thirayafathima@gmail.com` demo customer owns several of these bookings, so **My Bookings**, **My Rooms** and **Dashboard** show data after signing in.
+- Sample transaction IDs start with `SAMPLE-`. The data is for demonstration only.
+- The script stops with an error if the database already contains bookings.
+
+To remove the sample data and return to the empty state, run the cleanup script:
+
+```cmd
+"%PGBIN%\psql.exe" -U postgres -d ems_db -v ON_ERROR_STOP=1 -f cleanup_for_submission.sql
+```
+
+### 4.2 Create a new backup using Windows Command Prompt (cmd)
+
+Use this to export the current database to `ems_db_backup.dump`:
+
+```cmd
+set PGBIN=C:\Program Files\PostgreSQL\18\bin
+
+"%PGBIN%\pg_dump.exe" -U postgres -d ems_db -Fc --no-owner --no-privileges -f ems_db_backup.dump
+```
+
+- `-Fc` writes the custom-format archive that `pg_restore` reads.
+- The file is saved in the folder where the command is run. To choose the folder, replace the file name with a full path, for example `-f "D:\FYP\EMS\events-management-system\ems_db_backup.dump"`.
+- A successful run prints nothing and returns to the prompt. Check the file size afterwards: a database with the reference data and no bookings should produce a file of tens of kilobytes, not a few.
 
 ---
 
@@ -85,7 +201,7 @@ Open `server/.env` and fill in the values. Every variable is listed in `.env.exa
 
 | Setting                   | What to provide                                                                                          |
 | ------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Database                  | Set `DB_MODE=local` and `LOCAL_DATABASE_URL=postgresql://postgres:<your_password>@localhost:5432/EMS_DB` |
+| Database                  | Set `DB_MODE=local` and `LOCAL_DATABASE_URL=postgresql://postgres:<your_password>@localhost:5432/ems_db` |
 | JWT secrets               | Any long random strings for the access and refresh tokens                                                |
 | Client URL                | `http://localhost:5173`                                                                                  |
 | PayHere                   | Sandbox merchant ID and secret (supplied with the submission). See Section 9                             |
@@ -122,7 +238,8 @@ Open **http://localhost:5173** in Chrome, Firefox or Edge.
 
 1. The home page loads at `http://localhost:5173` with Home, About, Contact and a **Sign in** button.
 2. Sign in with the customer account below. The navbar should show Book a Hall, Book a Room, My Bookings, My Rooms and Dashboard.
-3. Open **Book a Hall**. The availability calendar should load.
+3. Open **Book a Hall**. The availability calendar should load with every date shown as available, because the database holds no bookings.
+4. Open **My Bookings**. It should be empty.
 
 If the calendar or login fails, check that the backend terminal shows no database connection error.
 
@@ -141,7 +258,38 @@ Use these accounts to demonstrate each role.
 | Sponsor              | `sponsor@akbartraders.lk`  | `Sponsor@123`    | `/sponsor`                            |
 | Restaurant Partner   | `althab@restaurant.lk`     | `Restaurant@123` | `/restaurant`                         |
 
-These are demo credentials for examination only. They exist in the supplied database backup.
+These are demo credentials for examination only. They exist in the supplied database backup. New customers can also register from the **Sign in** page.
+
+### 8.1 Reset a demo account password
+
+If a demo account cannot sign in after the restore, generate a new bcrypt hash and write it to the database. Run both steps in Command Prompt, with `PGBIN` and `PGPASSWORD` set as in Section 4.1.
+
+**Step 1: generate the hash** (run inside the `server` folder, where `bcrypt` is installed)
+
+```cmd
+cd server
+node -e "require('bcrypt').hash('Staff@1234', 10).then(console.log)"
+```
+
+Copy the printed hash. It starts with `$2b$10$`. To use another password, replace `Staff@1234` with it.
+
+**Step 2: save the hash and unlock the account**
+
+Replace `<paste hash here>` with the hash from step 1:
+
+```cmd
+"%PGBIN%\psql.exe" -U postgres -d ems_db -c "UPDATE users SET password_hash = '<paste hash here>', is_active = true, is_verified = true WHERE role = 'front_desk';"
+```
+
+The same statement can be run in the pgAdmin Query Tool:
+
+```sql
+UPDATE users
+SET password_hash = '<paste hash here>', is_active = true, is_verified = true
+WHERE role = 'front_desk';
+```
+
+To reset a single account instead of a whole role, replace the last line with `WHERE email = 'staff@aazathplaza.lk';`.
 
 ---
 
@@ -253,30 +401,53 @@ Supporting features: SMS and email notifications, event timeline management, cus
 
 - Two halls with a combined capacity of 1,200 seats. Bookings that exceed capacity are rejected or flagged.
 - Double booking of the same hall at the same date and time is prevented.
-- Hall prices by event type: School LKR 20,000, Political LKR 30,000 or 35,000, Birthday LKR 60,000, Wedding LKR 40,000.
+- Hall prices by event type: School LKR 20,000, Political LKR 30,000 or 35,000, Birthday LKR 60,000, Wedding LKR 40,000. The admin can change prices from the admin portal.
 - Accommodation: 5 rooms at LKR 5,000 per room per day. Rooms can be booked on their own, without a hall booking. Overlapping reservations for the same room are blocked by a database constraint, and an unpaid reservation is released after 15 minutes.
 
 ---
 
-## 11. Testing
+## 11. Suggested Demonstration Flow
+
+Because the database starts with no bookings, the demonstration builds the data live:
+
+1. **Customer:** sign in, open **Book a Hall**, pick a date, event type and guest count, and submit. Show the automatic price and the capacity warning above 1,200 guests.
+2. **Customer:** optionally add a catering order from Althab Restaurant and a room reservation.
+3. **Administrator:** open **Bookings**, approve the booking and assign an event organizer.
+4. **Organizer and Sponsor:** show the event request and the sponsorship offer.
+5. **Restaurant Partner:** show the catering order received.
+6. **Customer:** click **Pay now** and pay with the sandbox card (Section 9.4). Download the PDF invoice.
+7. **Administrator:** show the dashboard analytics, scheduled events and PDF report export.
+
+To return to this clean state after practising, restore the database again:
+
+```bash
+psql -U postgres -c "DROP DATABASE ems_db;"
+psql -U postgres -c "CREATE DATABASE ems_db;"
+pg_restore -U postgres -d ems_db --no-owner ems_db_backup.dump
+```
+
+---
+
+## 12. Testing
 
 ```bash
 cd server
 npm test
 ```
 
-API testing was also done with Postman. Test documentation is included in the project report.
+API testing was also done with Postman. Test documentation, including test cases and results, is included in the project report (Chapter 6).
 
 ---
 
-## 12. Troubleshooting
+## 13. Troubleshooting
 
 | Problem                                           | Fix                                                                                                                                       |
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `ECONNREFUSED` or database error on server start  | PostgreSQL is not running, or the credentials in `server/.env` are wrong                                                                  |
-| `database "EMS_DB" does not exist`                | Create the database first (Section 4, step 1). The name is case-sensitive                                                                 |
+| `database "ems_db" does not exist`                | Create the database first (Section 4, step 1). Use lowercase letters                                                                 |
+| `unsupported version (1.16) in file header`       | `pg_restore` is older than PostgreSQL 17. Install PostgreSQL 17 or later                                                                  |
 | Port 5000 or 5173 already in use                  | Stop the other process, or change the port in the `.env` or Vite config                                                                   |
-| Login fails for demo accounts                     | The backup was not restored. Repeat Section 4                                                                                             |
+| Login fails for demo accounts                     | The backup was not restored (repeat Section 4), or the password needs resetting (Section 8.1)                                             |
 | Frontend shows a network error                    | The backend is not running, or the client API URL does not point to `http://localhost:5000`                                               |
 | Payment completes but the booking stays "pending" | PayHere's server callback cannot reach localhost. Set `ALLOW_DEV_PAYMENT_CONFIRM=true` and restart the backend (Section 9.2), or use ngrok (Section 9.3) |
 | "Payment is not configured"                       | `API_BASE_URL` is missing from `server/.env`. Set it and restart the backend                                                              |
