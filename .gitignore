@@ -36,3 +36,7 @@ Desktop.ini
 nul
 DB_backup.sql
 *.dump
+
+server/coverage/
+client/playwright-report/
+client/test-results/
