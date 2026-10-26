@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import EmptyState from "@/components/common/EmptyState";
+import Hint from "@/components/common/Hint";
 import {
   CalendarPlus,
   ChevronLeft,
@@ -36,6 +38,15 @@ const TABS: { key: Filter; label: string }[] = [
   { key: "completed", label: "Completed" },
   { key: "cancelled", label: "Cancelled" },
 ];
+const EMPTY_HINTS: Record<Exclude<Filter, "all">, string> = {
+  pending:
+    "Nothing is waiting for payment. New bookings appear here until you pay.",
+  confirmed:
+    "No confirmed events yet. A booking becomes confirmed once payment is received.",
+  completed:
+    "No completed events yet. After your event date, you can leave feedback here.",
+  cancelled: "You have no cancelled bookings.",
+};
 
 // multiples of 6 so the 1/2/3-column grids fill evenly
 const PAGE_SIZE_OPTIONS = [6, 12, 24];
@@ -300,6 +311,13 @@ export default function MyBookingsPage() {
               >
                 {TABS.map((t) => (
                   <button
+                    title={
+                      t.key === "pending"
+                        ? "Booked, but payment is still due"
+                        : t.key === "all"
+                        ? "Show every booking"
+                        : `Show ${t.label.toLowerCase()} bookings`
+                    }
                     key={t.key}
                     role="tab"
                     aria-selected={filter === t.key}
@@ -341,21 +359,17 @@ export default function MyBookingsPage() {
           {error && <p className={errorTextClass}>{error}</p>}
 
           {!isLoading && !error && bookings.length === 0 && (
-            <div className="rounded-2xl border border-dashed border-input! bg-card px-6 py-16 text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-violet-50 text-violet-600 dark:bg-violet-500/10 dark:text-violet-400">
-                <CalendarPlus className="h-7 w-7" />
-              </div>
-              <h2 className="mt-4 text-lg font-semibold text-foreground">
-                No bookings yet
-              </h2>
-              <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
-                Pick a date, choose your hall and confirm your event in a few
-                simple steps.
-              </p>
-              <Link to="/book" className={`${primaryBtnClass} mt-5`}>
-                Book a hall
-              </Link>
-            </div>
+            <EmptyState
+              icon={CalendarPlus}
+              title="No bookings yet"
+              hint="Your events will appear here once you make a booking."
+              steps={[
+                "Pick a date and time",
+                "Choose your hall",
+                "Pay to confirm your event",
+              ]}
+              action={{ label: "Book a hall", to: "/book" }}
+            />
           )}
 
           {hasBookings && filtered.length === 0 && (
@@ -370,8 +384,10 @@ export default function MyBookingsPage() {
                     Clear search
                   </button>
                 </>
+              ) : filter === "all" ? (
+                "No bookings found."
               ) : (
-                "No bookings in this category."
+                EMPTY_HINTS[filter]
               )}
             </div>
           )}
@@ -385,27 +401,34 @@ export default function MyBookingsPage() {
                   actions={
                     <>
                       {booking.status === "pending" && (
-                        <button
-                          onClick={() =>
-                            navigate(`/payment/${booking.booking_id}`)
-                          }
-                          className={primaryBtnClass}
+                        <Hint
+                          text="Pay online to confirm your date"
+                          align="right"
                         >
-                          Pay now
-                        </button>
+                          <button
+                            onClick={() =>
+                              navigate(`/payment/${booking.booking_id}`)
+                            }
+                            className={primaryBtnClass}
+                          >
+                            Pay now
+                          </button>
+                        </Hint>
                       )}
                       {(booking.status === "confirmed" ||
                         booking.status === "completed") && (
-                        <button
-                          onClick={() => handleInvoice(booking)}
-                          disabled={downloadingId === booking.booking_id}
-                          className={`${secondaryBtnClass} gap-2`}
-                        >
-                          <Download className="h-4 w-4" />
-                          {downloadingId === booking.booking_id
-                            ? "Preparing…"
-                            : "Invoice"}
-                        </button>
+                        <Hint text="Download your PDF invoice" align="right">
+                          <button
+                            onClick={() => handleInvoice(booking)}
+                            disabled={downloadingId === booking.booking_id}
+                            className={`${secondaryBtnClass} gap-2`}
+                          >
+                            <Download className="h-4 w-4" />
+                            {downloadingId === booking.booking_id
+                              ? "Preparing…"
+                              : "Invoice"}
+                          </button>
+                        </Hint>
                       )}
                       {booking.status === "completed" &&
                         (booking.has_feedback ? (

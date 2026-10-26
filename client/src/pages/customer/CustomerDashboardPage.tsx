@@ -20,6 +20,7 @@ import {
   Users,
   BedDouble,
 } from "lucide-react";
+import EmptyState from "@/components/common/EmptyState";
 import { useAuth } from "@/context/AuthContext";
 import FeedbackForm from "@/components/customer/FeedbackForm";
 import {
@@ -104,14 +105,31 @@ const payment = (b: AdminBooking) =>
   b.status === "cancelled"
     ? { label: "Cancelled", cls: "bg-muted text-muted-foreground" }
     : b.status === "pending"
-    ? { label: "Pending", cls: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400" }
-    : { label: "Paid", cls: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" };
+    ? {
+        label: "Pending",
+        cls: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400",
+      }
+    : {
+        label: "Paid",
+        cls: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400",
+      };
 
-function Stat({ label, value }: { label: string; value: string | number }) {
+function Stat({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string | number;
+  hint?: string;
+}) {
   return (
     <div className="rounded-2xl border border-border! bg-card p-4 shadow-sm sm:p-5">
       <p className="text-sm text-muted-foreground">{label}</p>
-      <p className="mt-1 text-xl font-bold text-foreground sm:text-2xl">{value}</p>
+      <p className="mt-1 text-xl font-bold text-foreground sm:text-2xl">
+        {value}
+      </p>
+      {hint && <p className="mt-1 text-xs text-muted-foreground">{hint}</p>}
     </div>
   );
 }
@@ -328,10 +346,26 @@ export default function CustomerDashboardPage() {
         <>
           {/* Stats row */}
           <section className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Stat label="Total bookings" value={bookings.length} />
-            <Stat label="Upcoming events" value={data.upcoming.length} />
-            <Stat label="Paid" value={lkr(data.paid)} />
-            <Stat label="Amount due" value={lkr(data.due)} />
+            <Stat
+              label="Total bookings"
+              value={bookings.length}
+              hint="All events you have booked"
+            />
+            <Stat
+              label="Upcoming events"
+              value={data.upcoming.length}
+              hint="Future events, paid or awaiting payment"
+            />
+            <Stat
+              label="Paid"
+              value={lkr(data.paid)}
+              hint="Confirmed and completed events"
+            />
+            <Stat
+              label="Amount due"
+              value={lkr(data.due)}
+              hint="Pay pending bookings to confirm them"
+            />
           </section>
 
           {/* Upcoming events: responsive grid */}
@@ -349,15 +383,12 @@ export default function CustomerDashboardPage() {
             </div>
 
             {data.upcoming.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-input! bg-card px-6 py-10 text-center text-sm text-muted-foreground">
-                No upcoming events.{" "}
-                <Link
-                  to="/book"
-                  className="font-medium text-violet-600 hover:underline dark:text-violet-400"
-                >
-                  Book a hall
-                </Link>
-              </div>
+              <EmptyState
+                icon={CalendarPlus}
+                title="No upcoming events"
+                hint="Check which dates are free and reserve your hall in a few steps."
+                action={{ label: "Book a hall", to: "/book" }}
+              />
             ) : (
               <>
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -369,7 +400,9 @@ export default function CustomerDashboardPage() {
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
-                        <p className="font-semibold text-foreground">{f.type(b)}</p>
+                        <p className="font-semibold text-foreground">
+                          {f.type(b)}
+                        </p>
                         <span className="whitespace-nowrap text-xs text-muted-foreground">
                           {daysLeft(f.date(b))}
                         </span>
@@ -387,7 +420,8 @@ export default function CustomerDashboardPage() {
                         )}
                         {f.guests(b) != null && (
                           <p className="flex items-center gap-2">
-                            <Users className="h-3.5 w-3.5" /> {f.guests(b)} guests
+                            <Users className="h-3.5 w-3.5" /> {f.guests(b)}{" "}
+                            guests
                           </p>
                         )}
                       </div>
@@ -495,13 +529,19 @@ export default function CustomerDashboardPage() {
               </h3>
               {bookings.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">
-                  No bookings yet.
+                  Your booking status chart will appear after your first
+                  booking.
                 </p>
               ) : (
                 <div className="relative mx-auto h-64 w-full max-w-[18rem]">
                   <Doughnut
                     data={{
-                      labels: ["Awaiting payment", "Confirmed", "Completed", "Cancelled"],
+                      labels: [
+                        "Awaiting payment",
+                        "Confirmed",
+                        "Completed",
+                        "Cancelled",
+                      ],
                       datasets: [
                         {
                           data: data.statusCounts,
@@ -532,7 +572,7 @@ export default function CustomerDashboardPage() {
               </h3>
               {data.months.length === 0 ? (
                 <p className="py-10 text-center text-sm text-muted-foreground">
-                  No data to chart yet.
+                  Spending is charted by event month once you have a booking.
                 </p>
               ) : (
                 <div className="relative h-64 w-full">
