@@ -7,16 +7,36 @@ import GuidedTour, {
 import { useAuth } from "@/context/AuthContext";
 
 const steps: TourStep[] = [
-  { target: "nav-book", title: "Book your event",
-    body: "Check hall availability and reserve your date here." },
-  { target: "nav-my-bookings", title: "My Bookings",
-    body: "Track approvals and payments, and download invoices." },
-  { target: "nav-dashboard", title: "Your Dashboard",
-    body: "See upcoming events and leave feedback after your event." },
-  { target: "nav-menu-toggle", title: "Menu",
-    body: "Tap here to open the navigation links on your phone." },
-  { target: "nav-replay-tour", title: "Need this again?",
-    body: "You can restart the tour any time from here." },
+  {
+    target: "nav-book",
+    title: "Book your event",
+    body: "Check hall availability and reserve your date here.",
+  },
+  {
+    target: "nav-my-bookings",
+    title: "My Bookings",
+    body: "Track approvals and payments, and download invoices.",
+  },
+  {
+    target: "nav-sponsors",
+    title: "Find Sponsors",
+    body: "Looking for funding or support for your event? Browse sponsors here and send a request for one of your bookings.",
+  },
+  {
+    target: "nav-dashboard",
+    title: "Your Dashboard",
+    body: "See upcoming events and leave feedback after your event.",
+  },
+  {
+    target: "nav-menu-toggle",
+    title: "Menu",
+    body: "Tap here to open the navigation links on your phone.",
+  },
+  {
+    target: "nav-replay-tour",
+    title: "Need this again?",
+    body: "You can restart the tour any time from here.",
+  },
 ];
 
 const CustomerLayout = () => {

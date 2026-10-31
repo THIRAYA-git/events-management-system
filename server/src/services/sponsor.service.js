@@ -107,12 +107,17 @@ const createSponsorRequest = async (
   }
 
   const sponsorResult = await db.query(
-    `SELECT sponsor_id FROM sponsors WHERE sponsor_id = $1`,
+    `SELECT sponsor_id, status FROM sponsors WHERE sponsor_id = $1`,
     [sponsorId]
   );
   if (sponsorResult.rows.length === 0) {
     const err = new Error("Sponsor not found");
     err.statusCode = 404;
+    throw err;
+  }
+  if (sponsorResult.rows[0].status !== "active") {
+    const err = new Error("This sponsor is not currently accepting requests");
+    err.statusCode = 400;
     throw err;
   }
 
@@ -235,32 +240,6 @@ const withdrawSponsorRequest = async (requestId, requestingUserId) => {
     throw err;
   }
 
-  if (request.direction === "sponsor_to_customer") {
-    const err = new Error("Use reject to decline a sponsor's offer");
-    err.statusCode = 400;
-    throw err;
-  }
-
-  if (request.customer_user_id !== requestingUserId) {
-    const err = new Error("You can only withdraw your own sponsor requests");
-    err.statusCode = 403;
-    throw err;
-  }
-
-  if (requestResult.rows.length === 0) {
-    const err = new Error("Sponsor request not found");
-    err.statusCode = 404;
-    throw err;
-  }
-
-  if (request.status !== "pending") {
-    const err = new Error(
-      `Cannot withdraw a request that is already '${request.status}'`
-    );
-    err.statusCode = 409;
-    throw err;
-  }
-
   const result = await db.query(
     `UPDATE booking_sponsors SET status = 'withdrawn' WHERE id = $1
      RETURNING id, booking_id, sponsor_id, proposed_amount, message, status, requested_at`,
@@ -299,7 +278,14 @@ const getSponsorByUserId = async (userId) => {
 
 const createSponsorProfile = async (
   userId,
-  { companyName, industry, websiteUrl, budgetRange, preferredEvents, description } = {}
+  {
+    companyName,
+    industry,
+    websiteUrl,
+    budgetRange,
+    preferredEvents,
+    description,
+  } = {}
 ) => {
   const result = await db.query(
     `INSERT INTO sponsors
@@ -320,6 +306,88 @@ const createSponsorProfile = async (
   return result.rows[0];
 };
 
+const SELF_SERVICE_STATUSES = ["active", "inactive"];
+
+const updateSponsorProfile = async (userId, fields = {}) => {
+  const existing = await getSponsorByUserId(userId);
+  if (!existing) {
+    const err = new Error("Sponsor profile not found for this user");
+    err.statusCode = 404;
+    throw err;
+  }
+
+  const bad = (msg) => {
+    const err = new Error(msg);
+    err.statusCode = 400;
+    return err;
+  };
+
+  const sets = [];
+  const params = [];
+  const add = (column, value) => {
+    params.push(value);
+    sets.push(`${column} = $${params.length}`);
+  };
+
+  if (fields.companyName !== undefined) {
+    const v = String(fields.companyName).trim();
+    if (!v) throw bad("Company name cannot be empty");
+    if (v.length > 150)
+      throw bad("Company name must be 150 characters or fewer");
+    add("company_name", v);
+  }
+  if (fields.industry !== undefined) {
+    const v = String(fields.industry).trim();
+    if (v.length > 100) throw bad("Industry must be 100 characters or fewer");
+    add("industry", v || null);
+  }
+  if (fields.websiteUrl !== undefined) {
+    const v = String(fields.websiteUrl).trim();
+    if (v && !/^https?:\/\/[^\s]+\.[^\s]+$/i.test(v))
+      throw bad("Website must start with http:// or https://");
+    add("website_url", v || null);
+  }
+  if (fields.budgetRange !== undefined) {
+    const v = String(fields.budgetRange).trim();
+    if (v.length > 50) throw bad("Budget range must be 50 characters or fewer");
+    add("budget_range", v || null);
+  }
+  if (fields.preferredEvents !== undefined) {
+    add("preferred_events", String(fields.preferredEvents).trim() || null);
+  }
+  if (fields.description !== undefined) {
+    const v = String(fields.description).trim();
+    if (v.length > 1000)
+      throw bad("Description must be 1000 characters or fewer");
+    add("description", v || null);
+  }
+  if (fields.status !== undefined) {
+    if (!SELF_SERVICE_STATUSES.includes(fields.status))
+      throw bad("Status must be 'active' or 'inactive'");
+    if (!SELF_SERVICE_STATUSES.includes(existing.status)) {
+      const err = new Error(
+        `Your account is '${existing.status}'. Please contact Aazath Plaza staff.`
+      );
+      err.statusCode = 403;
+      throw err;
+    }
+    add("status", fields.status);
+  }
+
+  if (sets.length === 0) throw bad("No valid fields to update");
+
+  params.push(userId);
+  const result = await db.query(
+    `UPDATE sponsors
+     SET ${sets.join(", ")}, updated_at = NOW()
+     WHERE user_id = $${params.length}
+     RETURNING sponsor_id, user_id, company_name, industry, website_url, logo_url,
+               budget_range, preferred_events, description, status, created_at, updated_at`,
+    params
+  );
+  return result.rows[0];
+};
+
 module.exports = {
   getAllSponsors,
   getSponsorById,
@@ -332,4 +400,5 @@ module.exports = {
   updateSponsorLogo,
   getSponsorByUserId,
   createSponsorProfile,
+  updateSponsorProfile,
 };

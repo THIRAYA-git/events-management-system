@@ -46,3 +46,13 @@ export interface SponsorPaymentStatus {
   payment_method: string | null;
   amount: number;
 }
+
+export interface UpdateSponsorPayload {
+  companyName?: string;
+  industry?: string;
+  websiteUrl?: string;
+  budgetRange?: string;
+  preferredEvents?: string;
+  description?: string;
+  status?: "active" | "inactive";
+}

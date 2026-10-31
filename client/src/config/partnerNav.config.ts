@@ -9,6 +9,7 @@ import {
   ClipboardList,
   ClipboardCheck,
   Settings,
+  Building2,
 } from "lucide-react";
 
 export type PartnerRole = "organizer" | "sponsor" | "restaurant";
@@ -22,21 +23,38 @@ export interface NavItem {
 export const partnerNavByRole: Record<PartnerRole, NavItem[]> = {
   organizer: [
     { label: "Dashboard", path: "/organizer", icon: LayoutDashboard },
-    { label: "Event Requests", path: "/organizer/requests", icon: CalendarCheck },
-    { label: "Manage Confirmed Events", path: "/organizer/events", icon: ClipboardCheck },
+    {
+      label: "Event Requests",
+      path: "/organizer/requests",
+      icon: CalendarCheck,
+    },
+    {
+      label: "Manage Confirmed Events",
+      path: "/organizer/events",
+      icon: ClipboardCheck,
+    },
     { label: "My Portfolio", path: "/organizer/portfolio", icon: Briefcase },
     { label: "Settings", path: "/organizer/settings", icon: Settings },
   ],
   sponsor: [
     { label: "Dashboard", path: "/sponsor", icon: LayoutDashboard },
+    { label: "Profile", path: "/sponsor/profile", icon: Building2 },
     { label: "Browse Events", path: "/sponsor/events", icon: Search },
-    { label: "My Sponsorships", path: "/sponsor/sponsorships", icon: HandshakeIcon },
+    {
+      label: "My Sponsorships",
+      path: "/sponsor/sponsorships",
+      icon: HandshakeIcon,
+    },
     { label: "Settings", path: "/sponsor/settings", icon: Settings },
   ],
   restaurant: [
     { label: "Dashboard", path: "/restaurant", icon: LayoutDashboard },
     { label: "Menu Items", path: "/restaurant/menu", icon: UtensilsCrossed },
-    { label: "Catering Orders", path: "/restaurant/orders", icon: ClipboardList },
+    {
+      label: "Catering Orders",
+      path: "/restaurant/orders",
+      icon: ClipboardList,
+    },
     { label: "Settings", path: "/restaurant/settings", icon: Settings },
   ],
 };

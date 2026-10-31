@@ -4,7 +4,10 @@ const sponsorService = require("./sponsor.service");
 const httpError = (statusCode, message) =>
   Object.assign(new Error(message), { statusCode });
 
-const createSponsorOffer = async (userId, { bookingId, proposedAmount, message }) => {
+const createSponsorOffer = async (
+  userId,
+  { bookingId, proposedAmount, message }
+) => {
   const amount = Number(proposedAmount);
   if (!bookingId) throw httpError(400, "bookingId is required");
   if (!Number.isFinite(amount) || amount <= 0)
@@ -23,7 +26,10 @@ const createSponsorOffer = async (userId, { bookingId, proposedAmount, message }
     [bookingId]
   );
   if (booking.rowCount === 0)
-    throw httpError(400, "Offers can only be made on upcoming confirmed events");
+    throw httpError(
+      400,
+      "Offers can only be made on upcoming confirmed events"
+    );
 
   // The existing UNIQUE (booking_id, sponsor_id) makes this race-safe
   const result = await pool.query(
@@ -35,7 +41,10 @@ const createSponsorOffer = async (userId, { bookingId, proposedAmount, message }
     [bookingId, sponsor.sponsor_id, amount, message?.trim() || null]
   );
   if (result.rowCount === 0)
-    throw httpError(409, "You already have a sponsorship request or offer for this event");
+    throw httpError(
+      409,
+      "You already have a sponsorship request or offer for this event"
+    );
 
   return result.rows[0];
 };
@@ -51,7 +60,9 @@ const respondToSponsorOffer = async (requestId, action, userId) => {
   );
   if (found.rowCount === 0) throw httpError(404, "Sponsor offer not found");
 
-  const ownerId = await sponsorService.getBookingOwnerId(found.rows[0].booking_id);
+  const ownerId = await sponsorService.getBookingOwnerId(
+    found.rows[0].booking_id
+  );
   if (ownerId !== userId)
     throw httpError(403, "You can only respond to offers on your own bookings");
 
@@ -83,5 +94,8 @@ const getOffersForCustomer = async (userId) => {
   return result.rows;
 };
 
-module.exports = { createSponsorOffer, respondToSponsorOffer, getOffersForCustomer };
-
+module.exports = {
+  createSponsorOffer,
+  respondToSponsorOffer,
+  getOffersForCustomer,
+};

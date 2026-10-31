@@ -3,7 +3,9 @@ const { getCloudinary } = require("../config/cloudinary");
 
 const getAllSponsorsHandler = async (req, res) => {
   try {
-    const { industry, status } = req.query;
+    const { industry } = req.query;
+    // only admins may filter by a non-default status
+    const status = req.user.role === "admin" ? req.query.status : undefined;
     const sponsors = await sponsorService.getAllSponsors({ industry, status });
     res.status(200).json({ sponsors });
   } catch (err) {
@@ -199,7 +201,9 @@ const createSponsorOfferHandler = async (req, res) => {
     const offer = await offerService.createSponsorOffer(req.user.id, req.body);
     res.status(201).json({ message: "Offer sent", sponsorRequest: offer });
   } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || "Failed to create offer" });
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to create offer" });
   }
 };
 
@@ -210,9 +214,13 @@ const respondToSponsorOfferHandler = async (req, res) => {
       req.body.action,
       req.user.id
     );
-    res.status(200).json({ message: `Offer ${req.body.action}`, sponsorRequest: updated });
+    res
+      .status(200)
+      .json({ message: `Offer ${req.body.action}`, sponsorRequest: updated });
   } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || "Failed to respond to offer" });
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to respond to offer" });
   }
 };
 
@@ -221,7 +229,9 @@ const getMyReceivedOffersHandler = async (req, res) => {
     const offers = await offerService.getOffersForCustomer(req.user.id);
     res.status(200).json({ sponsorOffers: offers });
   } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || "Failed to fetch offers" });
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to fetch offers" });
   }
 };
 
@@ -233,7 +243,9 @@ const initiateSponsorPaymentHandler = async (req, res) => {
     );
     res.status(201).json(payload);
   } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || "Failed to start payment" });
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to start payment" });
   }
 };
 
@@ -245,7 +257,23 @@ const getSponsorPaymentStatusHandler = async (req, res) => {
     );
     res.status(200).json(status);
   } catch (err) {
-    res.status(err.statusCode || 500).json({ message: err.message || "Failed to fetch payment status" });
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to fetch payment status" });
+  }
+};
+
+const updateMySponsorProfileHandler = async (req, res) => {
+  try {
+    const sponsor = await sponsorService.updateSponsorProfile(
+      req.user.id,
+      req.body
+    );
+    res.status(200).json({ message: "Profile updated", sponsor });
+  } catch (err) {
+    res
+      .status(err.statusCode || 500)
+      .json({ message: err.message || "Failed to update profile" });
   }
 };
 
@@ -265,4 +293,5 @@ module.exports = {
   createSponsorOfferHandler,
   respondToSponsorOfferHandler,
   getMyReceivedOffersHandler,
+  updateMySponsorProfileHandler,
 };

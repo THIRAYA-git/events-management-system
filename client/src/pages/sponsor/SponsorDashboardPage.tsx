@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Loader2 } from "lucide-react";
+import { Link } from "react-router-dom";
 import {
   getMySponsorProfile,
   getMySponsorRequests,
@@ -9,8 +10,10 @@ import {
 import type { Sponsor, SponsorRequest } from "@/types/sponsor.types";
 
 const STATUS_STYLES: Record<string, string> = {
-  pending: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
-  accepted: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  pending:
+    "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  accepted:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
   rejected: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
   withdrawn: "bg-muted text-muted-foreground",
 };
@@ -25,9 +28,10 @@ export default function SponsorDashboardPage() {
   const [actionError, setActionError] = useState<string | null>(null);
   const [respondingId, setRespondingId] = useState<number | null>(null);
   const [uploadingLogo, setUploadingLogo] = useState(false);
-  const [logoMessage, setLogoMessage] = useState<{ type: "ok" | "err"; text: string } | null>(
-    null
-  );
+  const [logoMessage, setLogoMessage] = useState<{
+    type: "ok" | "err";
+    text: string;
+  } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -41,7 +45,7 @@ export default function SponsorDashboardPage() {
         ]);
         setSponsor(profile);
         setRequests(reqs);
-           } catch (err: any) {
+      } catch (err: any) {
         if (err?.response?.status === 404) {
           setError(
             "Your sponsor profile has not been set up yet. Please contact Aazath Plaza staff."
@@ -56,17 +60,29 @@ export default function SponsorDashboardPage() {
     load();
   }, []);
 
-  const handleRespond = async (req: SponsorRequest, action: "accepted" | "rejected") => {
+  const handleRespond = async (
+    req: SponsorRequest,
+    action: "accepted" | "rejected"
+  ) => {
     const verb = action === "accepted" ? "accept" : "reject";
-    if (!window.confirm(`Are you sure you want to ${verb} request ${req.booking_ref}?`)) return;
+    if (
+      !window.confirm(
+        `Are you sure you want to ${verb} request ${req.booking_ref}?`
+      )
+    )
+      return;
 
     setRespondingId(req.id);
     setActionError(null);
     try {
       const updated = await respondToSponsorRequest(req.id, action);
-      setRequests((prev) => prev.map((r) => (r.id === req.id ? { ...r, ...updated } : r)));
+      setRequests((prev) =>
+        prev.map((r) => (r.id === req.id ? { ...r, ...updated } : r))
+      );
     } catch (err: any) {
-      setActionError(err?.response?.data?.message ?? "Failed to update request.");
+      setActionError(
+        err?.response?.data?.message ?? "Failed to update request."
+      );
     } finally {
       setRespondingId(null);
     }
@@ -78,11 +94,17 @@ export default function SponsorDashboardPage() {
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      setLogoMessage({ type: "err", text: "Please choose an image file (PNG, JPG or WebP)." });
+      setLogoMessage({
+        type: "err",
+        text: "Please choose an image file (PNG, JPG or WebP).",
+      });
       return;
     }
     if (file.size > MAX_LOGO_MB * 1024 * 1024) {
-      setLogoMessage({ type: "err", text: `Logo must be ${MAX_LOGO_MB} MB or smaller.` });
+      setLogoMessage({
+        type: "err",
+        text: `Logo must be ${MAX_LOGO_MB} MB or smaller.`,
+      });
       return;
     }
 
@@ -129,7 +151,10 @@ export default function SponsorDashboardPage() {
     .reduce((sum, r) => sum + Number(r.proposed_amount ?? 0), 0);
 
   const recent = [...requests]
-    .sort((a, b) => new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.requested_at).getTime() - new Date(a.requested_at).getTime()
+    )
     .slice(0, 5);
 
   return (
@@ -166,7 +191,9 @@ export default function SponsorDashboardPage() {
           {logoMessage && (
             <p
               className={`mt-1 text-xs ${
-                logoMessage.type === "ok" ? "text-green-700 dark:text-green-400" : "text-red-600 dark:text-red-400"
+                logoMessage.type === "ok"
+                  ? "text-green-700 dark:text-green-400"
+                  : "text-red-600 dark:text-red-400"
               }`}
             >
               {logoMessage.text}
@@ -181,27 +208,45 @@ export default function SponsorDashboardPage() {
           onChange={handleLogoSelected}
           className="hidden"
         />
-        <button
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploadingLogo}
-          className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50"
-        >
-          {uploadingLogo ? "Uploading…" : sponsor.logo_url ? "Change logo" : "Add logo"}
-        </button>
+        <div className="flex shrink-0 items-center gap-2">
+          <Link
+            to="/sponsor/profile"
+            className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted"
+          >
+            Edit profile
+          </Link>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploadingLogo}
+            className="rounded-md border px-3 py-1.5 text-sm hover:bg-muted disabled:opacity-50"
+          >
+            {uploadingLogo
+              ? "Uploading…"
+              : sponsor.logo_url
+              ? "Change logo"
+              : "Add logo"}
+          </button>
+        </div>
       </div>
 
       {/* Request counts + total committed */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">{counts.pending}</div>
+          <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">
+            {counts.pending}
+          </div>
           <div className="text-xs text-muted-foreground">Pending</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-green-700 dark:text-green-400">{counts.accepted}</div>
+          <div className="text-2xl font-semibold text-green-700 dark:text-green-400">
+            {counts.accepted}
+          </div>
           <div className="text-xs text-muted-foreground">Accepted</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-red-700 dark:text-red-400">{counts.rejected}</div>
+          <div className="text-2xl font-semibold text-red-700 dark:text-red-400">
+            {counts.rejected}
+          </div>
           <div className="text-xs text-muted-foreground">Rejected</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
@@ -214,7 +259,9 @@ export default function SponsorDashboardPage() {
 
       {/* Recent requests */}
       <div>
-        <h3 className="mb-2 text-sm font-medium text-foreground">Recent Requests</h3>
+        <h3 className="mb-2 text-sm font-medium text-foreground">
+          Recent Requests
+        </h3>
 
         {actionError && (
           <div className="mb-2 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
@@ -223,7 +270,9 @@ export default function SponsorDashboardPage() {
         )}
 
         {recent.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No sponsorship requests yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No sponsorship requests yet.
+          </p>
         ) : (
           <div className="space-y-2">
             {recent.map((req) => {
@@ -236,8 +285,12 @@ export default function SponsorDashboardPage() {
                   <div className="flex items-center justify-between gap-2">
                     <div>
                       <span className="font-medium">{req.booking_ref}</span>{" "}
-                      <span className="text-muted-foreground">— {req.customer_name}</span>
-                      <span className="ml-2 text-xs text-muted-foreground">{req.event_type}</span>
+                      <span className="text-muted-foreground">
+                        — {req.customer_name}
+                      </span>
+                      <span className="ml-2 text-xs text-muted-foreground">
+                        {req.event_type}
+                      </span>
                     </div>
                     <div className="flex items-center gap-2">
                       {isOffer && (
@@ -246,7 +299,9 @@ export default function SponsorDashboardPage() {
                         </span>
                       )}
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[req.status] ?? ""}`}
+                        className={`rounded-full px-2 py-0.5 text-xs ${
+                          STATUS_STYLES[req.status] ?? ""
+                        }`}
                       >
                         {req.status}
                       </span>

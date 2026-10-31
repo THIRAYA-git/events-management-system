@@ -3,9 +3,9 @@ import type {
   Sponsor,
   SponsorRequest,
   SponsorPaymentStatus,
+  UpdateSponsorPayload,
 } from "@/types/sponsor.types";
 import type { SponsorOffer } from "@/types/sponsorOffer.types";
-
 
 export const getAllSponsors = async (params?: {
   industry?: string;
@@ -24,7 +24,9 @@ export const respondToSponsorRequest = async (
   requestId: number,
   action: "accepted" | "rejected"
 ): Promise<SponsorRequest> => {
-  const { data } = await api.patch(`/sponsors/requests/${requestId}/respond`, { action });
+  const { data } = await api.patch(`/sponsors/requests/${requestId}/respond`, {
+    action,
+  });
   return data.sponsorRequest;
 };
 
@@ -37,7 +39,9 @@ export const respondToSponsorOffer = async (
   requestId: number,
   action: "accepted" | "rejected"
 ): Promise<SponsorRequest> => {
-  const { data } = await api.patch(`/sponsors/offers/${requestId}/respond`, { action });
+  const { data } = await api.patch(`/sponsors/offers/${requestId}/respond`, {
+    action,
+  });
   return data.sponsorRequest;
 };
 
@@ -65,6 +69,15 @@ export const initiateSponsorPayment = async (
 export const getSponsorPaymentStatus = async (
   requestId: number
 ): Promise<SponsorPaymentStatus> => {
-  const { data } = await api.get(`/sponsors/requests/${requestId}/payment-status`);
+  const { data } = await api.get(
+    `/sponsors/requests/${requestId}/payment-status`
+  );
   return data;
+};
+
+export const updateMySponsorProfile = async (
+  payload: UpdateSponsorPayload
+): Promise<Sponsor> => {
+  const { data } = await api.patch("/sponsors/me", payload);
+  return data.sponsor;
 };

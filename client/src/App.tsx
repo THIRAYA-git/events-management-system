@@ -46,6 +46,8 @@ import RoomsPage from "./pages/customer/RoomsPage";
 import RoomPaymentCheckoutPage from "@/pages/customer/RoomPaymentCheckoutPage";
 import AdminBackupsPage from "@/pages/admin/AdminBackupsPage";
 import AdminPricingPage from "@/pages/admin/AdminPricingPage";
+import SponsorProfilePage from "@/pages/sponsor/SponsorProfilePage";
+import FindSponsorsPage from "@/pages/customer/FindSponsorsPage";
 
 function PublicOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -116,6 +118,7 @@ function App() {
             {/* Customer only — booking history + account settings */}
             <Route element={<ProtectedRoute allowedRoles={["customer"]} />}>
               <Route path="/my-bookings" element={<MyBookingsPage />} />
+              <Route path="/sponsors" element={<FindSponsorsPage />} />
               <Route path="/my-rooms" element={<MyRoomsPage />} />
               <Route
                 path="/room-payment/:groupRef"
@@ -170,7 +173,10 @@ function App() {
               <Route index element={<OrganizerDashboardPage />} />
               <Route path="requests" element={<OrganizerEventRequestsPage />} />
               <Route path="events" element={<OrganizerManageEventsPage />} />
-              <Route path="events/:assignmentId" element={<OrganizerEventDetailPage />} />
+              <Route
+                path="events/:assignmentId"
+                element={<OrganizerEventDetailPage />}
+              />
               <Route path="portfolio" element={<OrganizerPortfolioPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />
             </Route>
@@ -180,6 +186,7 @@ function App() {
           <Route element={<ProtectedRoute allowedRoles={["sponsor"]} />}>
             <Route path="/sponsor" element={<PartnerLayout />}>
               <Route index element={<SponsorDashboardPage />} />
+              <Route path="profile" element={<SponsorProfilePage />} />
               <Route path="events" element={<BrowseEventsPage />} />
               <Route path="sponsorships" element={<MySponsorshipsPage />} />
               <Route path="settings" element={<AccountSettingsPage />} />

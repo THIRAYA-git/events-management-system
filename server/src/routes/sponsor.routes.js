@@ -14,6 +14,8 @@ const {
   getMyReceivedOffersHandler,
   initiateSponsorPaymentHandler,
   getSponsorPaymentStatusHandler,
+  updateMySponsorProfileHandler,
+  createSponsorRequestHandler,
 } = require("../controllers/sponsor.controller");
 
 router.use(authenticate);
@@ -36,6 +38,9 @@ router.patch("/requests/:requestId/respond", authorize("sponsor_request:respond"
 // PATCH /api/sponsors/me/logo → sponsor uploads/replaces their own logo
 router.patch("/me/logo", authorize("sponsor:update_own"), singleImage("logo"), uploadSponsorLogoHandler);
 
+// PATCH /api/sponsors/me → sponsor edits their own profile / status
+router.patch("/me", authorize("sponsor:update_own"), updateMySponsorProfileHandler);
+
 // POST /api/sponsors/offers → sponsor offers to sponsor an event
 router.post("/offers", authorize("sponsor_offer:create"), createSponsorOfferHandler);
 
@@ -50,5 +55,12 @@ router.post("/requests/:requestId/pay", authorize("sponsor_payment:create"), ini
 
 // GET /api/sponsors/requests/:requestId/payment-status → poll after the PayHere popup closes
 router.get("/requests/:requestId/payment-status", authorize("sponsor_payment:read_own"), getSponsorPaymentStatusHandler);
+
+// POST /api/sponsors/bookings/:bookingId/requests → customer asks a sponsor for a booking
+router.post(
+  "/bookings/:bookingId/requests",
+  authorize("sponsor_request:create"),
+  createSponsorRequestHandler
+);
 
 module.exports = router;

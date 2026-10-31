@@ -17,6 +17,7 @@ const NAV_LINK_CLASS = ({ isActive }: { isActive: boolean }) =>
 const TOUR_IDS: Record<string, string> = {
   "/book": "nav-book",
   "/my-bookings": "nav-my-bookings",
+  "/sponsors": "nav-sponsors",
   "/dashboard": "nav-dashboard",
 };
 
@@ -53,6 +54,7 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
     ...(user?.role === "customer"
       ? [
           { to: "/my-bookings", label: "My Bookings" },
+          { to: "/sponsors", label: "Find Sponsors" },
           { to: "/my-rooms", label: "My Rooms" },
           { to: "/dashboard", label: "Dashboard" },
         ]

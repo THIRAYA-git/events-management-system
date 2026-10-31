@@ -282,55 +282,58 @@ export default function MySponsorshipsPage() {
                   <p className="mb-2 text-xs italic text-muted-foreground">"{req.message}"</p>
                 )}
 
-                <div className="flex flex-wrap items-center justify-end gap-2 border-t pt-2">
-                  {req.payment_status === "paid" && req.paid_at && (
-                    <span className="mr-auto text-xs text-muted-foreground">
+                {/* Single action row: status text on the left, all buttons on the right */}
+                <div className="flex flex-wrap items-center gap-2 border-t border-border pt-3">
+                  {req.payment_status === "paid" && req.paid_at ? (
+                    <span className="text-xs text-muted-foreground">
                       Paid on {new Date(req.paid_at).toLocaleDateString()}
                     </span>
-                  )}
-                  <button
-                    onClick={() => setDetail(req)}
-                    className="rounded-md border px-3 py-1 text-xs hover:bg-muted"
-                  >
-                    View details
-                  </button>
-                  {canPay(req) && (
-                    <button
-                      onClick={() => handlePay(req)}
-                      disabled={payingId === req.id}
-                      className="rounded-md bg-purple-600 px-3 py-1 text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50"
-                    >
-                      {payingId === req.id
-                        ? "Opening payment…"
-                        : `Pay ${fmtLkr(req.proposed_amount as number)}`}
-                    </button>
-                  )}
-                </div>
+                  ) : req.status === "pending" && isOffer ? (
+                    <span className="text-xs text-muted-foreground">
+                      Awaiting customer response
+                    </span>
+                  ) : null}
 
-                {req.status === "pending" && isOffer && (
-                  <p className="border-t pt-2 text-xs text-muted-foreground">
-                    Awaiting customer response
-                  </p>
-                )}
+                  <div className="ml-auto flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => setDetail(req)}
+                      className="h-8 rounded-md border px-3 text-xs font-medium hover:bg-muted"
+                    >
+                      View details
+                    </button>
 
-                {req.status === "pending" && !isOffer && (
-                  <div className="flex justify-end gap-2 border-t pt-2">
-                    <button
-                      onClick={() => handleRespond(req.id, "accepted")}
-                      disabled={respondingId === req.id}
-                      className="rounded-md border px-3 py-1 text-xs hover:bg-muted disabled:opacity-50"
-                    >
-                      {respondingId === req.id ? "…" : "Accept"}
-                    </button>
-                    <button
-                      onClick={() => handleRespond(req.id, "rejected")}
-                      disabled={respondingId === req.id}
-                      className="rounded-md border border-red-200 dark:border-red-500/30 px-3 py-1 text-xs text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/20 disabled:opacity-50"
-                    >
-                      {respondingId === req.id ? "…" : "Reject"}
-                    </button>
+                    {canPay(req) && (
+                      <button
+                        onClick={() => handlePay(req)}
+                        disabled={payingId === req.id}
+                        className="h-8 rounded-md bg-purple-600 px-3 text-xs font-medium text-white hover:bg-purple-700 disabled:opacity-50"
+                      >
+                        {payingId === req.id
+                          ? "Opening payment…"
+                          : `Pay ${fmtLkr(req.proposed_amount as number)}`}
+                      </button>
+                    )}
+
+                    {req.status === "pending" && !isOffer && (
+                      <>
+                        <button
+                          onClick={() => handleRespond(req.id, "accepted")}
+                          disabled={respondingId === req.id}
+                          className="h-8 rounded-md border px-3 text-xs font-medium hover:bg-muted disabled:opacity-50"
+                        >
+                          {respondingId === req.id ? "…" : "Accept"}
+                        </button>
+                        <button
+                          onClick={() => handleRespond(req.id, "rejected")}
+                          disabled={respondingId === req.id}
+                          className="h-8 rounded-md border border-red-200 px-3 text-xs font-medium text-red-600 hover:bg-red-50 disabled:opacity-50 dark:border-red-500/30 dark:text-red-400 dark:hover:bg-red-500/20"
+                        >
+                          {respondingId === req.id ? "…" : "Reject"}
+                        </button>
+                      </>
+                    )}
                   </div>
-                )}
+                </div>
               </div>
             );
           })}
