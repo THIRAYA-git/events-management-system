@@ -1,5 +1,14 @@
 const menuService = require("../services/menu.service");
 
+const listRestaurantsHandler = async (req, res) => {
+  try {
+    const restaurants = await menuService.listRestaurants();
+    res.status(200).json({ restaurants });
+  } catch (err) {
+    res.status(err.statusCode || 500).json({ message: err.message || "Failed to fetch restaurants" });
+  }
+};
+
 const listMenuItemsHandler = async (req, res) => {
   try {
     const wantsAll = req.query.all === "true" && ["admin", "restaurant"].includes(req.user.role);
@@ -62,6 +71,7 @@ const uploadMenuItemImageHandler = async (req, res) => {
 };
 
 module.exports = {
+  listRestaurantsHandler,
   listMenuItemsHandler,
   getMenuItemHandler,
   createMenuItemHandler,

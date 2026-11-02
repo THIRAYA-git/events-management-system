@@ -7,8 +7,8 @@ import {
   ghostBtnClass,
   errorTextClass,
 } from "@/components/booking/bookingStyles";
-import { listMenuItems } from "@/lib/catering.api";
-import type { MenuItem, CateringSelectionItem } from "@/types/catering.types";
+import { listMenuItems, listRestaurants } from "@/lib/catering.api";
+import type { MenuItem, Restaurant, CateringSelectionItem } from "@/types/catering.types";
 
 interface CateringStepProps {
   onSubmit: (selection: CateringSelectionItem[]) => void;
@@ -18,6 +18,7 @@ interface CateringStepProps {
 
 export function CateringStep({ onSubmit, onBack, guestCount }: CateringStepProps) {
   const [items, setItems] = useState<MenuItem[]>([]);
+  const [restaurants, setRestaurants] = useState<Restaurant[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [quantities, setQuantities] = useState<Record<number, number>>({});
@@ -27,8 +28,9 @@ export function CateringStep({ onSubmit, onBack, guestCount }: CateringStepProps
       setLoading(true);
       setError(null);
       try {
-        const menuItems = await listMenuItems();
+        const [menuItems, restaurantList] = await Promise.all([listMenuItems(), listRestaurants()]);
         setItems(menuItems.filter((i) => i.is_available));
+        setRestaurants(restaurantList);
       } catch {
         setError("Failed to load menu. Please try again.");
       } finally {
@@ -82,6 +84,7 @@ export function CateringStep({ onSubmit, onBack, guestCount }: CateringStepProps
       ) : (
         <CateringPicker
           items={items}
+          restaurants={restaurants}
           quantities={quantities}
           onQuantityChange={setQty}
           guestCount={guestCount}

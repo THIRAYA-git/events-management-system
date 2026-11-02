@@ -1,16 +1,7 @@
 import { useMemo, useState } from "react";
 import { ChevronLeft, ChevronRight, Minus, Plus, Utensils, X } from "lucide-react";
 import { primaryBtnClass } from "@/components/booking/bookingStyles";
-import type { MenuItem } from "@/types/catering.types";
-
-// Restaurants that can cater. Only Althaf is live; the others show greyed out.
-// (Menu items are not filtered by restaurant yet because only Althaf has a menu.
-//  When a second restaurant goes live, add its menu_items.restaurant_id here.)
-const RESTAURANTS = [
-  { key: "althaf", name: "Althaf Hotel", available: true },
-  { key: "kaldeen", name: "Kaldeen Hotel", available: false },
-  { key: "KFC", name: "KFC", available: false },
-] as const;
+import type { MenuItem, Restaurant } from "@/types/catering.types";
 
 const lkr = (n: number) => `LKR ${n.toLocaleString()}`;
 
@@ -33,14 +24,21 @@ function Photo({ src, alt, className }: { src: string | null; alt: string; class
 
 interface CateringPickerProps {
   items: MenuItem[];
+  restaurants: Restaurant[];
   quantities: Record<number, number>;
   onQuantityChange: (itemId: number, qty: number) => void;
   guestCount?: number;
 }
 
-export function CateringPicker({ items, quantities, onQuantityChange, guestCount }: CateringPickerProps) {
-  const [restaurant, setRestaurant] = useState<string | null>(null);
+export function CateringPicker({ items: allItems, restaurants, quantities, onQuantityChange, guestCount }: CateringPickerProps) {
+  const [restaurant, setRestaurant] = useState<number | null>(null);
   const [category, setCategory] = useState<string | null>(null);
+
+  // Items shown below are only those of the chosen restaurant.
+  const items = useMemo(
+    () => (restaurant === null ? allItems : allItems.filter((i) => i.restaurant_id === restaurant)),
+    [allItems, restaurant]
+  );
 
   const categories = useMemo(() => {
     const map = new Map<string, MenuItem[]>();
@@ -52,7 +50,7 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
     }));
   }, [items]);
 
-  const selected = items.filter((i) => (quantities[i.item_id] ?? 0) > 0);
+  const selected = allItems.filter((i) => (quantities[i.item_id] ?? 0) > 0);
   const total = selected.reduce((s, i) => s + Number(i.price) * quantities[i.item_id], 0);
   const selectedIn = (name: string) =>
     items.filter((i) => i.category === name && (quantities[i.item_id] ?? 0) > 0).length;
@@ -62,35 +60,35 @@ export function CateringPicker({ items, quantities, onQuantityChange, guestCount
     onQuantityChange(item.item_id, perPerson);
   };
 
-  const restaurantName = RESTAURANTS.find((r) => r.key === restaurant)?.name;
+  const restaurantName = restaurants.find((r) => r.restaurant_id === restaurant)?.name;
 
   // ── Level 1: restaurants ─────────────────────────────────────────────────
   const restaurantCards = (
     <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-      {RESTAURANTS.map((r) =>
-        r.available ? (
+      {restaurants.map((r) =>
+        r.available_items > 0 ? (
           <button
-            key={r.key}
+            key={r.restaurant_id}
             onClick={() => {
-              setRestaurant(r.key);
+              setRestaurant(r.restaurant_id);
               setCategory(null);
             }}
             className={`${CARD} p-4 text-left transition hover:border-violet-400! hover:shadow-md`}
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-violet-100 dark:bg-violet-500/15 text-lg font-bold text-violet-700 dark:text-violet-400">
-              {r.name[0]}
+              {r.name.charAt(0).toUpperCase()}
             </div>
             <p className="mt-3 font-semibold text-foreground">{r.name}</p>
             <p className="text-xs font-medium text-green-600 dark:text-green-400">Available for your event</p>
           </button>
         ) : (
           <div
-            key={r.key}
+            key={r.restaurant_id}
             aria-disabled="true"
             className="cursor-not-allowed rounded-xl border border-border! bg-muted p-4 opacity-60 grayscale"
           >
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-muted text-lg font-bold text-muted-foreground">
-              {r.name[0]}
+              {r.name.charAt(0).toUpperCase()}
             </div>
             <p className="mt-3 font-semibold text-muted-foreground">{r.name}</p>
             <p className="text-xs font-medium text-muted-foreground">Not available yet</p>

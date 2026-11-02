@@ -52,3 +52,10 @@ export interface CateringOrderListResponse {
   limit: number;
   offset: number;
 }
+
+
+export interface Restaurant {
+  restaurant_id: number;
+  name: string;
+  available_items: number;
+}

@@ -17,6 +17,23 @@ const listMenuItems = async ({ availableOnly = true } = {}) => {
   return result.rows;
 };
 
+
+// Restaurant partners shown in the booking wizard's catering step.
+// A restaurant is "available" when it has at least one available menu item.
+const listRestaurants = async () => {
+  const result = await db.query(
+    `SELECT u.user_id AS restaurant_id,
+            u.full_name AS name,
+            COUNT(mi.item_id) FILTER (WHERE mi.is_available = true)::int AS available_items
+     FROM users u
+     LEFT JOIN menu_items mi ON mi.restaurant_id = u.user_id
+     WHERE u.role::text = 'restaurant' AND u.is_active = true
+     GROUP BY u.user_id, u.full_name
+     ORDER BY (COUNT(mi.item_id) FILTER (WHERE mi.is_available = true)) DESC, u.full_name`
+  );
+  return result.rows;
+};
+
 const getMenuItemById = async (itemId) => {
   const result = await db.query(
     `SELECT item_id, item_name, category, description, price, unit,
@@ -163,6 +180,7 @@ const uploadMenuItemImage = async (itemId, fileBuffer, requestingUser) => {
 };
 
 module.exports = {
+  listRestaurants,
   listMenuItems,
   getMenuItemById,
   createMenuItem,

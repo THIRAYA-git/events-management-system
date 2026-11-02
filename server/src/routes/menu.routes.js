@@ -3,6 +3,7 @@ const router = express.Router();
 const { authenticate, authorize } = require("../middleware/auth.middleware");
 const { singleImage } = require("../middleware/upload.middleware");
 const {
+  listRestaurantsHandler,
   listMenuItemsHandler,
   getMenuItemHandler,
   createMenuItemHandler,
@@ -12,6 +13,9 @@ const {
 } = require("../controllers/menu.controller");
 
 router.use(authenticate);
+
+// GET /api/menu-items/restaurants         -> restaurant partners for the catering step
+router.get("/restaurants", authorize("menu:read"), listRestaurantsHandler);
 
 // GET /api/menu-items                    -> browse menu (available items only, unless ?all=true for owner/admin)
 router.get("/", authorize("menu:read"), listMenuItemsHandler);

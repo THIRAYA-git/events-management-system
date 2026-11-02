@@ -1,6 +1,7 @@
 import { api } from "@/lib/api";
 import type {
   MenuItem,
+  Restaurant,
   CateringOrder,
   CateringSelectionItem,
   CateringOrderListResponse,
@@ -9,6 +10,11 @@ import type {
 export const listMenuItems = async (): Promise<MenuItem[]> => {
   const { data } = await api.get("/menu-items");
   return data.menuItems;
+};
+
+export const listRestaurants = async (): Promise<Restaurant[]> => {
+  const { data } = await api.get("/menu-items/restaurants");
+  return data.restaurants;
 };
 
 export const createCateringOrder = async (
