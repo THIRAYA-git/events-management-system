@@ -3,7 +3,8 @@
 // block: a logging problem can't be allowed to affect a booking or payment.
 const { query } = require("../config/db");
 
-const cut = (v, max) => (v == null || v === "" ? null : String(v).slice(0, max));
+const cut = (v, max) =>
+  v == null || v === "" ? null : String(v).slice(0, max);
 
 // type    : notification_type enum  (booking_confirmation | payment_receipt |
 //           event_reminder | catering_update | cancellation | general)

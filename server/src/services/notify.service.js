@@ -7,7 +7,8 @@
 // So callers don't need await or try/catch.
 const { query } = require("../config/db");
 
-const cut = (v, max) => (v == null || v === "" ? null : String(v).slice(0, max));
+const cut = (v, max) =>
+  v == null || v === "" ? null : String(v).slice(0, max);
 
 // type: notification_type enum  (booking_confirmation | payment_receipt |
 //       event_reminder | catering_update | cancellation | general)
@@ -19,7 +20,11 @@ const notifyUsers = async (
   { type = "general", subject, message, bookingId = null, bookingRef = null }
 ) => {
   try {
-    const ids = [...new Set((userIds || []).filter((id) => Number.isInteger(Number(id))).map(Number))];
+    const ids = [
+      ...new Set(
+        (userIds || []).filter((id) => Number.isInteger(Number(id))).map(Number)
+      ),
+    ];
     if (ids.length === 0) return;
 
     let resolvedBookingId = bookingId;
@@ -37,7 +42,13 @@ const notifyUsers = async (
        SELECT uid, $2::int, $3::notification_type, 'in_app'::notification_channel,
               $4::text, $5::text, TRUE, NOW()
          FROM unnest($1::int[]) AS uid`,
-      [ids, resolvedBookingId, type, cut(subject, 200), message || subject || ""]
+      [
+        ids,
+        resolvedBookingId,
+        type,
+        cut(subject, 200),
+        message || subject || "",
+      ]
     );
   } catch (err) {
     console.error("[notify] Failed to create notification:", err.message);
@@ -52,7 +63,10 @@ const notifyRoles = async (roles, payload) => {
       `SELECT user_id FROM users WHERE role::text = ANY($1::text[])`,
       [roles]
     );
-    await notifyUsers(found.rows.map((r) => r.user_id), payload);
+    await notifyUsers(
+      found.rows.map((r) => r.user_id),
+      payload
+    );
   } catch (err) {
     console.error("[notify] Failed to notify roles:", err.message);
   }
@@ -71,7 +85,10 @@ const notifyBookingOrganizers = async (bookingRef, payload) => {
         WHERE b.booking_ref = $1 AND o.user_id IS NOT NULL`,
       [bookingRef]
     );
-    await notifyUsers(found.rows.map((r) => r.user_id), { ...payload, bookingRef });
+    await notifyUsers(
+      found.rows.map((r) => r.user_id),
+      { ...payload, bookingRef }
+    );
   } catch (err) {
     console.error("[notify] Failed to notify booking organizers:", err.message);
   }
@@ -97,7 +114,9 @@ const notifyOrganizerAssigned = async (bookingId, organizerId, roleInEvent) => {
       subject: `New assignment — ${row.booking_ref}`,
       message:
         `You were assigned to a ${row.event_type} on ${row.event_date}` +
-        `${roleInEvent ? ` as ${roleInEvent}` : ""}. Please review it in Event Requests.`,
+        `${
+          roleInEvent ? ` as ${roleInEvent}` : ""
+        }. Please review it in Event Requests.`,
     });
   } catch (err) {
     console.error("[notify] Failed to notify assigned organizer:", err.message);

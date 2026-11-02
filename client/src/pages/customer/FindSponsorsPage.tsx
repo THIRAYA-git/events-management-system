@@ -13,6 +13,13 @@ import { Link } from "react-router-dom";
 import { api } from "@/lib/api";
 import { fetchMyBookings as loadMyBookings } from "@/lib/booking.api";
 import type { Sponsor } from "@/types/sponsor.types";
+import { AccountDetailsFields } from "@/components/customer/AccountDetailsFields";
+import {
+  emptyAccountDetails,
+  formatAccountDetails,
+  validateAccountDetails,
+  type AccountDetails,
+} from "@/lib/accountDetails";
 
 /* ------------------------------------------------------------------ */
 /*  API calls – adjust the paths/response shapes to your backend       */
@@ -49,7 +56,12 @@ const bookingLabel = (b: MyBooking) => {
 // If your route path differs, change only this URL.
 const sendRequest = (
   bookingId: number,
-  payload: { sponsorId: number; proposedAmount: number; message: string }
+  payload: {
+    sponsorId: number;
+    proposedAmount: number;
+    message: string;
+    paymentDetails: string;
+  }
 ) => api.post(`/sponsors/bookings/${bookingId}/requests`, payload);
 
 /* ------------------------------------------------------------------ */
@@ -168,12 +180,12 @@ export default function FindSponsorsPage() {
             </li>
             <li>
               <span className="font-medium text-foreground">2. Request.</span>{" "}
-              Click Request sponsorship, pick one of your upcoming bookings and
-              enter the amount you need.
+              Click Request sponsorship, pick one of your upcoming bookings,
+              enter the amount you need and your account details.
             </li>
             <li>
-              <span className="font-medium text-foreground">3. Track.</span>{" "}
-              The sponsor replies on your My Bookings page.
+              <span className="font-medium text-foreground">3. Track.</span> The
+              sponsor replies on your My Bookings page.
             </li>
           </ol>
         </div>
@@ -371,6 +383,7 @@ function RequestModal({
   const [bookingId, setBookingId] = useState("");
   const [amount, setAmount] = useState("");
   const [message, setMessage] = useState("");
+  const [account, setAccount] = useState<AccountDetails>(emptyAccountDetails);
   const [sending, setSending] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
@@ -394,6 +407,8 @@ function RequestModal({
     if (!bookingId) return setErr("Please select a booking.");
     const value = Number(amount);
     if (!value || value <= 0) return setErr("Enter a valid amount.");
+    const accountErr = validateAccountDetails(account);
+    if (accountErr) return setErr(accountErr);
     setSending(true);
     setErr(null);
     try {
@@ -401,6 +416,7 @@ function RequestModal({
         sponsorId: sponsor.sponsor_id,
         proposedAmount: value,
         message: message.trim(),
+        paymentDetails: formatAccountDetails(account),
       });
       onSent();
     } catch (e: any) {
@@ -414,7 +430,7 @@ function RequestModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
       <form
         onSubmit={submit}
-        className="w-full max-w-lg space-y-4 rounded-lg border border-border bg-card p-6 shadow-xl"
+        className="max-h-[90vh] w-full max-w-lg space-y-4 overflow-y-auto rounded-lg border border-border bg-card p-6 shadow-xl"
       >
         <div className="flex items-start justify-between">
           <div>
@@ -478,6 +494,16 @@ function RequestModal({
             onChange={(e) => setAmount(e.target.value)}
             placeholder={sponsor.budget_range ?? "e.g. 50000"}
           />
+        </div>
+        <div>
+          <label className="mb-1 block text-sm font-medium">
+            Your account details
+          </label>
+          <p className="mb-2 text-xs text-muted-foreground">
+            The sponsor sees these only after accepting, and uses them to pay
+            you.
+          </p>
+          <AccountDetailsFields value={account} onChange={setAccount} />
         </div>
 
         <div>

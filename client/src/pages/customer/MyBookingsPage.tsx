@@ -212,7 +212,8 @@ export default function MyBookingsPage() {
 
   const handleOfferRespond = async (
     offerId: number,
-    action: "accepted" | "rejected"
+    action: "accepted" | "rejected",
+    paymentDetails?: string
   ) => {
     const offer = offers.find((o) => o.id === offerId);
     const verb = action === "accepted" ? "accept" : "reject";
@@ -225,14 +226,20 @@ export default function MyBookingsPage() {
 
     setRespondingOfferId(offerId);
     try {
-      const updated = await respondToSponsorOffer(offerId, action);
+      const updated = await respondToSponsorOffer(
+        offerId,
+        action,
+        paymentDetails
+      );
       setOffers((prev) =>
         prev.map((o) =>
           o.id === offerId ? ({ ...o, ...updated } as SponsorOffer) : o
         )
       );
       toast.success(
-        action === "accepted" ? "Offer accepted." : "Offer rejected."
+        action === "accepted"
+          ? "Offer accepted. The sponsor can now see your account details."
+          : "Offer rejected."
       );
     } catch (err: any) {
       toast.error(

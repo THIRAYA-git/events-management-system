@@ -57,7 +57,7 @@ const listSponsorRequestsForBookingHandler = async (req, res) => {
 const createSponsorRequestHandler = async (req, res) => {
   try {
     const { bookingId } = req.params;
-    const { sponsorId, proposedAmount, message } = req.body;
+    const { sponsorId, proposedAmount, message, paymentDetails } = req.body;
 
     if (!sponsorId)
       return res.status(400).json({ message: "sponsorId is required" });
@@ -69,6 +69,7 @@ const createSponsorRequestHandler = async (req, res) => {
       {
         proposedAmount,
         message,
+        paymentDetails,
       }
     );
 
@@ -194,7 +195,6 @@ const getMySponsorProfileHandler = async (req, res) => {
 };
 
 const offerService = require("../services/sponsorOffer.service");
-const sponsorPaymentService = require("../services/sponsorPayment.service");
 
 const createSponsorOfferHandler = async (req, res) => {
   try {
@@ -212,7 +212,8 @@ const respondToSponsorOfferHandler = async (req, res) => {
     const updated = await offerService.respondToSponsorOffer(
       req.params.requestId,
       req.body.action,
-      req.user.id
+      req.user.id,
+      req.body.paymentDetails
     );
     res
       .status(200)
@@ -235,34 +236,6 @@ const getMyReceivedOffersHandler = async (req, res) => {
   }
 };
 
-const initiateSponsorPaymentHandler = async (req, res) => {
-  try {
-    const payload = await sponsorPaymentService.initiateSponsorPayment(
-      req.user.id,
-      Number(req.params.requestId)
-    );
-    res.status(201).json(payload);
-  } catch (err) {
-    res
-      .status(err.statusCode || 500)
-      .json({ message: err.message || "Failed to start payment" });
-  }
-};
-
-const getSponsorPaymentStatusHandler = async (req, res) => {
-  try {
-    const status = await sponsorPaymentService.getSponsorPaymentStatus(
-      req.user.id,
-      Number(req.params.requestId)
-    );
-    res.status(200).json(status);
-  } catch (err) {
-    res
-      .status(err.statusCode || 500)
-      .json({ message: err.message || "Failed to fetch payment status" });
-  }
-};
-
 const updateMySponsorProfileHandler = async (req, res) => {
   try {
     const sponsor = await sponsorService.updateSponsorProfile(
@@ -278,8 +251,6 @@ const updateMySponsorProfileHandler = async (req, res) => {
 };
 
 module.exports = {
-  initiateSponsorPaymentHandler,
-  getSponsorPaymentStatusHandler,
   getAllSponsorsHandler,
   getSponsorByIdHandler,
   listSponsorRequestsForBookingHandler,
@@ -287,7 +258,6 @@ module.exports = {
   respondToSponsorRequestHandler,
   withdrawSponsorRequestHandler,
   getMySponsorRequestsHandler,
-  uploadSponsorLogoHandler,
   uploadSponsorLogoHandler,
   getMySponsorProfileHandler,
   createSponsorOfferHandler,

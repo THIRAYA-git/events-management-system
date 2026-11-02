@@ -1,5 +1,6 @@
-const pool = require("../config/db"); // ← match sponsor.service.js
+const pool = require("../config/db");
 const sponsorService = require("./sponsor.service");
+const { notifyUsers } = require("./notify.service");
 
 const httpError = (statusCode, message) =>
   Object.assign(new Error(message), { statusCode });
@@ -49,9 +50,25 @@ const createSponsorOffer = async (
   return result.rows[0];
 };
 
-const respondToSponsorOffer = async (requestId, action, userId) => {
+const respondToSponsorOffer = async (
+  requestId,
+  action,
+  userId,
+  paymentDetails
+) => {
   if (!["accepted", "rejected"].includes(action))
     throw httpError(400, "action must be 'accepted' or 'rejected'");
+
+  const details = String(paymentDetails || "").trim();
+  if (action === "accepted") {
+    if (!details)
+      throw httpError(
+        400,
+        "Account details are required so the sponsor can pay you"
+      );
+    if (details.length > 500)
+      throw httpError(400, "Account details must be 500 characters or fewer");
+  }
 
   const found = await pool.query(
     `SELECT id, booking_id FROM booking_sponsors
@@ -68,13 +85,43 @@ const respondToSponsorOffer = async (requestId, action, userId) => {
 
   const updated = await pool.query(
     `UPDATE booking_sponsors
-     SET status = $2, responded_by = $3, responded_at = NOW()
+     SET status = $2, responded_by = $3, responded_at = NOW(),
+         customer_payment_details = $4
      WHERE id = $1 AND status = 'pending' AND direction = 'sponsor_to_customer'
      RETURNING *`,
-    [requestId, action, userId]
+    [requestId, action, userId, action === "accepted" ? details : null]
   );
   if (updated.rowCount === 0)
     throw httpError(409, "This offer has already been responded to");
+
+  // Tell the sponsor (notifyUsers never throws)
+  try {
+    const info = await pool.query(
+      `SELECT s.user_id AS sponsor_user_id, b.booking_id, b.booking_ref, b.event_type
+         FROM booking_sponsors bs
+         JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
+         JOIN bookings b ON b.booking_id = bs.booking_id
+        WHERE bs.id = $1`,
+      [requestId]
+    );
+    const i = info.rows[0];
+    if (i) {
+      notifyUsers([i.sponsor_user_id], {
+        type: "general",
+        bookingId: i.booking_id,
+        subject:
+          action === "accepted"
+            ? `Offer accepted — ${i.booking_ref}`
+            : `Offer declined — ${i.booking_ref}`,
+        message:
+          action === "accepted"
+            ? `Your sponsorship offer for ${i.event_type} (${i.booking_ref}) was accepted. Open My Sponsorships to see the customer's account details and pay them directly.`
+            : `Your sponsorship offer for ${i.event_type} (${i.booking_ref}) was declined by the customer.`,
+      });
+    }
+  } catch (e) {
+    console.error("[notify] offer response:", e.message);
+  }
 
   return updated.rows[0];
 };

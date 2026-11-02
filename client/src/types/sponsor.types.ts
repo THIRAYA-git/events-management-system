@@ -31,20 +31,10 @@ export interface SponsorRequest {
   booking_status: string;
   special_requests: string | null;
   customer_name: string;
-  payment_status: "unpaid" | "paid";
-  paid_at: string | null;
-  transaction_id: string | null;
-  payment_method: string | null;
+  customer_payment_details: string | null;
+  customer_phone: string | null;
+  customer_email: string | null;
   direction: "customer_to_sponsor" | "sponsor_to_customer";
-}
-
-export interface SponsorPaymentStatus {
-  id: number;
-  payment_status: "unpaid" | "paid";
-  paid_at: string | null;
-  transaction_id: string | null;
-  payment_method: string | null;
-  amount: number;
 }
 
 export interface UpdateSponsorPayload {

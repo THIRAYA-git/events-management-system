@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Loader2 } from "lucide-react";
 import { getUpcomingConfirmedBookings } from "@/api/publicEvents.api";
 import { createSponsorOffer } from "@/api/sponsorOffer.api";
+import { getMySponsorRequests } from "@/api/sponsor.api";
 
 import type { PublicUpcomingBooking } from "@/types/publicEvent.types";
 
@@ -19,6 +20,7 @@ export default function BrowseEventsPage() {
   const [submitting, setSubmitting] = useState(false);
   const [offerError, setOfferError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [myStatus, setMyStatus] = useState<Record<number, string>>({});
 
   useEffect(() => {
     const load = async () => {
@@ -27,6 +29,14 @@ export default function BrowseEventsPage() {
       try {
         const data = await getUpcomingConfirmedBookings();
         setEvents(data);
+        // Non-blocking: events this sponsor already has a request or offer for
+        getMySponsorRequests()
+          .then((list) =>
+            setMyStatus(
+              Object.fromEntries(list.map((r) => [r.booking_id, r.status]))
+            )
+          )
+          .catch(() => {});
       } catch {
         setError("Failed to load upcoming events.");
       } finally {
@@ -72,6 +82,7 @@ export default function BrowseEventsPage() {
         proposedAmount: value,
         message: note.trim() || undefined,
       });
+      setMyStatus((prev) => ({ ...prev, [offerFor.booking_id]: "pending" }));
       setSuccess(
         `Offer sent for ${offerFor.event_type} on ${new Date(
           offerFor.event_date
@@ -146,15 +157,26 @@ export default function BrowseEventsPage() {
                       {new Date(e.event_date).toLocaleDateString()} ·{" "}
                       {e.guest_count} guests
                     </div>
-                    <button
-                      onClick={() => {
-                        setSuccess(null);
-                        setOfferFor(e);
-                      }}
-                      className="rounded-md bg-purple-600 px-3 py-1 text-sm font-medium text-white hover:bg-purple-700"
-                    >
-                      Offer to sponsor
-                    </button>
+                    {myStatus[e.booking_id] ? (
+                      <span className="rounded-full bg-muted px-3 py-1 text-xs text-muted-foreground">
+                        {{
+                          accepted: "Already sponsoring",
+                          pending: "Pending: see My Sponsorships",
+                          rejected: "Rejected",
+                          withdrawn: "Withdrawn",
+                        }[myStatus[e.booking_id]] ?? "Already responded"}
+                      </span>
+                    ) : (
+                      <button
+                        onClick={() => {
+                          setSuccess(null);
+                          setOfferFor(e);
+                        }}
+                        className="rounded-md bg-purple-600 px-3 py-1 text-sm font-medium text-white hover:bg-purple-700"
+                      >
+                        Offer to sponsor
+                      </button>
+                    )}
                   </div>{" "}
                 </div>
               </div>

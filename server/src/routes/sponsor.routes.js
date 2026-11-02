@@ -12,8 +12,7 @@ const {
   createSponsorOfferHandler,
   respondToSponsorOfferHandler,
   getMyReceivedOffersHandler,
-  initiateSponsorPaymentHandler,
-  getSponsorPaymentStatusHandler,
+
   updateMySponsorProfileHandler,
   createSponsorRequestHandler,
 } = require("../controllers/sponsor.controller");
@@ -24,7 +23,11 @@ router.use(authenticate);
 router.get("/", authorize("sponsor:read"), getAllSponsorsHandler);
 
 // GET /api/sponsors/my-requests                  → sponsor's own incoming requests
-router.get("/my-requests", authorize("sponsor_request:read_own"), getMySponsorRequestsHandler);
+router.get(
+  "/my-requests",
+  authorize("sponsor_request:read_own"),
+  getMySponsorRequestsHandler
+);
 
 // GET /api/sponsors/me → sponsor's own profile
 router.get("/me", authorize("sponsor:read"), getMySponsorProfileHandler);
@@ -33,28 +36,47 @@ router.get("/me", authorize("sponsor:read"), getMySponsorProfileHandler);
 router.get("/:sponsorId", authorize("sponsor:read"), getSponsorByIdHandler);
 
 // PATCH /api/sponsors/requests/:requestId/respond → sponsor/staff accept or reject
-router.patch("/requests/:requestId/respond", authorize("sponsor_request:respond"), respondToSponsorRequestHandler);
+router.patch(
+  "/requests/:requestId/respond",
+  authorize("sponsor_request:respond"),
+  respondToSponsorRequestHandler
+);
 
 // PATCH /api/sponsors/me/logo → sponsor uploads/replaces their own logo
-router.patch("/me/logo", authorize("sponsor:update_own"), singleImage("logo"), uploadSponsorLogoHandler);
+router.patch(
+  "/me/logo",
+  authorize("sponsor:update_own"),
+  singleImage("logo"),
+  uploadSponsorLogoHandler
+);
 
 // PATCH /api/sponsors/me → sponsor edits their own profile / status
-router.patch("/me", authorize("sponsor:update_own"), updateMySponsorProfileHandler);
+router.patch(
+  "/me",
+  authorize("sponsor:update_own"),
+  updateMySponsorProfileHandler
+);
 
 // POST /api/sponsors/offers → sponsor offers to sponsor an event
-router.post("/offers", authorize("sponsor_offer:create"), createSponsorOfferHandler);
+router.post(
+  "/offers",
+  authorize("sponsor_offer:create"),
+  createSponsorOfferHandler
+);
 
 // PATCH /api/sponsors/offers/:requestId/respond → booking owner accepts/rejects
-router.patch("/offers/:requestId/respond", authorize("sponsor_offer:respond"), respondToSponsorOfferHandler);
+router.patch(
+  "/offers/:requestId/respond",
+  authorize("sponsor_offer:respond"),
+  respondToSponsorOfferHandler
+);
 
 // GET /api/sponsors/offers/mine → customer's received sponsor offers
-router.get("/offers/mine", authorize("sponsor_offer:read_own"), getMyReceivedOffersHandler);
-
-// POST /api/sponsors/requests/:requestId/pay → sponsor starts PayHere checkout for an accepted sponsorship
-router.post("/requests/:requestId/pay", authorize("sponsor_payment:create"), initiateSponsorPaymentHandler);
-
-// GET /api/sponsors/requests/:requestId/payment-status → poll after the PayHere popup closes
-router.get("/requests/:requestId/payment-status", authorize("sponsor_payment:read_own"), getSponsorPaymentStatusHandler);
+router.get(
+  "/offers/mine",
+  authorize("sponsor_offer:read_own"),
+  getMyReceivedOffersHandler
+);
 
 // POST /api/sponsors/bookings/:bookingId/requests → customer asks a sponsor for a booking
 router.post(

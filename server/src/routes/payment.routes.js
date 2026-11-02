@@ -14,9 +14,6 @@ const {
   handleNotify: handleRoomNotify,
 } = require("../services/room-payment.service");
 const {
-  handleNotify: handleSponsorNotify,
-} = require("../services/sponsorPayment.service");
-const {
   loadInvoiceData,
   sendPaymentNotifications,
 } = require("../services/paymentNotify.service");
@@ -78,7 +75,6 @@ async function auditPayment(action, body, ip, extra = {}) {
     console.error("[audit] payment log failed:", e.message);
   }
 }
-
 
 // ─────────────────────────────────────────────────────────────
 //  POST /api/payments/initiate
@@ -214,26 +210,7 @@ router.post("/notify", async (req, res) => {
       );
       return res.sendStatus(r.ok ? 200 : 400);
     }
-    // Sponsorship payments share this webhook; their order_id starts with SPON-
-    if (String(req.body.order_id || "").startsWith("SPON-")) {
-      const r = await handleSponsorNotify(req.body);
-      await auditPayment(
-        !r.ok
-          ? "PAYMENT_SPONSOR_REJECTED"
-          : r.lateRefund
-          ? "PAYMENT_REFUND_FLAGGED"
-          : PAYMENT_AUDIT_ACTIONS[String(req.body.status_code)] ||
-            "PAYMENT_UNKNOWN",
-        req.body,
-        req.ip,
-        {
-          event_type: "Sponsorship",
-          expected_amount: r.expected ?? null,
-          ...(r.reason && { reason: r.reason }),
-        }
-      );
-      return res.sendStatus(r.ok ? 200 : 400);
-    }
+
     const { order_id, status_code, payment_id } = req.body;
 
     const paymentStatus =

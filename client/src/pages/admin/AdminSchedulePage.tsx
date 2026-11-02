@@ -134,8 +134,8 @@ export function AdminSchedulePage() {
         Manage Scheduled Events
       </h1>
       <p className="mt-1 text-sm text-muted-foreground">
-        Confirmed events only. Plan setup, catering, decoration and cleanup
-        tasks for each one.
+        Confirmed events only. You can track event timelines to setup, catering,
+        decoration and cleanup tasks for each one.
       </p>
 
       {/* ── Stats ───────────────────────────────────────────────────── */}

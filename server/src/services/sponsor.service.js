@@ -1,4 +1,5 @@
 const db = require("../config/db");
+const { notifyUsers } = require("./notify.service");
 
 const getAllSponsors = async ({ industry, status } = {}) => {
   let query = `
@@ -64,12 +65,14 @@ const getSponsorRequestsForSponsorUser = async (sponsorUserId) => {
   const result = await db.query(
     `SELECT bs.id, bs.booking_id, bs.sponsor_id, bs.proposed_amount, bs.message,
             bs.status, bs.direction, bs.responded_by, bs.responded_at, bs.requested_at,
-            bs.payment_status, bs.paid_at, bs.transaction_id, bs.payment_method,
             b.booking_ref, b.event_type, b.event_date::text AS event_date,
             to_char(b.event_start_time, 'HH24:MI') AS event_start_time,
             to_char(b.event_end_time, 'HH24:MI') AS event_end_time,
             b.guest_count, b.status AS booking_status, b.special_requests,
             u.full_name AS customer_name,
+            CASE WHEN bs.status = 'accepted' THEN bs.customer_payment_details END AS customer_payment_details,
+            CASE WHEN bs.status = 'accepted' THEN u.phone END AS customer_phone,
+            CASE WHEN bs.status = 'accepted' THEN u.email END AS customer_email,
             (SELECT string_agg(h.hall_name, ' + ' ORDER BY h.floor_number)
                FROM hall_bookings hb
                JOIN halls h ON h.hall_id = hb.hall_id
@@ -89,8 +92,21 @@ const createSponsorRequest = async (
   bookingId,
   sponsorId,
   requestingUserId,
-  { proposedAmount, message } = {}
+  { proposedAmount, message, paymentDetails } = {}
 ) => {
+  const details = String(paymentDetails || "").trim();
+  if (!details) {
+    const err = new Error(
+      "Account details are required so the sponsor can pay you"
+    );
+    err.statusCode = 400;
+    throw err;
+  }
+  if (details.length > 500) {
+    const err = new Error("Account details must be 500 characters or fewer");
+    err.statusCode = 400;
+    throw err;
+  }
   const bookingResult = await db.query(
     `SELECT booking_id, user_id FROM bookings WHERE booking_id = $1`,
     [bookingId]
@@ -123,10 +139,10 @@ const createSponsorRequest = async (
 
   try {
     const result = await db.query(
-      `INSERT INTO booking_sponsors (booking_id, sponsor_id, proposed_amount, message, status, requested_at)
-       VALUES ($1, $2, $3, $4, 'pending', NOW())
-       RETURNING id, booking_id, sponsor_id, proposed_amount, message, status, requested_at`,
-      [bookingId, sponsorId, proposedAmount || null, message || null]
+      `INSERT INTO booking_sponsors (booking_id, sponsor_id, proposed_amount, message, customer_payment_details, status, requested_at)
+   VALUES ($1, $2, $3, $4, $5, 'pending', NOW())
+   RETURNING id, booking_id, sponsor_id, proposed_amount, message, status, requested_at`,
+      [bookingId, sponsorId, proposedAmount || null, message || null, details]
     );
     return result.rows[0];
   } catch (err) {
@@ -202,6 +218,37 @@ const respondToSponsorRequest = async (
      RETURNING id, booking_id, sponsor_id, proposed_amount, message, status, responded_by, responded_at, requested_at`,
     [action, respondingUserId, requestId]
   );
+
+  // Tell the customer (notifyUsers never throws)
+  try {
+    const info = await db.query(
+      `SELECT b.user_id AS customer_user_id, b.booking_id, b.booking_ref,
+              b.event_type, s.company_name
+         FROM booking_sponsors bs
+         JOIN bookings b ON b.booking_id = bs.booking_id
+         JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
+        WHERE bs.id = $1`,
+      [requestId]
+    );
+    const i = info.rows[0];
+    if (i) {
+      notifyUsers([i.customer_user_id], {
+        type: "general",
+        bookingId: i.booking_id,
+        subject:
+          action === "accepted"
+            ? `Sponsorship accepted — ${i.booking_ref}`
+            : `Sponsorship declined — ${i.booking_ref}`,
+        message:
+          action === "accepted"
+            ? `${i.company_name} accepted your sponsorship request for ${i.event_type} (${i.booking_ref}). They will pay you directly using the account details you provided.`
+            : `${i.company_name} declined your sponsorship request for ${i.event_type} (${i.booking_ref}). You can request another sponsor from Find Sponsors.`,
+      });
+    }
+  } catch (e) {
+    console.error("[notify] sponsor response:", e.message);
+  }
+
   return result.rows[0];
 };
 

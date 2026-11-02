@@ -28,7 +28,7 @@ router.get("/", async (req, res, next) => {
     const [list, unread] = await Promise.all([
       query(
         `SELECT n.notification_id, n.type, n.subject, n.message, n.is_read,
-                (n.created_at AT TIME ZONE 'UTC') AS created_at,
+n.created_at AT TIME ZONE 'Asia/Colombo' AS created_at,
                 n.booking_id, b.booking_ref
            FROM notifications n
            LEFT JOIN bookings b ON b.booking_id = n.booking_id
@@ -46,9 +46,9 @@ router.get("/", async (req, res, next) => {
     ]);
 
     res.json({
-  notifications: list.rows.map(withLink(req.user.role)),
-  unreadCount: unread.rows[0].count,
-});
+      notifications: list.rows.map(withLink(req.user.role)),
+      unreadCount: unread.rows[0].count,
+    });
   } catch (err) {
     next(err);
   }
