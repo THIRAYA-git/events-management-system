@@ -35,6 +35,7 @@ export interface DashboardAnalytics {
   topCustomers: TopCustomer[];
   accommodationModuleImplemented: boolean;
   roomAccommodationsByEventType: RoomAccommodationByEventType[];
+  roomReservationTotals: RoomReservationTotals;
 }
 
 export interface DashboardAnalyticsParams {
@@ -46,4 +47,9 @@ export interface RoomAccommodationByEventType {
   event_type: string;
   total_rooms: number;
   bookings_with_rooms: number;
+}
+
+export interface RoomReservationTotals {
+  total_reservations: number;
+  total_rooms: number;
 }

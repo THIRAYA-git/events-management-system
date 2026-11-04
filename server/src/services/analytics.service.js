@@ -113,17 +113,41 @@ const getTopCustomers = async ({ dateFrom, dateTo, limit = 5 }) => {
   return rows;
 };
 
+// ── Total room reservations (a multi-room booking counts once) ──
+const getRoomReservationTotals = async ({ dateFrom, dateTo }) => {
+  const { rows } = await query(
+    `
+    SELECT
+      COUNT(DISTINCT COALESCE(group_ref, reservation_ref))::integer AS total_reservations,
+      COUNT(*)::integer AS total_rooms
+    FROM room_reservations
+    WHERE ($1::date IS NULL OR check_in >= $1::date)
+      AND ($2::date IS NULL OR check_in <= $2::date)
+    `,
+    [dateFrom || null, dateTo || null]
+  );
+  return rows[0];
+};
+
 // ── Combined dashboard payload — one call, five metrics ────────
 const getDashboardAnalytics = async ({ dateFrom, dateTo }) => {
-  const [revenueOverTime, revenueByEventType, hallUtilization, statusBreakdown, topCustomers, roomAccommodationsByEventType] =
-    await Promise.all([
-      getRevenueOverTime({ dateFrom, dateTo }),
-      getRevenueByEventType({ dateFrom, dateTo }),
-      getHallUtilization({ dateFrom, dateTo }),
-      getStatusBreakdown({ dateFrom, dateTo }),
-      getTopCustomers({ dateFrom, dateTo, limit: 5 }),
-      getRoomAccommodationsByEventType({ dateFrom, dateTo }),
-    ]);
+  const [
+    revenueOverTime,
+    revenueByEventType,
+    hallUtilization,
+    statusBreakdown,
+    topCustomers,
+    roomAccommodationsByEventType,
+    roomTotals,
+  ] = await Promise.all([
+    getRevenueOverTime({ dateFrom, dateTo }),
+    getRevenueByEventType({ dateFrom, dateTo }),
+    getHallUtilization({ dateFrom, dateTo }),
+    getStatusBreakdown({ dateFrom, dateTo }),
+    getTopCustomers({ dateFrom, dateTo, limit: 5 }),
+    getRoomAccommodationsByEventType({ dateFrom, dateTo }),
+    getRoomReservationTotals({ dateFrom, dateTo }),
+  ]);
 
   return {
     revenueOverTime,
@@ -133,9 +157,9 @@ const getDashboardAnalytics = async ({ dateFrom, dateTo }) => {
     topCustomers,
     roomAccommodationsByEventType,
     accommodationModuleImplemented: true,
+    roomReservationTotals: roomTotals,
   };
 };
-
 
 // ── Room accommodations by event type ───────────────────────────
 const getRoomAccommodationsByEventType = async ({ dateFrom, dateTo }) => {

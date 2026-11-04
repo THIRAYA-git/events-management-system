@@ -7,6 +7,7 @@ import {
   UserCheck,
   UtensilsCrossed,
   Star,
+  BedDouble,
 } from "lucide-react";
 import {
   Chart as ChartJS,
@@ -245,6 +246,10 @@ export function AdminDashboardHome() {
   const totalBookings = analytics
     ? analytics.statusBreakdown.reduce((sum, s) => sum + s.count, 0)
     : Object.values(statusCounts ?? {}).reduce((a, b) => a + b, 0);
+
+  const roomReservations = analytics?.roomReservationTotals?.total_reservations ?? 0;
+const roomsBooked = analytics?.roomReservationTotals?.total_rooms ?? 0;
+
   const pendingCount = analytics
     ? analytics.statusBreakdown.find((s) => s.status === "pending")?.count ?? 0
     : statusCounts?.pending ?? 0;
@@ -322,8 +327,8 @@ export function AdminDashboardHome() {
       </p>
 
       {/* ── Summary cards ───────────────────────────────────── */}
-      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {canSeeAnalytics && (
+<div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {canSeeAnalytics && (
           <div className="rounded-lg border border-border bg-card p-5">
             <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" /> Total Revenue
@@ -347,6 +352,19 @@ export function AdminDashboardHome() {
             All statuses{canSeeAnalytics ? `, ${periodLabel}` : ""}
           </p>
         </div>
+        {canSeeAnalytics && (
+  <div className="rounded-lg border border-border bg-card p-5">
+    <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
+      <BedDouble className="h-3.5 w-3.5" /> Room Reservations
+    </p>
+    <p className="mt-1 text-2xl font-semibold text-foreground">
+      {roomReservations}
+    </p>
+    <p className="mt-1 text-xs text-muted-foreground">
+      {roomsBooked} rooms booked, {periodLabel}
+    </p>
+  </div>
+)}
         <div className="rounded-lg border border-border bg-card p-5">
           <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
             <Users className="h-3.5 w-3.5" /> Pending Approval
