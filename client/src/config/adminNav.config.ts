@@ -10,6 +10,7 @@ import {
   FileText,
   DatabaseBackup,
   Tag,
+  BedDouble,
 } from "lucide-react";
 
 export type AdminRole = "front_desk" | "admin";
@@ -34,6 +35,7 @@ export const adminNavItems: AdminNavItem[] = [
     icon: CalendarCheck,
     roles: ["front_desk", "admin"],
   },
+  { label: "Room Bookings", path: "/admin/room-bookings", icon: BedDouble, roles: ["admin", "front_desk"] },
   {
     label: "Event Pricing",
     path: "/admin/pricing",

@@ -48,6 +48,7 @@ import AdminBackupsPage from "@/pages/admin/AdminBackupsPage";
 import AdminPricingPage from "@/pages/admin/AdminPricingPage";
 import SponsorProfilePage from "@/pages/sponsor/SponsorProfilePage";
 import FindSponsorsPage from "@/pages/customer/FindSponsorsPage";
+import { AdminRoomBookingsPage } from "@/pages/admin/AdminRoomBookingsPage";
 
 function PublicOnly({ children }: { children: ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -146,6 +147,7 @@ function App() {
             <Route path="/admin" element={<AdminLayout />}>
               <Route index element={<AdminDashboardHome />} />
               <Route path="bookings" element={<AdminBookingsPage />} />
+              <Route path="room-bookings" element={<AdminRoomBookingsPage />} />
               <Route path="schedule" element={<AdminSchedulePage />} />
               <Route
                 path="bookings/:bookingId/timeline"

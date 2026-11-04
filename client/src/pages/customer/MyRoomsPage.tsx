@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { BedDouble, CalendarCheck, CalendarX, Moon, Users } from "lucide-react";
+import {
+  BedDouble,
+  CalendarCheck,
+  CalendarX,
+  Download,
+  Moon,
+  Users,
+} from "lucide-react";
+import { downloadRoomInvoice } from "@/api/roomAdmin.api";
 import {
   primaryBtnClass,
   secondaryBtnClass,
@@ -24,8 +32,7 @@ const statusStyles: Record<string, string> = {
   cancelled:
     "bg-red-100 text-red-700 ring-red-200 dark:bg-red-500/15 dark:text-red-300 dark:ring-red-500/30",
 };
-const neutralBadge =
-  "bg-muted text-muted-foreground ring-border";
+const neutralBadge = "bg-muted text-muted-foreground ring-border";
 
 const paymentStyles: Record<string, string> = {
   paid: statusStyles.confirmed,
@@ -69,6 +76,18 @@ export default function MyRoomsPage() {
   const [items, setItems] = useState<RoomReservation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [downloading, setDownloading] = useState<string | null>(null);
+
+  const invoice = async (groupRef: string) => {
+    setDownloading(groupRef);
+    try {
+      await downloadRoomInvoice(groupRef);
+    } catch {
+      toast.error("Invoice is not available yet.");
+    } finally {
+      setDownloading(null);
+    }
+  };
 
   useEffect(() => {
     getMyRoomReservations()
@@ -155,7 +174,9 @@ export default function MyRoomsPage() {
           <span className="flex h-14 w-14 items-center justify-center rounded-full bg-violet-100 text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
             <BedDouble className="h-7 w-7" />
           </span>
-          <p className="mt-4 font-semibold text-foreground">No room reservations yet</p>
+          <p className="mt-4 font-semibold text-foreground">
+            No room reservations yet
+          </p>
           <p className="mt-1 text-sm text-muted-foreground">
             Pick your dates and reserve a room at Aazath Plaza.
           </p>
@@ -172,13 +193,16 @@ export default function MyRoomsPage() {
             first.status === "pending" && first.payment_status === "unpaid";
           const canCancel =
             first.status === "pending" || first.status === "confirmed";
+          const canInvoice = first.payment_status === "paid";
           return (
             <div
               key={g.group_ref}
               className="relative overflow-hidden rounded-2xl border border-border bg-card shadow-sm transition-shadow hover:shadow-md"
             >
               <span
-                className={`absolute inset-y-0 left-0 w-1.5 ${accentBar(first.status)}`}
+                className={`absolute inset-y-0 left-0 w-1.5 ${accentBar(
+                  first.status
+                )}`}
                 aria-hidden
               />
               <div className="p-5 pl-6">
@@ -191,7 +215,11 @@ export default function MyRoomsPage() {
                       {g.group_ref}
                     </p>
                   </div>
-                  <span className={badge(statusStyles[first.status] ?? neutralBadge)}>
+                  <span
+                    className={badge(
+                      statusStyles[first.status] ?? neutralBadge
+                    )}
+                  >
                     {first.status}
                   </span>
                 </div>
@@ -242,8 +270,8 @@ export default function MyRoomsPage() {
                   </span>
                 </div>
 
-                {(canPay || canCancel) && (
-                  <div className="mt-4 flex flex-wrap gap-2">
+{(canPay || canCancel || canInvoice) && (
+                    <div className="mt-4 flex flex-wrap gap-2">
                     {canPay && (
                       <button
                         onClick={() => navigate(`/room-payment/${g.group_ref}`)}
@@ -253,10 +281,23 @@ export default function MyRoomsPage() {
                       </button>
                     )}
                     {canCancel && (
-                      <button onClick={() => cancel(g)} className={secondaryBtnClass}>
+                      <button
+                        onClick={() => cancel(g)}
+                        className={secondaryBtnClass}
+                      >
                         Cancel
                       </button>
                     )}
+                    {canInvoice && (
+              <button
+                onClick={() => invoice(g.group_ref)}
+                disabled={downloading === g.group_ref}
+                className={secondaryBtnClass}
+              >
+                <Download className="mr-1.5 inline h-4 w-4" />
+                {downloading === g.group_ref ? "Preparing..." : "Invoice"}
+              </button>
+            )}
                   </div>
                 )}
               </div>

@@ -1,5 +1,7 @@
 const svc = require("../services/room.service");
 const payments = require("../services/room-payment.service");
+const roomAdmin = require("../services/room-admin.service");
+const roomInvoices = require("../services/room-invoice.service");
 
 const wrap =
   (fn, okStatus = 200) =>
@@ -46,5 +48,30 @@ exports.payNotifyHandler = async (req, res) => {
   } catch (e) {
     console.error("room notify error", e);
     res.sendStatus(500); // PayHere will retry
+  }
+};
+
+exports.groupsHandler = wrap(() => roomAdmin.getGroups());
+exports.cashHandler = wrap((req) =>
+  roomAdmin.recordCashPayment(req.params.groupRef, req.user.id, req.body.note)
+);
+
+// Returns a PDF, so it can't use the JSON wrap()
+exports.invoiceHandler = async (req, res) => {
+  try {
+    const { buffer, filename } = await roomInvoices.getRoomInvoice(
+      req.params.groupRef,
+      req.user
+    );
+    res.set({
+      "Content-Type": "application/pdf",
+      "Content-Disposition": `attachment; filename="${filename}"`,
+      "Content-Length": buffer.length,
+    });
+    res.send(buffer);
+  } catch (err) {
+    res
+      .status(err.statusCode || 500)
+      .json({ success: false, message: err.message });
   }
 };

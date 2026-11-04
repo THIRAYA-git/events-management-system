@@ -4,6 +4,7 @@ const {
   verifyNotifySignature,
 } = require("./payment.service");
 const { releaseExpiredHolds } = require("./room.service");
+const { sendRoomPaymentNotifications } = require("./room-notify.service");
 
 const fail = (message, statusCode) =>
   Object.assign(new Error(message), { statusCode });
@@ -171,6 +172,14 @@ const handleNotify = async (body) => {
       [groupRef, payment_id || null, method || null]
     );
     lateRefund = true;
+  }
+
+  // Confirmation email (with invoice PDF) + SMS. Not awaited: PayHere needs a
+  // fast reply, and a notification failure must never fail the payment.
+  if (!lateRefund) {
+    sendRoomPaymentNotifications(groupRef).catch((e) =>
+      console.error("[room notify] failed:", e.message)
+    );
   }
   return { ok: true, paid: true, expected, lateRefund };
 };

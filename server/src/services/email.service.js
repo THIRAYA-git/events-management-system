@@ -474,6 +474,9 @@ const sendOrganizerProgressEmail = async (
 
 module.exports = {
   sendEmail,
+  layout,
+  detailsTable,
+  escapeHtml,
   sendContactMessageEmail,
   sendPasswordResetEmail,
   sendBookingConfirmationEmail,

@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "sonner";
+import { Download, Loader2 } from "lucide-react";
+import { downloadRoomInvoice } from "@/api/roomAdmin.api";
 import {
   PaymentStatusCard,
   formatLkr,
@@ -57,6 +59,19 @@ export default function RoomPaymentCheckoutPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [paid, setPaid] = useState<RoomPaymentStatus | null>(null);
   const startedRef = useRef(false);
+  const [downloading, setDownloading] = useState(false);
+
+  const handleInvoice = async () => {
+    if (!groupRef) return;
+    setDownloading(true);
+    try {
+      await downloadRoomInvoice(groupRef);
+    } catch {
+      toast.error("Invoice is not ready yet. Please try again in a moment.");
+    } finally {
+      setDownloading(false);
+    }
+  };
 
   useEffect(() => {
     if (!groupRef || startedRef.current) return;
@@ -176,6 +191,20 @@ export default function RoomPaymentCheckoutPage() {
             : undefined
         }
       >
+        {confirmed && (
+          <button
+            onClick={handleInvoice}
+            disabled={downloading}
+            className={`${secondaryBtnClass} w-full`}
+          >
+            {downloading ? (
+              <Loader2 className="mr-1.5 inline h-4 w-4 animate-spin" />
+            ) : (
+              <Download className="mr-1.5 inline h-4 w-4" />
+            )}
+            {downloading ? "Preparing..." : "Download invoice"}
+          </button>
+        )}
         <button
           onClick={() => navigate("/my-rooms")}
           className={`${primaryBtnClass} w-full`}

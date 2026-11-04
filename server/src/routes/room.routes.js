@@ -11,5 +11,9 @@ router.patch("/reservations/:id/status", authenticate, authorize("room:manage"),
 router.post("/payments/initiate", authenticate, authorize("room:create"), c.payInitiateHandler);
 router.get("/payments/:groupRef", authenticate, authorize("room:read_own"), c.payStatusHandler);
 router.post("/payments/notify", c.payNotifyHandler); // no auth: PayHere calls it
+router.get("/reservations/groups", authenticate, authorize("room:read_all"), c.groupsHandler);
+router.patch("/reservations/groups/:groupRef/cash-payment", authenticate, authorize("room:manage"), c.cashHandler);
+// Staff (any) and customers (own only, checked in the service)
+router.get("/reservations/groups/:groupRef/invoice", authenticate, c.invoiceHandler);
 
 module.exports = router;

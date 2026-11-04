@@ -105,6 +105,20 @@ const sendPaymentRefundNoticeSms = async (to, { bookingRef }) => {
   });
 };
 
+// Room booking paid (online or cash). Logged against the room group ref.
+const sendRoomPaymentReceivedSms = async (
+  to,
+  { groupRef, amount, invoiceNumber, checkIn, checkOut }
+) => {
+  return sendSms({
+    to,
+    log: { type: "payment_receipt", bookingRef: groupRef },
+    body:
+      `Aazath Plaza: Payment of LKR ${Number(amount).toLocaleString("en-LK")} received for room booking ${groupRef}. ` +
+      `Stay ${checkIn} to ${checkOut} is confirmed. Invoice: ${invoiceNumber}.`,
+  });
+};
+
 // Sent when staff confirm or cancel a booking from the admin Bookings page.
 const sendBookingStatusSms = async (
   to,
@@ -174,6 +188,7 @@ module.exports = {
   sendBookingStatusSms,
   sendPaymentReceivedSms,
   sendPaymentRefundNoticeSms,
+  sendRoomPaymentReceivedSms,
   sendOrganizerProgressSms,
   toTextLkRecipient,
 };
