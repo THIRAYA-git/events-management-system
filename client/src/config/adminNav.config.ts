@@ -30,7 +30,7 @@ export const adminNavItems: AdminNavItem[] = [
     roles: ["front_desk", "admin"],
   },
   {
-    label: "Bookings",
+    label: "Hall Bookings",
     path: "/admin/bookings",
     icon: CalendarCheck,
     roles: ["front_desk", "admin"],
