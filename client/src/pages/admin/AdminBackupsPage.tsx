@@ -21,7 +21,9 @@ export default function AdminBackupsPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const handleRun = async () => {
     setRunning(true);
@@ -31,14 +33,18 @@ export default function AdminBackupsPage() {
       setMsg({ ok: true, text: `Backup created: ${r.file}` });
       await load();
     } catch (e: any) {
-      setMsg({ ok: false, text: e?.response?.data?.message || "Backup failed" });
+      setMsg({
+        ok: false,
+        text: e?.response?.data?.message || "Backup failed",
+      });
     } finally {
       setRunning(false);
     }
   };
 
   const handleDelete = async (file: string) => {
-    if (!window.confirm(`Delete backup "${file}"? This cannot be undone.`)) return;
+    if (!window.confirm(`Delete backup "${file}"? This cannot be undone.`))
+      return;
     setDeleting(file);
     setMsg(null);
     try {
@@ -46,7 +52,10 @@ export default function AdminBackupsPage() {
       setMsg({ ok: true, text: `Backup deleted: ${file}` });
       await load();
     } catch (e: any) {
-      setMsg({ ok: false, text: e?.response?.data?.message || "Could not delete backup" });
+      setMsg({
+        ok: false,
+        text: e?.response?.data?.message || "Could not delete backup",
+      });
     } finally {
       setDeleting(null);
     }
@@ -56,23 +65,31 @@ export default function AdminBackupsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Database Backups</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Database Backups
+          </h1>
           <p className="text-sm text-gray-500 dark:text-gray-400">
             Automatic backup runs nightly at 02:00. The last 7 are kept.
           </p>
         </div>
         <Button onClick={handleRun} disabled={running}>
-          {running ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <DatabaseBackup className="mr-2 h-4 w-4" />}
+          {running ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <DatabaseBackup className="mr-2 h-4 w-4" />
+          )}
           {running ? "Backing up..." : "Run backup now"}
         </Button>
       </div>
 
       {msg && (
-        <div className={`rounded-md border px-4 py-2 text-sm ${
-          msg.ok
-            ? "border-green-300 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-200"
-            : "border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/30 dark:text-red-200"
-        }`}>
+        <div
+          className={`rounded-md border px-4 py-2 text-sm ${
+            msg.ok
+              ? "border-green-300 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-200"
+              : "border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/30 dark:text-red-200"
+          }`}
+        >
           {msg.text}
         </div>
       )}
@@ -90,7 +107,10 @@ export default function AdminBackupsPage() {
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {files.length === 0 && (
               <tr>
-                <td colSpan={4} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                <td
+                  colSpan={4}
+                  className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
+                >
                   No backups yet
                 </td>
               </tr>
@@ -98,7 +118,9 @@ export default function AdminBackupsPage() {
             {files.map((f) => (
               <tr key={f.file} className="text-gray-900 dark:text-gray-100">
                 <td className="px-4 py-2 font-mono">{f.file}</td>
-                <td className="px-4 py-2">{new Date(f.createdAt).toLocaleString()}</td>
+                <td className="px-4 py-2">
+                  {new Date(f.createdAt).toLocaleString()}
+                </td>
                 <td className="px-4 py-2">{formatSize(f.sizeBytes)}</td>
                 <td className="px-4 py-2 text-right">
                   <button

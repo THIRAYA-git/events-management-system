@@ -1,13 +1,19 @@
 import { useEffect, useState } from "react";
 import { Loader2 } from "lucide-react";
-import { getMyOrganizerProfile, getMyBookingAssignments } from "@/api/organizer.api";
+import {
+  getMyOrganizerProfile,
+  getMyBookingAssignments,
+} from "@/api/organizer.api";
 import type { Organizer, OrganizerAssignment } from "@/types/organizer.types";
 
 const STATUS_STYLES: Record<string, string> = {
-  assigned: "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
+  assigned:
+    "bg-yellow-100 dark:bg-yellow-500/15 text-yellow-700 dark:text-yellow-400",
   confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  in_progress: "bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400",
-  completed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  in_progress:
+    "bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400",
+  completed:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
 };
 
 export default function OrganizerDashboardPage() {
@@ -60,26 +66,35 @@ export default function OrganizerDashboardPage() {
   };
 
   const recent = [...assignments]
-    .sort((a, b) => new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime())
+    .sort(
+      (a, b) =>
+        new Date(b.assigned_at).getTime() - new Date(a.assigned_at).getTime()
+    )
     .slice(0, 5);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        Dashboard
+      </h1>
 
       <div className="rounded-md border border-border bg-card p-4">
         <div className="flex items-center gap-2">
           <h2 className="text-lg font-medium">{organizer.business_name}</h2>
           <span
             className={`rounded-full px-2 py-0.5 text-xs ${
-              organizer.is_verified ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400" : "bg-muted text-muted-foreground"
+              organizer.is_verified
+                ? "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {organizer.is_verified ? "verified" : "unverified"}
           </span>
           <span
             className={`rounded-full px-2 py-0.5 text-xs ${
-              organizer.is_available ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400" : "bg-muted text-muted-foreground"
+              organizer.is_available
+                ? "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400"
+                : "bg-muted text-muted-foreground"
             }`}
           >
             {organizer.is_available ? "available" : "unavailable"}
@@ -88,7 +103,8 @@ export default function OrganizerDashboardPage() {
         <p className="text-sm text-muted-foreground">{organizer.specialty}</p>
         {organizer.avg_rating != null && (
           <p className="mt-1 text-xs text-muted-foreground">
-            ★ {Number(organizer.avg_rating).toFixed(1)} ({organizer.total_reviews} review
+            ★ {Number(organizer.avg_rating).toFixed(1)} (
+            {organizer.total_reviews} review
             {organizer.total_reviews !== 1 ? "s" : ""})
           </p>
         )}
@@ -96,27 +112,39 @@ export default function OrganizerDashboardPage() {
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">{counts.assigned}</div>
+          <div className="text-2xl font-semibold text-yellow-700 dark:text-yellow-400">
+            {counts.assigned}
+          </div>
           <div className="text-xs text-muted-foreground">Assigned</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-blue-700 dark:text-blue-400">{counts.confirmed}</div>
+          <div className="text-2xl font-semibold text-blue-700 dark:text-blue-400">
+            {counts.confirmed}
+          </div>
           <div className="text-xs text-muted-foreground">Scheduled</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-violet-700 dark:text-violet-400">{counts.in_progress}</div>
+          <div className="text-2xl font-semibold text-violet-700 dark:text-violet-400">
+            {counts.in_progress}
+          </div>
           <div className="text-xs text-muted-foreground">In progress</div>
         </div>
         <div className="rounded-md border border-border bg-card p-4 text-center">
-          <div className="text-2xl font-semibold text-green-700 dark:text-green-400">{counts.completed}</div>
+          <div className="text-2xl font-semibold text-green-700 dark:text-green-400">
+            {counts.completed}
+          </div>
           <div className="text-xs text-muted-foreground">Completed</div>
         </div>
       </div>
 
       <div>
-        <h3 className="mb-2 text-sm font-medium text-foreground">Recent Assignments</h3>
+        <h3 className="mb-2 text-sm font-medium text-foreground">
+          Recent Assignments
+        </h3>
         {recent.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No event assignments yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No event assignments yet.
+          </p>
         ) : (
           <div className="space-y-2">
             {recent.map((a) => (
@@ -126,11 +154,21 @@ export default function OrganizerDashboardPage() {
               >
                 <div>
                   <span className="font-medium">{a.booking_ref}</span>{" "}
-                  <span className="text-muted-foreground">— {a.customer_name}</span>
-                  <span className="ml-2 text-xs text-muted-foreground">{a.event_type}</span>
+                  <span className="text-muted-foreground">
+                    — {a.customer_name}
+                  </span>
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    {a.event_type}
+                  </span>
                 </div>
-                <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[a.status] ?? ""}`}>
-                  {a.status === "confirmed" ? "scheduled" : a.status.replace("_", " ")}
+                <span
+                  className={`rounded-full px-2 py-0.5 text-xs ${
+                    STATUS_STYLES[a.status] ?? ""
+                  }`}
+                >
+                  {a.status === "confirmed"
+                    ? "scheduled"
+                    : a.status.replace("_", " ")}
                 </span>
               </div>
             ))}

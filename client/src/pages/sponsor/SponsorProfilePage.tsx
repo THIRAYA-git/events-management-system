@@ -9,8 +9,7 @@ const inputCls =
 const statusBadge: Record<string, string> = {
   active:
     "bg-green-100 text-green-700 dark:bg-green-500/10 dark:text-green-400",
-  inactive:
-    "bg-gray-100 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400",
+  inactive: "bg-gray-100 text-gray-600 dark:bg-gray-500/10 dark:text-gray-400",
   pending:
     "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/10 dark:text-yellow-400",
 };
@@ -133,7 +132,9 @@ export default function SponsorSettingsPage() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-semibold">Sponsor Profile</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Sponsor Profile
+          </h1>
           <p className="text-sm text-muted-foreground">
             Manage how your company appears to customers at Aazath Plaza.
           </p>
@@ -188,9 +189,7 @@ export default function SponsorSettingsPage() {
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">
-                Industry
-              </label>
+              <label className="mb-1 block text-sm font-medium">Industry</label>
               <input
                 className={inputCls}
                 value={form.industry}

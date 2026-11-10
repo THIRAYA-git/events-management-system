@@ -35,7 +35,9 @@ const Stars = ({ value }: { value: number }) => (
       <Star
         key={n}
         className={`h-4 w-4 ${
-          n <= value ? "fill-amber-400 text-amber-400" : "text-muted-foreground/40"
+          n <= value
+            ? "fill-amber-400 text-amber-400"
+            : "text-muted-foreground/40"
         }`}
       />
     ))}
@@ -201,7 +203,9 @@ const AdminFeedbackPage = () => {
 
   return (
     <div className="p-3 md:p-0.5">
-      <h1 className="text-2xl font-bold text-foreground">Customer Feedback</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        Customer Feedback
+      </h1>
       <p className="mt-1 text-muted-foreground">
         Review ratings for hall events and room stays, hide inappropriate
         reviews and reply to customers.
@@ -235,7 +239,9 @@ const AdminFeedbackPage = () => {
           </p>
         </div>
         <div className="rounded-xl border bg-card p-5">
-          <p className="text-xs font-medium uppercase text-muted-foreground">Hidden</p>
+          <p className="text-xs font-medium uppercase text-muted-foreground">
+            Hidden
+          </p>
           <p className="mt-1 text-3xl font-bold text-foreground">
             {summary?.hidden ?? "–"}
           </p>
@@ -245,7 +251,9 @@ const AdminFeedbackPage = () => {
       {/* Filters */}
       <div className="mt-6 flex flex-wrap items-end gap-4 rounded-xl border bg-card p-5">
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">Rating</label>
+          <label className="mb-1 block text-xs text-muted-foreground">
+            Rating
+          </label>
           <select
             className={selectClass}
             value={filters.rating}
@@ -260,7 +268,9 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">Visibility</label>
+          <label className="mb-1 block text-xs text-muted-foreground">
+            Visibility
+          </label>
           <select
             className={selectClass}
             value={filters.visibility}
@@ -272,7 +282,9 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div>
-          <label className="mb-1 block text-xs text-muted-foreground">Reply</label>
+          <label className="mb-1 block text-xs text-muted-foreground">
+            Reply
+          </label>
           <select
             className={selectClass}
             value={filters.reply}
@@ -298,7 +310,9 @@ const AdminFeedbackPage = () => {
           </select>
         </div>
         <div className="ml-auto w-full sm:w-72">
-          <label className="mb-1 block text-xs text-muted-foreground">Search</label>
+          <label className="mb-1 block text-xs text-muted-foreground">
+            Search
+          </label>
           <div className="relative">
             <Search className="absolute left-3 top-2.5 h-4 w-4 text-muted-foreground" />
             <input
@@ -338,7 +352,10 @@ const AdminFeedbackPage = () => {
             )}
             {!loading && error && (
               <tr>
-                <td colSpan={7} className="px-4 py-10 text-center text-red-600 dark:text-red-400">
+                <td
+                  colSpan={7}
+                  className="px-4 py-10 text-center text-red-600 dark:text-red-400"
+                >
                   {error}
                 </td>
               </tr>
@@ -368,7 +385,9 @@ const AdminFeedbackPage = () => {
                   </td>
                   <td className="px-4 py-3">
                     <div className="text-foreground">{f.event_type}</div>
-                    <div className="text-xs text-muted-foreground">{f.booking_ref}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {f.booking_ref}
+                    </div>
                     {f.room_count > 0 && (
                       <span className="mt-1 inline-block rounded-full bg-blue-50 dark:bg-blue-500/10 px-2 py-0.5 text-xs text-blue-700 dark:text-blue-400">
                         + {f.room_count} room{f.room_count > 1 ? "s" : ""}
@@ -380,11 +399,15 @@ const AdminFeedbackPage = () => {
                   </td>
                   <td className="max-w-xs px-4 py-3">
                     {f.title && (
-                      <div className="font-medium text-foreground">{f.title}</div>
+                      <div className="font-medium text-foreground">
+                        {f.title}
+                      </div>
                     )}
                     <div className="line-clamp-2 text-muted-foreground">
                       {f.comment || (
-                        <span className="italic text-muted-foreground">No comment</span>
+                        <span className="italic text-muted-foreground">
+                          No comment
+                        </span>
                       )}
                     </div>
                   </td>
@@ -476,7 +499,9 @@ const AdminFeedbackPage = () => {
                   </span>
                 </div>
                 {selected.title && (
-                  <p className="font-medium text-foreground">{selected.title}</p>
+                  <p className="font-medium text-foreground">
+                    {selected.title}
+                  </p>
                 )}
                 <p className="whitespace-pre-wrap text-sm text-foreground">
                   {selected.comment || "No comment provided."}
@@ -499,10 +524,14 @@ const AdminFeedbackPage = () => {
                 </div>
 
                 {dialogError && (
-                  <p className="text-sm text-red-600 dark:text-red-400">{dialogError}</p>
+                  <p className="text-sm text-red-600 dark:text-red-400">
+                    {dialogError}
+                  </p>
                 )}
                 {dialogSuccess && (
-                  <p className="text-sm text-emerald-600 dark:text-emerald-400">{dialogSuccess}</p>
+                  <p className="text-sm text-emerald-600 dark:text-emerald-400">
+                    {dialogSuccess}
+                  </p>
                 )}
               </div>
 

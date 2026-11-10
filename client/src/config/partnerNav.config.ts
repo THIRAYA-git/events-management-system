@@ -29,7 +29,7 @@ export const partnerNavByRole: Record<PartnerRole, NavItem[]> = {
       icon: CalendarCheck,
     },
     {
-      label: "Manage Confirmed Events",
+      label: "Manage Events",
       path: "/organizer/events",
       icon: ClipboardCheck,
     },

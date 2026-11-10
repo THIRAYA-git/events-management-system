@@ -155,7 +155,9 @@ export default function MenuItemsPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold">Menu Items</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Menu Items
+        </h1>
         <div className="flex items-center gap-3">
           <input
             type="text"
@@ -248,13 +250,17 @@ export default function MenuItemsPage() {
                     <td className="px-4 py-3">
                       <div className="font-medium">{item.item_name}</div>
                       {item.is_vegetarian && (
-                        <span className="text-xs text-green-600 dark:text-green-400">Vegetarian</span>
+                        <span className="text-xs text-green-600 dark:text-green-400">
+                          Vegetarian
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3">{item.category}</td>
                     <td className="px-4 py-3">
                       LKR {Number(item.price).toFixed(2)}{" "}
-                      <span className="text-xs text-muted-foreground">/ {item.unit}</span>
+                      <span className="text-xs text-muted-foreground">
+                        / {item.unit}
+                      </span>
                     </td>
                     <td className="px-4 py-3">
                       <span

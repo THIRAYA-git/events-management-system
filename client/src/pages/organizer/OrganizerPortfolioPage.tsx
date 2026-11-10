@@ -166,7 +166,7 @@ export default function OrganizerPortfolioPage() {
     <div className="max-w-5xl">
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
           My Portfolio
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -191,10 +191,7 @@ export default function OrganizerPortfolioPage() {
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* ── Form ── */}
-        <form
-          onSubmit={handleSubmit}
-          className="space-y-6 lg:col-span-2"
-        >
+        <form onSubmit={handleSubmit} className="space-y-6 lg:col-span-2">
           <div className="rounded-xl border border-border bg-card p-5 shadow-sm">
             <SectionTitle icon={Briefcase} title="Business details" />
             <div className="grid gap-4 sm:grid-cols-2">
@@ -248,10 +245,7 @@ export default function OrganizerPortfolioPage() {
                 </p>
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label="Service Areas"
-                  hint="Separate towns with commas"
-                >
+                <Field label="Service Areas" hint="Separate towns with commas">
                   <input
                     name="service_areas"
                     value={form.service_areas}

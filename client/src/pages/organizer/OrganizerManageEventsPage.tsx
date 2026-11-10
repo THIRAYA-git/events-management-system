@@ -9,8 +9,10 @@ type Tab = "active" | "completed";
 
 const STATUS_STYLES: Record<string, string> = {
   confirmed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  in_progress: "bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400",
-  completed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  in_progress:
+    "bg-violet-100 dark:bg-violet-500/15 text-violet-700 dark:text-violet-400",
+  completed:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
 };
 const STATUS_LABELS: Record<string, string> = {
   confirmed: "Scheduled",
@@ -40,7 +42,11 @@ export default function OrganizerManageEventsPage() {
       setError(null);
       try {
         const data = await getMyBookingAssignments();
-        setAssignments(data.filter((a) => ["confirmed", "in_progress", "completed"].includes(a.status)));
+        setAssignments(
+          data.filter((a) =>
+            ["confirmed", "in_progress", "completed"].includes(a.status)
+          )
+        );
       } catch {
         setError("Failed to load your events.");
       } finally {
@@ -70,9 +76,12 @@ export default function OrganizerManageEventsPage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-semibold">Manage Confirmed Events</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Manage Confirmed Events
+        </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Events you accepted: plan arrangements, coordinate partners and update progress.
+          Events you accepted: plan arrangements, coordinate partners and update
+          progress.
         </p>
       </div>
 
@@ -120,14 +129,25 @@ export default function OrganizerManageEventsPage() {
             const overdue = a.status !== "completed" && day < today;
             const isToday = a.status !== "completed" && day === today;
             return (
-              <div key={a.id} className="rounded-md border border-border bg-card p-4">
+              <div
+                key={a.id}
+                className="rounded-md border border-border bg-card p-4"
+              >
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="font-medium">{a.booking_ref}</span>{" "}
-                    <span className="text-muted-foreground">— {a.customer_name}</span>
-                    <span className="ml-2 text-xs text-muted-foreground">{a.event_type}</span>
+                    <span className="text-muted-foreground">
+                      — {a.customer_name}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {a.event_type}
+                    </span>
                   </div>
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${STATUS_STYLES[a.status] ?? ""}`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      STATUS_STYLES[a.status] ?? ""
+                    }`}
+                  >
                     {STATUS_LABELS[a.status] ?? a.status}
                   </span>
                 </div>
@@ -152,7 +172,9 @@ export default function OrganizerManageEventsPage() {
                   )}
                 </div>
 
-                <div className="mb-3 text-sm font-medium">{a.role_in_event}</div>
+                <div className="mb-3 text-sm font-medium">
+                  {a.role_in_event}
+                </div>
 
                 <Link
                   to={`/organizer/events/${a.id}`}

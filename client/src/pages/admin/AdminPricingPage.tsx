@@ -40,7 +40,9 @@ export default function AdminPricingPage() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+  }, []);
 
   const openEdit = (r: EventPricing) => {
     setEditing(r);
@@ -55,9 +57,12 @@ export default function AdminPricingPage() {
     if (!editing) return;
     const b = Number(base);
     const bh = both.trim() === "" ? null : Number(both);
-    if (base.trim() === "" || Number.isNaN(b) || b < 0) return setErr("Enter a valid base price (0 or more).");
-    if (bh !== null && (Number.isNaN(bh) || bh < 0)) return setErr("Enter a valid both-halls price or leave it empty.");
-    if (bh !== null && bh < b) return setErr("Both-halls price cannot be lower than the base price.");
+    if (base.trim() === "" || Number.isNaN(b) || b < 0)
+      return setErr("Enter a valid base price (0 or more).");
+    if (bh !== null && (Number.isNaN(bh) || bh < 0))
+      return setErr("Enter a valid both-halls price or leave it empty.");
+    if (bh !== null && bh < b)
+      return setErr("Both-halls price cannot be lower than the base price.");
 
     setSaving(true);
     setErr("");
@@ -68,7 +73,10 @@ export default function AdminPricingPage() {
         description: desc.trim() || null,
         is_active: active,
       });
-      setMsg({ ok: true, text: `${editing.eventType} updated. New bookings will use the new price.` });
+      setMsg({
+        ok: true,
+        text: `${editing.eventType} updated. New bookings will use the new price.`,
+      });
       setEditing(null);
       await load();
     } catch (e: any) {
@@ -81,18 +89,23 @@ export default function AdminPricingPage() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-2xl font-semibold text-gray-900 dark:text-white">Event Pricing</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Event Pricing
+        </h1>
         <p className="text-sm text-gray-500 dark:text-gray-400">
-          Changes apply to new bookings only. Existing bookings keep the price they were made with.
+          Changes apply to new bookings only. Existing bookings keep the price
+          they were made with.
         </p>
       </div>
 
       {msg && (
-        <div className={`rounded-md border px-4 py-2 text-sm ${
-          msg.ok
-            ? "border-green-300 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-200"
-            : "border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/30 dark:text-red-200"
-        }`}>
+        <div
+          className={`rounded-md border px-4 py-2 text-sm ${
+            msg.ok
+              ? "border-green-300 bg-green-50 text-green-800 dark:border-green-700 dark:bg-green-900/30 dark:text-green-200"
+              : "border-red-300 bg-red-50 text-red-800 dark:border-red-700 dark:bg-red-900/30 dark:text-red-200"
+          }`}
+        >
           {msg.text}
         </div>
       )}
@@ -110,22 +123,41 @@ export default function AdminPricingPage() {
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {loading && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">Loading...</td></tr>
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
+                >
+                  Loading...
+                </td>
+              </tr>
             )}
             {!loading && rows.length === 0 && (
-              <tr><td colSpan={5} className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">No event types found</td></tr>
+              <tr>
+                <td
+                  colSpan={5}
+                  className="px-4 py-6 text-center text-gray-500 dark:text-gray-400"
+                >
+                  No event types found
+                </td>
+              </tr>
             )}
             {rows.map((r) => (
-              <tr key={r.eventType} className="text-gray-900 dark:text-gray-100">
+              <tr
+                key={r.eventType}
+                className="text-gray-900 dark:text-gray-100"
+              >
                 <td className="px-4 py-2 font-medium">{r.eventType}</td>
                 <td className="px-4 py-2">{lkr(r.basePrice)}</td>
                 <td className="px-4 py-2">{lkr(r.bothHallsPrice)}</td>
                 <td className="px-4 py-2">
-                  <span className={`rounded-full px-2 py-0.5 text-xs ${
-                    r.isActive
-                      ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200"
-                      : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
-                  }`}>
+                  <span
+                    className={`rounded-full px-2 py-0.5 text-xs ${
+                      r.isActive
+                        ? "bg-green-100 text-green-800 dark:bg-green-900/40 dark:text-green-200"
+                        : "bg-gray-200 text-gray-700 dark:bg-gray-700 dark:text-gray-200"
+                    }`}
+                  >
                     {r.isActive ? "Active" : "Inactive"}
                   </span>
                 </td>
@@ -152,24 +184,56 @@ export default function AdminPricingPage() {
           <div className="space-y-4">
             <div className="space-y-1">
               <Label htmlFor="base">Price for one hall (LKR)</Label>
-              <Input id="base" type="number" min={0} step="0.01" value={base} onChange={(e) => setBase(e.target.value)} />
+              <Input
+                id="base"
+                type="number"
+                min={0}
+                step="0.01"
+                value={base}
+                onChange={(e) => setBase(e.target.value)}
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="both">Price for both halls (LKR, optional)</Label>
-              <Input id="both" type="number" min={0} step="0.01" value={both} onChange={(e) => setBoth(e.target.value)} placeholder="Leave empty to use the base price" />
+              <Input
+                id="both"
+                type="number"
+                min={0}
+                step="0.01"
+                value={both}
+                onChange={(e) => setBoth(e.target.value)}
+                placeholder="Leave empty to use the base price"
+              />
             </div>
             <div className="space-y-1">
               <Label htmlFor="desc">Description</Label>
-              <Textarea id="desc" rows={2} value={desc} onChange={(e) => setDesc(e.target.value)} />
+              <Textarea
+                id="desc"
+                rows={2}
+                value={desc}
+                onChange={(e) => setDesc(e.target.value)}
+              />
             </div>
             <label className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-200">
-              <input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={active}
+                onChange={(e) => setActive(e.target.checked)}
+              />
               Available for booking
             </label>
-            {err && <p className="text-sm text-red-600 dark:text-red-400">{err}</p>}
+            {err && (
+              <p className="text-sm text-red-600 dark:text-red-400">{err}</p>
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditing(null)} disabled={saving}>Cancel</Button>
+            <Button
+              variant="outline"
+              onClick={() => setEditing(null)}
+              disabled={saving}
+            >
+              Cancel
+            </Button>
             <Button onClick={save} disabled={saving}>
               {saving && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               Save price

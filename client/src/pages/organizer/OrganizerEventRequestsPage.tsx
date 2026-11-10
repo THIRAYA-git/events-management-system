@@ -1,8 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { Check, ChevronLeft, ChevronRight, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
-import { getMyBookingAssignments, respondToAssignment } from "@/api/organizer.api";
-import type { OrganizerAssignment, RespondAction } from "@/types/organizer.types";
+import {
+  getMyBookingAssignments,
+  respondToAssignment,
+} from "@/api/organizer.api";
+import type {
+  OrganizerAssignment,
+  RespondAction,
+} from "@/types/organizer.types";
 
 type DateFilter = "all" | "overdue" | "today" | "upcoming";
 type DateBucket = "overdue" | "today" | "upcoming" | "past";
@@ -85,7 +91,10 @@ export default function OrganizerEventRequestsPage() {
     setPage(1);
   }, [dateFilter, pageSize]);
 
-  const handleRespond = async (a: OrganizerAssignment, action: RespondAction) => {
+  const handleRespond = async (
+    a: OrganizerAssignment,
+    action: RespondAction
+  ) => {
     if (
       action === "accept" &&
       !window.confirm(`Accept ${a.booking_ref} (${a.customer_name})?`)
@@ -109,7 +118,9 @@ export default function OrganizerEventRequestsPage() {
       setDecliningId(null);
       setReason("");
     } catch (err: any) {
-      toast.error(err?.response?.data?.message ?? "Could not update this request.");
+      toast.error(
+        err?.response?.data?.message ?? "Could not update this request."
+      );
     } finally {
       setBusyId(null);
     }
@@ -117,22 +128,30 @@ export default function OrganizerEventRequestsPage() {
 
   // Counts respect the status dropdown, so the pills always match the list
   const counts = useMemo(() => {
-    const c: Record<DateFilter, number> = { all: 0, overdue: 0, today: 0, upcoming: 0 };
-    assignments
-      .forEach((a) => {
-        c.all++;
-        const b = getBucket(a);
-        if (b !== "past") c[b]++;
-      });
+    const c: Record<DateFilter, number> = {
+      all: 0,
+      overdue: 0,
+      today: 0,
+      upcoming: 0,
+    };
+    assignments.forEach((a) => {
+      c.all++;
+      const b = getBucket(a);
+      if (b !== "past") c[b]++;
+    });
     return c;
   }, [assignments]);
 
   const filtered = useMemo(() => {
-    const list = assignments.filter((a) => dateFilter === "all" || getBucket(a) === dateFilter);
+    const list = assignments.filter(
+      (a) => dateFilter === "all" || getBucket(a) === dateFilter
+    );
 
     // Overdue: most recent first. Everything else: nearest date first.
     const dir = dateFilter === "overdue" ? -1 : 1;
-    return [...list].sort((a, b) => dir * (toDay(a.event_date) - toDay(b.event_date)));
+    return [...list].sort(
+      (a, b) => dir * (toDay(a.event_date) - toDay(b.event_date))
+    );
   }, [assignments, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
@@ -151,10 +170,14 @@ export default function OrganizerEventRequestsPage() {
   return (
     <div>
       <div className="mb-4">
-        <h1 className="text-xl font-semibold">Event Requests</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Event Requests
+        </h1>
         <p className="mt-0.5 text-sm text-muted-foreground">
           {assignments.length > 0
-            ? `${assignments.length} request${assignments.length === 1 ? "" : "s"} waiting for your response`
+            ? `${assignments.length} request${
+                assignments.length === 1 ? "" : "s"
+              } waiting for your response`
             : "Requests that need your accept or decline appear here."}
         </p>
       </div>
@@ -196,12 +219,19 @@ export default function OrganizerEventRequestsPage() {
             const busy = busyId === a.id;
             const declining = decliningId === a.id;
             return (
-              <div key={a.id} className="rounded-md border border-border bg-card p-4">
+              <div
+                key={a.id}
+                className="rounded-md border border-border bg-card p-4"
+              >
                 <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <span className="font-medium">{a.booking_ref}</span>{" "}
-                    <span className="text-muted-foreground">— {a.customer_name}</span>
-                    <span className="ml-2 text-xs text-muted-foreground">{a.event_type}</span>
+                    <span className="text-muted-foreground">
+                      — {a.customer_name}
+                    </span>
+                    <span className="ml-2 text-xs text-muted-foreground">
+                      {a.event_type}
+                    </span>
                   </div>
                   <span className="rounded-full bg-yellow-100 dark:bg-yellow-500/15 px-2 py-0.5 text-xs text-yellow-700 dark:text-yellow-400">
                     Awaiting your response
@@ -234,14 +264,23 @@ export default function OrganizerEventRequestsPage() {
                 <div className="text-sm text-muted-foreground">
                   {Number(a.agreed_fee) > 0 ? (
                     <>
-                      Agreed fee: <span className="font-medium">LKR {Number(a.agreed_fee).toFixed(2)}</span>
+                      Agreed fee:{" "}
+                      <span className="font-medium">
+                        LKR {Number(a.agreed_fee).toFixed(2)}
+                      </span>
                     </>
                   ) : (
-                    <span className="italic text-muted-foreground">Fee to be agreed</span>
+                    <span className="italic text-muted-foreground">
+                      Fee to be agreed
+                    </span>
                   )}
                 </div>
 
-                {a.notes && <p className="mt-2 text-xs italic text-muted-foreground">Note: {a.notes}</p>}
+                {a.notes && (
+                  <p className="mt-2 text-xs italic text-muted-foreground">
+                    Note: {a.notes}
+                  </p>
+                )}
 
                 {!declining && (
                   <div className="mt-3 flex flex-wrap gap-2">
@@ -250,7 +289,11 @@ export default function OrganizerEventRequestsPage() {
                       disabled={busy}
                       className="inline-flex items-center gap-1.5 rounded-md bg-green-600 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-green-700 disabled:opacity-50"
                     >
-                      {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
+                      {busy ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Check className="h-4 w-4" />
+                      )}
                       Accept
                     </button>
                     <button
@@ -269,7 +312,10 @@ export default function OrganizerEventRequestsPage() {
 
                 {declining && (
                   <div className="mt-3 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50/50 dark:bg-red-500/10 p-3">
-                    <label className="mb-1 block text-xs font-medium text-foreground" htmlFor={`reason-${a.id}`}>
+                    <label
+                      className="mb-1 block text-xs font-medium text-foreground"
+                      htmlFor={`reason-${a.id}`}
+                    >
                       Reason for declining (optional)
                     </label>
                     <textarea
@@ -315,7 +361,10 @@ export default function OrganizerEventRequestsPage() {
               <span className="font-medium text-foreground">
                 {startIdx + 1}–{Math.min(startIdx + pageSize, filtered.length)}
               </span>{" "}
-              of <span className="font-medium text-foreground">{filtered.length}</span>
+              of{" "}
+              <span className="font-medium text-foreground">
+                {filtered.length}
+              </span>
             </span>
             <label className="flex items-center gap-1.5">
               <span className="sr-only">Requests per page</span>
@@ -346,7 +395,10 @@ export default function OrganizerEventRequestsPage() {
 
               {getPageItems(currentPage, totalPages).map((item, i) =>
                 item === "…" ? (
-                  <span key={`gap-${i}`} className="px-1.5 text-muted-foreground">
+                  <span
+                    key={`gap-${i}`}
+                    className="px-1.5 text-muted-foreground"
+                  >
                     …
                   </span>
                 ) : (

@@ -102,7 +102,9 @@ export default function BrowseEventsPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between gap-4">
-        <h1 className="text-xl font-semibold">Browse Events</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Browse Events
+        </h1>
         <input
           type="text"
           value={search}

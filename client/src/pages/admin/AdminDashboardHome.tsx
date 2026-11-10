@@ -247,8 +247,9 @@ export function AdminDashboardHome() {
     ? analytics.statusBreakdown.reduce((sum, s) => sum + s.count, 0)
     : Object.values(statusCounts ?? {}).reduce((a, b) => a + b, 0);
 
-  const roomReservations = analytics?.roomReservationTotals?.total_reservations ?? 0;
-const roomsBooked = analytics?.roomReservationTotals?.total_rooms ?? 0;
+  const roomReservations =
+    analytics?.roomReservationTotals?.total_reservations ?? 0;
+  const roomsBooked = analytics?.roomReservationTotals?.total_rooms ?? 0;
 
   const pendingCount = analytics
     ? analytics.statusBreakdown.find((s) => s.status === "pending")?.count ?? 0
@@ -319,7 +320,9 @@ const roomsBooked = analytics?.roomReservationTotals?.total_rooms ?? 0;
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Dashboard</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        Dashboard
+      </h1>
       <p className="mt-1 text-sm text-muted-foreground">
         {canSeeAnalytics
           ? "Revenue, utilization, and customer insights across Aazath Plaza."
@@ -327,8 +330,8 @@ const roomsBooked = analytics?.roomReservationTotals?.total_rooms ?? 0;
       </p>
 
       {/* ── Summary cards ───────────────────────────────────── */}
-<div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          {canSeeAnalytics && (
+      <div className="mt-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        {canSeeAnalytics && (
           <div className="rounded-lg border border-border bg-card p-5">
             <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
               <Wallet className="h-3.5 w-3.5" /> Total Revenue
@@ -353,18 +356,18 @@ const roomsBooked = analytics?.roomReservationTotals?.total_rooms ?? 0;
           </p>
         </div>
         {canSeeAnalytics && (
-  <div className="rounded-lg border border-border bg-card p-5">
-    <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
-      <BedDouble className="h-3.5 w-3.5" /> Room Reservations
-    </p>
-    <p className="mt-1 text-2xl font-semibold text-foreground">
-      {roomReservations}
-    </p>
-    <p className="mt-1 text-xs text-muted-foreground">
-      {roomsBooked} rooms booked, {periodLabel}
-    </p>
-  </div>
-)}
+          <div className="rounded-lg border border-border bg-card p-5">
+            <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
+              <BedDouble className="h-3.5 w-3.5" /> Room Reservations
+            </p>
+            <p className="mt-1 text-2xl font-semibold text-foreground">
+              {roomReservations}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {roomsBooked} rooms booked, {periodLabel}
+            </p>
+          </div>
+        )}
         <div className="rounded-lg border border-border bg-card p-5">
           <p className="flex items-center gap-1 text-xs font-medium uppercase text-muted-foreground">
             <Users className="h-3.5 w-3.5" /> Pending Approval

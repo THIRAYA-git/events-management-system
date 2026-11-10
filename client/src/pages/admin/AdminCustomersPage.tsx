@@ -3,13 +3,23 @@ import { listUsers } from "@/lib/user.api";
 import { listBookings } from "@/lib/booking.api";
 import type { AdminCustomer } from "@/types/user.types";
 import type { AdminBooking } from "@/types/booking.types";
-import { Loader2, X, Mail, Phone, Calendar, ShieldCheck, ShieldOff } from "lucide-react";
+import {
+  Loader2,
+  X,
+  Mail,
+  Phone,
+  Calendar,
+  ShieldCheck,
+  ShieldOff,
+} from "lucide-react";
 
 const PAGE_SIZE = 20;
 
 const STATUS_BADGE: Record<string, string> = {
-  pending: "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400",
-  confirmed: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  pending:
+    "bg-amber-100 dark:bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  confirmed:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
   cancelled: "bg-red-100 dark:bg-red-500/15 text-red-700 dark:text-red-400",
   completed: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
 };
@@ -23,7 +33,8 @@ export function AdminCustomersPage() {
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState("");
 
-  const [selectedCustomer, setSelectedCustomer] = useState<AdminCustomer | null>(null);
+  const [selectedCustomer, setSelectedCustomer] =
+    useState<AdminCustomer | null>(null);
   const [customerBookings, setCustomerBookings] = useState<AdminBooking[]>([]);
   const [isDrawerLoading, setIsDrawerLoading] = useState(false);
 
@@ -52,7 +63,11 @@ export function AdminCustomersPage() {
     setIsDrawerLoading(true);
     setCustomerBookings([]);
     try {
-      const res = await listBookings({ customer_id: customer.user_id, limit: 50, offset: 0 });
+      const res = await listBookings({
+        customer_id: customer.user_id,
+        limit: 50,
+        offset: 0,
+      });
       setCustomerBookings(res.bookings);
     } catch (err) {
       console.error(err);
@@ -68,11 +83,17 @@ export function AdminCustomersPage() {
 
   const formatDate = (dateStr: string | null) =>
     dateStr
-      ? new Date(dateStr).toLocaleDateString("en-LK", { year: "numeric", month: "short", day: "numeric" })
+      ? new Date(dateStr).toLocaleDateString("en-LK", {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+        })
       : "—";
 
   const formatCurrency = (amount: string) =>
-    `LKR ${Number(amount).toLocaleString("en-LK", { minimumFractionDigits: 2 })}`;
+    `LKR ${Number(amount).toLocaleString("en-LK", {
+      minimumFractionDigits: 2,
+    })}`;
 
   const filteredCustomers = customers.filter((c) => {
     const q = search.toLowerCase();
@@ -85,7 +106,9 @@ export function AdminCustomersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold text-foreground">Customers</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        Customers
+      </h1>
       <p className="mt-1 text-sm text-muted-foreground">
         Browse customer accounts and their booking history.
       </p>
@@ -109,7 +132,9 @@ export function AdminCustomersPage() {
             Loading customers…
           </div>
         ) : error ? (
-          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
+          <div className="py-16 text-center text-sm text-red-600 dark:text-red-400">
+            {error}
+          </div>
         ) : filteredCustomers.length === 0 ? (
           <div className="py-16 text-center text-sm text-muted-foreground">
             No customers match this search.
@@ -130,11 +155,19 @@ export function AdminCustomersPage() {
             <tbody className="divide-y divide-border">
               {filteredCustomers.map((c) => (
                 <tr key={c.user_id} className="hover:bg-muted">
-                  <td className="px-4 py-3 font-medium text-foreground">{c.full_name}</td>
+                  <td className="px-4 py-3 font-medium text-foreground">
+                    {c.full_name}
+                  </td>
                   <td className="px-4 py-3 text-muted-foreground">{c.email}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.phone ?? "—"}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{c.booking_count ?? 0}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatDate(c.created_at)}</td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {c.phone ?? "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {c.booking_count ?? 0}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground">
+                    {formatDate(c.created_at)}
+                  </td>
                   <td className="px-4 py-3">
                     {c.is_active ? (
                       <span className="inline-flex items-center gap-1 rounded-full bg-green-100 dark:bg-green-500/15 px-2 py-0.5 text-xs font-medium text-green-700 dark:text-green-400">
@@ -165,7 +198,8 @@ export function AdminCustomersPage() {
       {!isLoading && total > 0 && (
         <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
           <span>
-            Showing {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, total)} of {total}
+            Showing {(page - 1) * PAGE_SIZE + 1}–
+            {Math.min(page * PAGE_SIZE, total)} of {total}
           </span>
           <div className="flex gap-2">
             <button
@@ -198,9 +232,14 @@ export function AdminCustomersPage() {
                 <h2 className="text-lg font-semibold text-foreground">
                   {selectedCustomer.full_name}
                 </h2>
-                <p className="text-xs text-muted-foreground">Customer #{selectedCustomer.user_id}</p>
+                <p className="text-xs text-muted-foreground">
+                  Customer #{selectedCustomer.user_id}
+                </p>
               </div>
-              <button onClick={closeDrawer} className="rounded-md p-1 hover:bg-muted">
+              <button
+                onClick={closeDrawer}
+                className="rounded-md p-1 hover:bg-muted"
+              >
                 <X className="w-4 h-4 text-muted-foreground" />
               </button>
             </div>
@@ -231,7 +270,9 @@ export function AdminCustomersPage() {
                   Loading bookings…
                 </div>
               ) : customerBookings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No bookings yet.</p>
+                <p className="text-sm text-muted-foreground">
+                  No bookings yet.
+                </p>
               ) : (
                 <div className="space-y-3">
                   {customerBookings.map((b) => (
@@ -240,18 +281,24 @@ export function AdminCustomersPage() {
                       className="rounded-md border border-border p-3 text-sm"
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-foreground">{b.booking_ref}</span>
+                        <span className="font-medium text-foreground">
+                          {b.booking_ref}
+                        </span>
                         <span
-                          className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${STATUS_BADGE[b.status]}`}
+                          className={`rounded-full px-2 py-0.5 text-xs font-medium capitalize ${
+                            STATUS_BADGE[b.status]
+                          }`}
                         >
                           {b.status}
                         </span>
                       </div>
                       <div className="mt-1 text-muted-foreground">
-                        {b.hall_name} · {b.event_type} · {formatDate(b.event_date)}
+                        {b.hall_name} · {b.event_type} ·{" "}
+                        {formatDate(b.event_date)}
                       </div>
                       <div className="mt-1 text-muted-foreground">
-                        {b.guest_count} guests · {formatCurrency(b.total_amount)}
+                        {b.guest_count} guests ·{" "}
+                        {formatCurrency(b.total_amount)}
                       </div>
                     </div>
                   ))}

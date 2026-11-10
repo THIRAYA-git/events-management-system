@@ -25,7 +25,8 @@ const ROLE_LABEL: Record<StaffRole, string> = {
 };
 
 const ROLE_STYLE: Record<StaffRole, string> = {
-  admin: "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400",
+  admin:
+    "bg-purple-50 dark:bg-purple-500/10 text-purple-700 dark:text-purple-400",
   front_desk: "bg-muted text-foreground",
 };
 
@@ -170,7 +171,9 @@ export const AdminStaffPage = () => {
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Manage Staffs</h1>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">
+            Manage Staffs
+          </h1>
           <p className="text-muted-foreground mt-1">
             Create, update, and deactivate staff accounts.
           </p>
@@ -258,10 +261,7 @@ export const AdminStaffPage = () => {
               staff.map((s) => {
                 const isSelf = s.user_id === myId;
                 return (
-                  <tr
-                    key={s.user_id}
-                    className={s.is_active ? "" : "bg-muted"}
-                  >
+                  <tr key={s.user_id} className={s.is_active ? "" : "bg-muted"}>
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div
@@ -276,7 +276,9 @@ export const AdminStaffPage = () => {
                         <div>
                           <div
                             className={`font-medium ${
-                              s.is_active ? "text-foreground" : "text-muted-foreground"
+                              s.is_active
+                                ? "text-foreground"
+                                : "text-muted-foreground"
                             }`}
                           >
                             {s.full_name}
@@ -286,7 +288,9 @@ export const AdminStaffPage = () => {
                               </span>
                             )}
                           </div>
-                          <div className="text-xs text-muted-foreground">{s.email}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {s.email}
+                          </div>
                         </div>
                       </div>
                     </td>
@@ -396,7 +400,10 @@ export const AdminStaffPage = () => {
 
           <div className="space-y-4 py-2">
             <div className="flex flex-col gap-1">
-              <label htmlFor="full_name" className="text-xs text-muted-foreground">
+              <label
+                htmlFor="full_name"
+                className="text-xs text-muted-foreground"
+              >
                 Full name
               </label>
               <input
@@ -451,7 +458,10 @@ export const AdminStaffPage = () => {
             </div>
             {!editing && (
               <div className="flex flex-col gap-1">
-                <label htmlFor="password" className="text-xs text-muted-foreground">
+                <label
+                  htmlFor="password"
+                  className="text-xs text-muted-foreground"
+                >
                   Temporary password
                 </label>
                 <input

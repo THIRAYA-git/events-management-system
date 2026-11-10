@@ -22,10 +22,14 @@ const PERIODS: { value: ReportPeriod; label: string }[] = [
 ];
 
 const STATUS_BADGE: Record<string, string> = {
-  pending: "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30",
-  confirmed: "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-500/30",
-  cancelled: "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-200 dark:ring-rose-500/30",
-  completed: "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-500/30",
+  pending:
+    "bg-amber-50 dark:bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-200 dark:ring-amber-500/30",
+  confirmed:
+    "bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-200 dark:ring-emerald-500/30",
+  cancelled:
+    "bg-rose-50 dark:bg-rose-500/10 text-rose-700 dark:text-rose-400 ring-rose-200 dark:ring-rose-500/30",
+  completed:
+    "bg-blue-50 dark:bg-blue-500/10 text-blue-700 dark:text-blue-400 ring-blue-200 dark:ring-blue-500/30",
 };
 
 const inputClass =
@@ -54,10 +58,10 @@ export function AdminReportsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const { theme } = useTheme();
-const dark = theme === "dark";
-const barColor = dark ? "#a78bfa" : "#7c3aed";
-const tickColor = dark ? "#94a3b8" : "#64748b";
-const gridColor = dark ? "rgba(148,163,184,0.15)" : "rgba(15,23,42,0.08)";
+  const dark = theme === "dark";
+  const barColor = dark ? "#a78bfa" : "#7c3aed";
+  const tickColor = dark ? "#94a3b8" : "#64748b";
+  const gridColor = dark ? "rgba(148,163,184,0.15)" : "rgba(15,23,42,0.08)";
 
   useEffect(() => {
     let cancelled = false;
@@ -170,10 +174,14 @@ const gridColor = dark ? "rgba(148,163,184,0.15)" : "rgba(15,23,42,0.08)";
           Generating report…
         </div>
       ) : error ? (
-        <div className="py-24 text-center text-sm text-red-600 dark:text-red-400">{error}</div>
+        <div className="py-24 text-center text-sm text-red-600 dark:text-red-400">
+          {error}
+        </div>
       ) : report ? (
         <div className={isLoading ? "opacity-60 transition-opacity" : ""}>
-          <p className="mt-4 text-sm font-medium text-foreground">{rangeText}</p>
+          <p className="mt-4 text-sm font-medium text-foreground">
+            {rangeText}
+          </p>
 
           {/* Summary cards */}
           <div className="mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -266,33 +274,36 @@ const gridColor = dark ? "rgba(148,163,184,0.15)" : "rgba(15,23,42,0.08)";
             ) : (
               <div className="h-64">
                 <Bar
-  key={theme}
-  data={{
-    labels: report.breakdown.map((r) => bucketLabel(r.bucket)),
-    datasets: [
-      {
-        label: "Revenue (LKR)",
-        data: report.breakdown.map((r) => r.revenue),
-        backgroundColor: barColor,
-        hoverBackgroundColor: dark ? "#c4b5fd" : "#6d28d9",
-        borderRadius: 4,
-      },
-    ],
-  }}
-  options={{
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: { legend: { display: false } },
-    scales: {
-      x: { ticks: { color: tickColor }, grid: { display: false } },
-      y: {
-        beginAtZero: true,
-        ticks: { color: tickColor },
-        grid: { color: gridColor },
-      },
-    },
-  }}
-/>
+                  key={theme}
+                  data={{
+                    labels: report.breakdown.map((r) => bucketLabel(r.bucket)),
+                    datasets: [
+                      {
+                        label: "Revenue (LKR)",
+                        data: report.breakdown.map((r) => r.revenue),
+                        backgroundColor: barColor,
+                        hoverBackgroundColor: dark ? "#c4b5fd" : "#6d28d9",
+                        borderRadius: 4,
+                      },
+                    ],
+                  }}
+                  options={{
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                      x: {
+                        ticks: { color: tickColor },
+                        grid: { display: false },
+                      },
+                      y: {
+                        beginAtZero: true,
+                        ticks: { color: tickColor },
+                        grid: { color: gridColor },
+                      },
+                    },
+                  }}
+                />
               </div>
             )}
           </div>

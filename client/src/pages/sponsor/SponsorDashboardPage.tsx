@@ -159,7 +159,9 @@ export default function SponsorDashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-xl font-semibold">Dashboard</h1>
+      <h1 className="text-2xl font-bold tracking-tight text-foreground">
+        Dashboard
+      </h1>
 
       {/* Profile summary */}
       <div className="flex items-center gap-4 rounded-md border border-border bg-card p-4">

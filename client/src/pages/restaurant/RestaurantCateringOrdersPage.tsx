@@ -171,9 +171,10 @@ export default function RestaurantCateringOrdersPage() {
 
   return (
     <div>
-      <div className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium hover:bg-muted">
-        <h1 className="text-xl font-semibold">Catering Orders</h1>
-        <div className="rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
+        <h1 className="mb-6 text-2xl font-bold tracking-tight text-foreground">
+          Catering Orders
+        </h1>
+        <div className="mb-4 rounded-md border border-border bg-card px-3 py-2 text-sm font-medium">
           {canClear && (
             <button
               onClick={handleClearDelivered}
@@ -196,7 +197,7 @@ export default function RestaurantCateringOrdersPage() {
             ))}
           </select>
         </div>
-      </div>
+      
 
       <div className="mb-4 flex flex-wrap gap-2">
         {DATE_FILTERS.map((f) => (

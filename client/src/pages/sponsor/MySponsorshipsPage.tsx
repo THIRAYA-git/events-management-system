@@ -147,7 +147,9 @@ export default function MySponsorshipsPage() {
   return (
     <div>
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-xl font-semibold">My Sponsorships</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          My Sponsorships
+        </h1>
         <select
           value={statusFilter}
           onChange={(e) => setStatusFilter(e.target.value)}
