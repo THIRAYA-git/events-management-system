@@ -2,7 +2,6 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import {
   ArrowRight,
-  BedDouble,
   Check,
   ChevronLeft,
   ChevronRight,
@@ -13,6 +12,7 @@ import {
   Sparkles,
   Star,
   Users,
+  X,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import PageHero from "@/components/common/PageHero";
@@ -25,30 +25,32 @@ import {
   type UpcomingBookingSummary,
 } from "@/api/myUpcomingBooking.api";
 
-/* ────────────────────────────────────────────────────────────
-   IMAGE PLACEHOLDERS
-   Drop your real photos into the /public folder using these
-   exact paths (or change the paths below):
+// Local images (served from client/public). Note: NO "/public" in the path.
+const HALL_IMAGES = ["/images/halls/hall-1.jpg", "/images/halls/hall-2.jpg"];
 
-   public/images/halls/hall-1.jpg
-   public/images/halls/hall-2.jpg
-   public/images/rooms/room-1.jpg … room-5.jpg
-
-   Halls: an image_url from the database wins; if there is none,
-   the file below is used. If the file is missing too, a neutral
-   "Add photo" box is shown instead of a broken image.
-   ──────────────────────────────────────────────────────────── */
-const HALL_PLACEHOLDERS = ["/images/halls/hall-1.jpg", "/images/halls/hall-2.jpg"];
-
-const ROOMS = [
-  { id: 1, name: "Room 1", image: "/images/rooms/room-1.jpg" },
-  { id: 2, name: "Room 2", image: "/images/rooms/room-2.jpg" },
-  { id: 3, name: "Room 3", image: "/images/rooms/room-3.jpg" },
-  { id: 4, name: "Room 4", image: "/images/rooms/room-4.jpg" },
-  { id: 5, name: "Room 5", image: "/images/rooms/room-5.jpg" },
+const GALLERY = [
+  { id: 1, caption: "Guest lounge corner", image: "/images/gallery/gallery-1.jpg" },
+  {
+    id: 2,
+    caption: "3rd floor staircase",
+    image: "/images/gallery/gallery-2.jpg",
+  },
+  {
+    id: 3,
+    caption: "Hall 2 – Banquet setup",
+    image: "/images/gallery/gallery-3.jpg",
+  },
+  {
+    id: 4,
+    caption: "Hall 1 – Stage",
+    image: "/images/gallery/gallery-4.jpg",
+  },
+  {
+    id: 5,
+    caption: "Hall 1 – Main floor",
+    image: "/images/gallery/gallery-5.jpg",
+  },
 ];
-
-const ROOM_PRICE_PER_DAY = 5000; // LKR, from FR-009
 
 const PARTNER_CARDS = [
   {
@@ -175,117 +177,102 @@ function PhotoOrPlaceholder({
   );
 }
 
-/* Rooms shown one by one: each photo cross-fades into the next.
+/* Images shown one by one: each photo cross-fades into the next.
    Auto-advances, pauses on hover/focus, and has arrows + dots.
    With "reduce motion" on, it stops auto-playing. */
-function RoomsSlideshow({
-  rooms,
-  intervalMs = 4500,
+function GalleryGrid({
+  items,
 }: {
-  rooms: { id: number; name: string; image: string }[];
-  intervalMs?: number;
+  items: { id: number; caption: string; image: string }[];
 }) {
-  const [index, setIndex] = useState(0);
-  const [paused, setPaused] = useState(false);
-  const [failed, setFailed] = useState<Record<number, boolean>>({});
-  const total = rooms.length;
+  const [open, setOpen] = useState<number | null>(null);
+  const total = items.length;
 
   useEffect(() => {
-    if (paused || prefersReducedMotion()) return;
-    const timer = setInterval(() => setIndex((i) => (i + 1) % total), intervalMs);
-    return () => clearInterval(timer);
-  }, [paused, total, intervalMs]);
-
-  const go = (i: number) => setIndex((i + total) % total);
+    if (open === null) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(null);
+      if (e.key === "ArrowRight") setOpen((i) => (i === null ? i : (i + 1) % total));
+      if (e.key === "ArrowLeft") setOpen((i) => (i === null ? i : (i - 1 + total) % total));
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open, total]);
 
   return (
-    <div
-      className="group relative mt-6 aspect-[16/9] overflow-hidden rounded-xl border border-border bg-muted shadow-sm sm:aspect-[21/9]"
-      onMouseEnter={() => setPaused(true)}
-      onMouseLeave={() => setPaused(false)}
-      onFocus={() => setPaused(true)}
-      onBlur={() => setPaused(false)}
-      aria-roledescription="carousel"
-      aria-label="Accommodation rooms"
-    >
-      {rooms.map((room, i) => {
-        const active = i === index;
-        return (
-          <div
-            key={room.id}
-            aria-hidden={!active}
-            className={`absolute inset-0 transition-opacity duration-1000 ease-in-out motion-reduce:transition-none ${
-              active ? "opacity-100" : "opacity-0"
+    <>
+      {/* fixed-size grid: 1 large + 4 small */}
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:h-[420px] sm:grid-cols-4 sm:grid-rows-2">
+        {items.slice(0, 5).map((item, i) => (
+          <button
+            key={item.id}
+            type="button"
+            onClick={() => setOpen(i)}
+            aria-label={`View ${item.caption}`}
+            className={`group relative overflow-hidden rounded-xl border border-border bg-muted ${
+              i === 0
+                ? "col-span-2 aspect-[16/10] sm:row-span-2 sm:aspect-auto"
+                : "aspect-square sm:aspect-auto"
             }`}
           >
-            {failed[room.id] ? (
-              <div className="flex h-full w-full flex-col items-center justify-center gap-2 text-muted-foreground">
-                <BedDouble className="h-9 w-9 opacity-60" />
-                <span className="text-sm font-medium">Add {room.name} photo</span>
-              </div>
-            ) : (
-              <img
-                src={room.image}
-                alt={room.name}
-                onError={() => setFailed((f) => ({ ...f, [room.id]: true }))}
-                // slow zoom while the slide is showing
-                className={`h-full w-full object-cover transition-transform duration-[6000ms] ease-out motion-reduce:transition-none ${
-                  active ? "scale-100" : "scale-110"
-                }`}
-              />
-            )}
-          </div>
-        );
-      })}
-
-      {/* caption */}
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-5 pt-16">
-        <div className="flex items-end justify-between gap-3">
-          <div key={rooms[index].id} className="animate-in fade-in slide-in-from-bottom-2 duration-700">
-            <h3 className="text-xl font-semibold text-white">{rooms[index].name}</h3>
-            <p className="text-sm text-white/80">
-              LKR {ROOM_PRICE_PER_DAY.toLocaleString()} per day
-            </p>
-          </div>
-          <span className="text-xs font-medium text-white/80">
-            {index + 1} / {total}
-          </span>
-        </div>
-      </div>
-
-      {/* arrows */}
-      <button
-        type="button"
-        onClick={() => go(index - 1)}
-        aria-label="Previous room"
-        className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white opacity-0 transition-opacity hover:bg-black/60 focus-visible:opacity-100 group-hover:opacity-100"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </button>
-      <button
-        type="button"
-        onClick={() => go(index + 1)}
-        aria-label="Next room"
-        className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-black/40 p-2 text-white opacity-0 transition-opacity hover:bg-black/60 focus-visible:opacity-100 group-hover:opacity-100"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </button>
-
-      {/* dots */}
-      <div className="absolute right-4 top-4 flex gap-1.5">
-        {rooms.map((room, i) => (
-          <button
-            key={room.id}
-            type="button"
-            onClick={() => go(i)}
-            aria-label={`Show ${room.name}`}
-            className={`h-2 rounded-full transition-all duration-300 ${
-              i === index ? "w-6 bg-white" : "w-2 bg-white/50 hover:bg-white/80"
-            }`}
-          />
+            <img
+              src={item.image}
+              alt={item.caption}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105 motion-reduce:transition-none motion-reduce:group-hover:scale-100"
+            />
+            <span className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent px-3 pb-2 pt-8 text-left text-xs font-medium text-white sm:text-sm">
+              {item.caption}
+            </span>
+          </button>
         ))}
       </div>
-    </div>
+
+      {/* lightbox: shows the full, uncropped photo */}
+      {open !== null && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4"
+          onClick={() => setOpen(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={items[open].caption}
+        >
+          <img
+            src={items[open].image}
+            alt={items[open].caption}
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[85vh] max-w-full rounded-lg object-contain"
+          />
+          <p className="absolute bottom-5 left-0 right-0 text-center text-sm font-medium text-white">
+            {items[open].caption} · {open + 1} / {total}
+          </p>
+          <button
+            type="button"
+            onClick={() => setOpen(null)}
+            aria-label="Close"
+            className="absolute right-4 top-4 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+          >
+            <X className="h-5 w-5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setOpen((open - 1 + total) % total); }}
+            aria-label="Previous photo"
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+          >
+            <ChevronLeft className="h-6 w-6" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => { e.stopPropagation(); setOpen((open + 1) % total); }}
+            aria-label="Next photo"
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
+          >
+            <ChevronRight className="h-6 w-6" />
+          </button>
+        </div>
+      )}
+    </>
   );
 }
 
@@ -302,13 +289,16 @@ export default function HomePage() {
       const [hallsRes, feedbackRes, upcomingRes] = await Promise.allSettled([
         getAllHalls(),
         getPublicFeedback(4),
-        user?.role === "customer" ? getMyNextUpcomingBooking() : Promise.resolve(null),
+        user?.role === "customer"
+          ? getMyNextUpcomingBooking()
+          : Promise.resolve(null),
       ]);
 
       if (hallsRes.status === "fulfilled") setHalls(hallsRes.value);
       else console.error("Halls failed:", hallsRes.reason);
 
-      if (feedbackRes.status === "fulfilled") setTestimonials(feedbackRes.value);
+      if (feedbackRes.status === "fulfilled")
+        setTestimonials(feedbackRes.value);
       else console.error("Feedback failed:", feedbackRes.reason);
 
       if (upcomingRes.status === "fulfilled") setUpcoming(upcomingRes.value);
@@ -322,8 +312,10 @@ export default function HomePage() {
   // If the API returns no halls, still show two placeholder cards.
   const hallCards: Array<Partial<Hall> & { key: string }> =
     halls.length > 0
-      ? halls.map((h) => ({ ...h, key: String(h.hall_id) }))
-      : HALL_PLACEHOLDERS.map((_, i) => ({
+      ? [...halls]
+          .sort((a, b) => a.hall_id - b.hall_id)
+          .map((h) => ({ ...h, key: String(h.hall_id) }))
+      : HALL_IMAGES.map((_, i) => ({
           key: `placeholder-${i}`,
           hall_name: `Hall ${i + 1}`,
           description: "Hall description goes here.",
@@ -366,9 +358,15 @@ export default function HomePage() {
                   </p>
                   <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                     <div>
-                      <span className="font-medium text-foreground">{upcoming.booking_ref}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">{upcoming.event_type}</span>
-                      <span className="ml-2 text-sm text-muted-foreground">{upcoming.hall_name}</span>
+                      <span className="font-medium text-foreground">
+                        {upcoming.booking_ref}
+                      </span>
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        {upcoming.event_type}
+                      </span>
+                      <span className="ml-2 text-sm text-muted-foreground">
+                        {upcoming.hall_name}
+                      </span>
                     </div>
                     <div className="flex items-center gap-3">
                       <span className="text-sm text-muted-foreground">
@@ -389,7 +387,9 @@ export default function HomePage() {
 
             {/* ── Hall showcase ────────────────────────────────── */}
             <Reveal>
-              <h2 className="text-2xl font-semibold text-foreground">Our Halls</h2>
+              <h2 className="text-2xl font-semibold text-foreground">
+                Our Halls
+              </h2>
               <p className="mt-1 text-sm text-muted-foreground">
                 Choose the space that fits your celebration.
               </p>
@@ -400,24 +400,30 @@ export default function HomePage() {
                   <div className="group overflow-hidden rounded-xl border border-border bg-card shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg motion-reduce:hover:translate-y-0">
                     <div className="overflow-hidden">
                       <PhotoOrPlaceholder
-                        src={hall.image_url || HALL_PLACEHOLDERS[i]}
+                        src={HALL_IMAGES[i % HALL_IMAGES.length]}
                         alt={hall.hall_name ?? `Hall ${i + 1}`}
                         label={`Add Hall ${i + 1} photo`}
                         className="h-52 w-full"
                       />
                     </div>
                     <div className="p-5">
-                      <h3 className="text-lg font-semibold text-foreground">{hall.hall_name}</h3>
+                      <h3 className="text-lg font-semibold text-foreground">
+                        {hall.hall_name}
+                      </h3>
                       {hall.description && (
-                        <p className="mt-1 text-sm text-muted-foreground">{hall.description}</p>
+                        <p className="mt-1 text-sm text-muted-foreground">
+                          {hall.description}
+                        </p>
                       )}
                       <div className="mt-4 flex flex-wrap items-center gap-2 text-xs font-medium text-violet-700 dark:text-violet-400">
                         <span className="flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-500/10 px-2.5 py-1">
-                          <Users className="h-3.5 w-3.5" /> {hall.capacity} guests
+                          <Users className="h-3.5 w-3.5" /> {hall.capacity}{" "}
+                          guests
                         </span>
                         {hall.floor_number !== undefined && (
                           <span className="flex items-center gap-1 rounded-full bg-violet-50 dark:bg-violet-500/10 px-2.5 py-1">
-                            <MapPin className="h-3.5 w-3.5" /> Floor {hall.floor_number}
+                            <MapPin className="h-3.5 w-3.5" /> Floor{" "}
+                            {hall.floor_number}
                           </span>
                         )}
                       </div>
@@ -427,24 +433,29 @@ export default function HomePage() {
               ))}
             </div>
 
-            {/* ── Accommodation rooms ──────────────────────────── */}
+            {/* ── other images ──────────────────────────── */}
             <div className="mt-14">
               <Reveal>
-                <h2 className="text-2xl font-semibold text-foreground">Stay With Us</h2>
+                <h2 className="text-2xl font-semibold text-foreground">
+                  Take a Look Around
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Five rooms for your guests, LKR {ROOM_PRICE_PER_DAY.toLocaleString()} per room per day.
+                  A glimpse of our halls, stage, and lounge areas.
                 </p>
               </Reveal>
-              <RoomsSlideshow rooms={ROOMS} />
+              <GalleryGrid items={GALLERY} />
             </div>
 
             {/* ── Testimonials ─────────────────────────────────── */}
             {testimonials.length > 0 && (
               <div className="mt-14">
                 <Reveal>
-                  <h2 className="text-2xl font-semibold text-foreground">What Our Customers Say</h2>
+                  <h2 className="text-2xl font-semibold text-foreground">
+                    What Our Customers Say
+                  </h2>
                   <p className="mt-1 text-sm text-muted-foreground">
-                    Reviews from families and organisations who celebrated with us.
+                    Reviews from families and organisations who celebrated with
+                    us.
                   </p>
                 </Reveal>
                 <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -464,7 +475,9 @@ export default function HomePage() {
                           ))}
                         </div>
                         {t.comment && (
-                          <p className="mt-3 text-sm text-foreground">"{t.comment}"</p>
+                          <p className="mt-3 text-sm text-foreground">
+                            "{t.comment}"
+                          </p>
                         )}
                         <p className="mt-3 text-xs font-medium text-muted-foreground">
                           {t.customer_name} · {t.event_type}
@@ -479,9 +492,12 @@ export default function HomePage() {
             {/* ── Partner call-to-action ───────────────────────── */}
             <div className="mt-14">
               <Reveal>
-                <h2 className="text-2xl font-semibold text-foreground">Grow with Aazath Plaza</h2>
+                <h2 className="text-2xl font-semibold text-foreground">
+                  Grow with Aazath Plaza
+                </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
-                  Partner with us and put your business in front of every event we host.
+                  Partner with us and put your business in front of every event
+                  we host.
                 </p>
               </Reveal>
               <div className="mt-6 grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -494,8 +510,12 @@ export default function HomePage() {
                       <p className="mt-4 text-xs font-semibold uppercase tracking-wide text-violet-700 dark:text-violet-400">
                         {card.eyebrow}
                       </p>
-                      <h3 className="mt-1 text-lg font-semibold text-foreground">{card.title}</h3>
-                      <p className="mt-1 text-sm text-muted-foreground">{card.description}</p>
+                      <h3 className="mt-1 text-lg font-semibold text-foreground">
+                        {card.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-muted-foreground">
+                        {card.description}
+                      </p>
                       <ul className="mt-4 space-y-2 text-sm text-foreground">
                         {card.points.map((p) => (
                           <li key={p} className="flex items-start gap-2">
