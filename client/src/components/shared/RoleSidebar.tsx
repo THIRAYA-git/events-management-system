@@ -29,7 +29,9 @@ const RoleSidebar = ({ items, isOpen, onClose }: Props) => {
       <aside
         className={`fixed inset-y-0 left-0 z-50 flex w-64 transform flex-col border-r border-white/15
         bg-violet-700 text-white transition-[transform,width] duration-200 ease-in-out dark:border-white/10 dark:bg-slate-900
-        lg:static lg:z-auto lg:translate-x-0 ${collapsed ? "lg:w-[72px]" : "lg:w-64"}
+        lg:static lg:z-auto lg:translate-x-0 ${
+          collapsed ? "lg:w-[72px]" : "lg:w-64"
+        }
         ${isOpen ? "translate-x-0" : "-translate-x-full"}`}
       >
         {/* Brand */}
@@ -42,7 +44,9 @@ const RoleSidebar = ({ items, isOpen, onClose }: Props) => {
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white/15 text-sm font-bold">
               AP
             </div>
-            <span className={`text-lg font-semibold ${hideWhenCollapsed}`}>Aazath Plaza</span>
+            <span className={`text-lg font-semibold ${hideWhenCollapsed}`}>
+              Aazath Plaza
+            </span>
           </div>
           <button
             onClick={onClose}
@@ -63,12 +67,10 @@ const RoleSidebar = ({ items, isOpen, onClose }: Props) => {
               onClick={onClose}
               title={collapsed ? label : undefined}
               className={({ isActive }) =>
-                `flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors
-                ${collapsed ? "lg:justify-center lg:px-0" : ""}
-                ${
+                `flex items-center gap-3 rounded-lg px-4 py-3 transition-colors ${
                   isActive
-                    ? "bg-white/15 text-white dark:bg-violet-600/30 dark:text-violet-200"
-                    : "text-white/70 hover:bg-white/10 hover:text-white dark:text-slate-400 dark:hover:bg-white/5 dark:hover:text-white"
+                    ? "bg-white text-purple-700 font-semibold shadow-sm"
+                    : "text-white/80 hover:bg-white/10 hover:text-white"
                 }`
               }
             >
@@ -83,7 +85,9 @@ const RoleSidebar = ({ items, isOpen, onClose }: Props) => {
           <button
             onClick={() => setCollapsed((c) => !c)}
             className={`hidden w-full items-center gap-3 rounded-md px-3 py-2 text-sm text-white/70
-            hover:bg-white/10 hover:text-white lg:flex ${collapsed ? "lg:justify-center lg:px-0" : ""}`}
+            hover:bg-white/10 hover:text-white lg:flex ${
+              collapsed ? "lg:justify-center lg:px-0" : ""
+            }`}
             aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
             title={collapsed ? "Expand sidebar" : undefined}
           >
@@ -102,7 +106,9 @@ const RoleSidebar = ({ items, isOpen, onClose }: Props) => {
           >
             <UserAvatar src={user?.profile_image} name={user?.name} size={36} />
             <div className={`min-w-0 flex-1 ${hideWhenCollapsed}`}>
-              <p className="truncate text-sm font-medium">{user?.name ?? "User"}</p>
+              <p className="truncate text-sm font-medium">
+                {user?.name ?? "User"}
+              </p>
               <p className="truncate text-xs text-white/60">{user?.email}</p>
             </div>
             <button

@@ -29,7 +29,11 @@ import {
 const HALL_IMAGES = ["/images/halls/hall-1.jpg", "/images/halls/hall-2.jpg"];
 
 const GALLERY = [
-  { id: 1, caption: "Guest lounge corner", image: "/images/gallery/gallery-1.jpg" },
+  {
+    id: 1,
+    caption: "Guest lounge corner",
+    image: "/images/gallery/gallery-1.jpg",
+  },
   {
     id: 2,
     caption: "3rd floor staircase",
@@ -192,8 +196,10 @@ function GalleryGrid({
     if (open === null) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") setOpen(null);
-      if (e.key === "ArrowRight") setOpen((i) => (i === null ? i : (i + 1) % total));
-      if (e.key === "ArrowLeft") setOpen((i) => (i === null ? i : (i - 1 + total) % total));
+      if (e.key === "ArrowRight")
+        setOpen((i) => (i === null ? i : (i + 1) % total));
+      if (e.key === "ArrowLeft")
+        setOpen((i) => (i === null ? i : (i - 1 + total) % total));
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -256,7 +262,10 @@ function GalleryGrid({
           </button>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setOpen((open - 1 + total) % total); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen((open - 1 + total) % total);
+            }}
             aria-label="Previous photo"
             className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
           >
@@ -264,7 +273,10 @@ function GalleryGrid({
           </button>
           <button
             type="button"
-            onClick={(e) => { e.stopPropagation(); setOpen((open + 1) % total); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              setOpen((open + 1) % total);
+            }}
             aria-label="Next photo"
             className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/10 p-2 text-white hover:bg-white/20"
           >
