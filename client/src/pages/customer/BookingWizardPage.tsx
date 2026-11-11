@@ -246,7 +246,7 @@ export default function BookingWizardPage() {
                 />
               )}
             </dl>
-            <div className="flex justify-between rounded-lg border border-violet-100 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 px-4 py-3 text-base font-semibold text-violet-900 dark:text-violet-200">
+            <div className="mt-3 flex justify-between rounded-lg border border-violet-100 dark:border-violet-500/30 bg-violet-50 dark:bg-violet-500/10 px-4 py-3 text-base font-semibold text-violet-900 dark:text-violet-200">
               <span>Total</span>
               <span>LKR {details.pricing.totalAmount.toLocaleString()}</span>
             </div>
