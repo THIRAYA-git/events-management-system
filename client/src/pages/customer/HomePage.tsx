@@ -13,6 +13,7 @@ import {
   Star,
   Users,
   X,
+  Quote,
 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import PageHero from "@/components/common/PageHero";
@@ -288,6 +289,96 @@ function GalleryGrid({
   );
 }
 
+const MIN_FOR_MARQUEE = 1; // below this, show a static row instead of repeating cards
+
+function TestimonialCard({
+  t,
+  className = "",
+  hidden = false,
+}: {
+  t: PublicFeedback;
+  className?: string;
+  hidden?: boolean;
+}) {
+  return (
+    <div
+      aria-hidden={hidden}
+      className={`relative w-72 shrink-0 rounded-2xl border border-border bg-card p-5 shadow-sm sm:w-80 ${className}`}
+    >
+      <Quote className="absolute right-4 top-4 h-8 w-8 text-violet-200 dark:text-violet-500/20" />
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-violet-100 text-sm font-semibold text-violet-700 dark:bg-violet-500/20 dark:text-violet-300">
+          {t.customer_name?.charAt(0).toUpperCase() ?? "?"}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {t.customer_name}
+          </p>
+          <p className="text-xs text-muted-foreground">{t.event_type}</p>
+        </div>
+      </div>
+      <div className="mt-3 flex items-center gap-1">
+        {Array.from({ length: 5 }).map((_, s) => (
+          <Star
+            key={s}
+            className={`h-4 w-4 ${
+              s < t.rating
+                ? "fill-yellow-400 text-yellow-400"
+                : "text-muted-foreground/40"
+            }`}
+          />
+        ))}
+      </div>
+      {t.comment && (
+        <p className="mt-3 line-clamp-4 text-sm text-foreground">
+          "{t.comment}"
+        </p>
+      )}
+    </div>
+  );
+}
+
+function TestimonialMarquee({ items }: { items: PublicFeedback[] }) {
+  const animate =
+    items.length >= MIN_FOR_MARQUEE && !prefersReducedMotion();
+
+  if (!animate) {
+    return (
+      <div className="mt-6 flex gap-4 overflow-x-auto pb-2 sm:justify-center">
+        {items.map((t) => (
+          <TestimonialCard key={t.feedback_id} t={t} />
+        ))}
+      </div>
+    );
+  }
+
+  // make sure one half of the track is wider than the screen
+  const base =
+    items.length >= 6
+      ? items
+      : Array.from({ length: Math.ceil(6 / items.length) }, () => items).flat();
+  const duration = base.length * 6; // seconds, ~6s per card
+
+  return (
+    <div className="mt-6 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
+      <style>{`@keyframes ems-marquee{from{transform:translateX(0)}to{transform:translateX(-50%)}}`}</style>
+      <div
+        className="flex w-max py-2 hover:[animation-play-state:paused]"
+        style={{ animation: `ems-marquee ${duration}s linear infinite` }}
+      >
+        {[...base, ...base].map((t, i) => (
+          <TestimonialCard
+            key={`${t.feedback_id}-${i}`}
+            t={t}
+            className="mr-4"
+            hidden={i >= base.length}
+          />
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function HomePage() {
   const { user } = useAuth();
   const [halls, setHalls] = useState<Hall[]>([]);
@@ -459,47 +550,19 @@ export default function HomePage() {
             </div>
 
             {/* ── Testimonials ─────────────────────────────────── */}
-            {testimonials.length > 0 && (
-              <div className="mt-14">
-                <Reveal>
-                  <h2 className="text-2xl font-semibold text-foreground">
-                    What Our Customers Say
-                  </h2>
-                  <p className="mt-1 text-sm text-muted-foreground">
-                    Reviews from families and organisations who celebrated with
-                    us.
-                  </p>
-                </Reveal>
-                <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-                  {testimonials.map((t, i) => (
-                    <Reveal key={t.feedback_id} delay={i * 120}>
-                      <div className="h-full rounded-xl border border-border border-l-4 border-l-violet-500 bg-card p-5 shadow-sm">
-                        <div className="flex items-center gap-1">
-                          {Array.from({ length: 5 }).map((_, s) => (
-                            <Star
-                              key={s}
-                              className={`h-4 w-4 ${
-                                s < t.rating
-                                  ? "fill-yellow-400 text-yellow-400"
-                                  : "text-muted-foreground/40"
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        {t.comment && (
-                          <p className="mt-3 text-sm text-foreground">
-                            "{t.comment}"
-                          </p>
-                        )}
-                        <p className="mt-3 text-xs font-medium text-muted-foreground">
-                          {t.customer_name} · {t.event_type}
-                        </p>
-                      </div>
-                    </Reveal>
-                  ))}
-                </div>
-              </div>
-            )}
+           {testimonials.length > 0 && (
+  <div className="mt-14">
+    <Reveal>
+      <h2 className="text-2xl font-semibold text-foreground">
+        What Our Customers Say
+      </h2>
+      <p className="mt-1 text-sm text-muted-foreground">
+        Reviews from families and organisations who celebrated with us.
+      </p>
+    </Reveal>
+    <TestimonialMarquee items={testimonials} />
+  </div>
+)}
 
             {/* ── Partner call-to-action ───────────────────────── */}
             <div className="mt-14">
