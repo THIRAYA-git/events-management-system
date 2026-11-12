@@ -46,7 +46,6 @@ The restored database holds the schema and the reference data (halls, rooms, eve
 ```bash
 cd server
 npm install
-cp .env.example .env
 npm run dev
 ```
 
@@ -119,10 +118,8 @@ Supporting features: SMS and email notifications, event timeline management, cus
 2. **Customer:** optionally add a catering order and a room reservation.
 3. **Administrator or front desk:** approve the booking and assign an event organizer.
 4. **Organizer, sponsor and restaurant:** show the event request, sponsorship offer and catering order.
-5. **Payment:** pay online with the PayHere sandbox card, or record a cash payment from the **Bookings** page, then download the PDF invoice.
+5. **Payment:** pay online with the PayHere sandbox card, or record a cash payment from the **Bookings** page as a front desk staff, then download the PDF invoice.
 6. **Administrator:** show the dashboard analytics, scheduled events and PDF report export.
-
-PayHere sandbox test card: Visa `4916217501611292`, any future expiry (for example `12/30`), any 3-digit CVV, any cardholder name. No real money is charged.
 
 ---
 

@@ -312,7 +312,7 @@ export default function MyBookingsPage() {
                 Status
               </p>
               <div
-                className="mt-4 flex gap-2 overflow-x-auto pb-1 lg:mt-0 lg:flex-col lg:gap-1.5 lg:overflow-visible lg:pb-0"
+  className="mt-4 flex flex-wrap gap-2 lg:mt-0 lg:flex-col lg:gap-1.5"
                 role="tablist"
                 aria-label="Filter bookings"
               >

@@ -24,7 +24,8 @@ export default function AuthLayout({
   formWidthClass = "max-w-md",
 }: AuthLayoutProps) {
   return (
-    <div className="grid min-h-screen lg:grid-cols-2">
+    <div className="grid min-h-screen grid-cols-[minmax(0,1fr)] lg:grid-cols-2">
+      {" "}
       {/* Brand panel — stays put while a long form (register) scrolls */}
       <aside className="relative hidden bg-violet-800 text-white lg:sticky lg:top-0 lg:flex lg:h-screen lg:self-start">
         <div
@@ -63,13 +64,12 @@ export default function AuthLayout({
           </p>
         </div>
       </aside>
-
       {/* Form panel */}
-      <main className="flex items-center justify-center bg-card px-6 py-12">
+      <main className="flex min-w-0 items-center justify-center bg-card px-4 py-8 sm:px-6 sm:py-12">
         <div
           className={`auth-shine w-full rounded-2xl p-[2px] ${formWidthClass}`}
         >
-          <div className="rounded-2xl bg-card p-8">
+          <div className="rounded-2xl bg-card p-5 sm:p-8">
             <p className="mb-8 text-lg font-semibold text-violet-700 dark:text-violet-400 lg:hidden">
               Aazath Plaza
             </p>
