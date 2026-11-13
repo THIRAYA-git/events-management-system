@@ -5,6 +5,7 @@ import GuidedTour, {
   type TourStep,
 } from "@/components/tour/GuidedTour";
 import { useAuth } from "@/context/AuthContext";
+import Footer from "@/components/Footer";
 
 const steps: TourStep[] = [
   {
@@ -47,16 +48,17 @@ const CustomerLayout = () => {
   );
 
   return (
-    <div className="min-h-screen bg-muted">
-      <CustomerNavbar onRestartTour={isCustomer ? tour.restart : undefined} />
-      <main>
-        <Outlet />
-      </main>
-      {isCustomer && (
-        <GuidedTour steps={steps} open={tour.open} onClose={tour.close} />
-      )}
-    </div>
-  );
+  <div className="flex min-h-screen flex-col bg-muted">
+    <CustomerNavbar onRestartTour={isCustomer ? tour.restart : undefined} />
+    <main className="flex-1">
+      <Outlet />
+    </main>
+    <Footer />
+    {isCustomer && (
+      <GuidedTour steps={steps} open={tour.open} onClose={tour.close} />
+    )}
+  </div>
+);
 };
 
 export default CustomerLayout;

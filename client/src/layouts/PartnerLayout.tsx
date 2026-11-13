@@ -4,6 +4,7 @@ import { useAuth } from "@/context/AuthContext";
 import AdminHeader from "@/components/admin/AdminHeader"; // adjust path if yours differs
 import RoleSidebar from "@/components/shared/RoleSidebar";
 import { partnerNavByRole, type PartnerRole } from "@/config/partnerNav.config";
+import Footer from "@/components/Footer";
 
 // One layout for organizer, sponsor and restaurant; the sidebar comes from the user's role
 const PartnerLayout = () => {
@@ -24,6 +25,7 @@ const PartnerLayout = () => {
         <main className="flex-1 p-4 lg:p-6">
           <Outlet />
         </main>
+        <Footer compact />
       </div>
     </div>
   );

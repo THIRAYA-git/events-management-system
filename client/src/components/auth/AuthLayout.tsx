@@ -1,6 +1,8 @@
 import type { ReactNode } from "react";
 import { CheckCircle2 } from "lucide-react";
 import { AUTH_HERO_IMAGE } from "./authStyles";
+import Logo from "../Logo";
+
 
 const HIGHLIGHTS = [
   "Real-time hall availability",
@@ -36,7 +38,7 @@ export default function AuthLayout({
 
         <div className="relative z-10 flex w-full flex-col justify-between p-12">
           <span className="text-xl font-semibold tracking-tight">
-            Aazath Plaza
+            <Logo tone="light" className="h-20 w-auto" iconClassName="h-9 w-9" />
           </span>
 
           <div>

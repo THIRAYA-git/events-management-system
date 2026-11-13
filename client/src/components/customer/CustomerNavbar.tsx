@@ -6,6 +6,7 @@ import UserAvatar from "@/components/common/UserAvatar";
 import NotificationBell from "@/components/common/NotificationBell";
 import ThemeToggle from "@/components/ThemeToggle";
 import { getSettingsPath, isStaffRole } from "@/utils/navigation";
+import Logo from "../Logo";
 
 const NAV_LINK_CLASS = ({ isActive }: { isActive: boolean }) =>
   `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
@@ -64,13 +65,19 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 lg:px-6">
-        <Link
-          to={user ? (isStaff ? "/admin" : "/book") : "/"}
-          className="text-lg font-semibold text-foreground"
-        >
-          Aazath Plaza
-        </Link>
+<div className="flex h-16 w-full items-center justify-between px-4 lg:px-6">
+          <Link
+  to="/customer"
+  aria-label="Aazath Plaza home"
+  className="shrink-0 whitespace-nowrap"
+>
+  <Logo
+    variant="lockup"
+    tone="auto"
+    className=""
+    iconClassName="h-8 w-8"
+  />
+</Link>
 
         {/* Desktop nav */}
         <nav className="hidden items-center gap-1 md:flex">
@@ -108,7 +115,11 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
                 className="flex items-center gap-2 rounded-md px-2 py-1 text-sm text-foreground hover:bg-muted"
                 title="Account settings"
               >
-                <UserAvatar src={user.profile_image} name={user.name} size={32} />
+                <UserAvatar
+                  src={user.profile_image}
+                  name={user.name}
+                  size={32}
+                />
                 <span className="font-medium">{user.name ?? user.email}</span>
               </Link>
               <button
@@ -184,7 +195,11 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
                   onClick={() => setMobileOpen(false)}
                   className="flex items-center gap-2 text-sm text-foreground"
                 >
-                  <UserAvatar src={user.profile_image} name={user.name} size={28} />
+                  <UserAvatar
+                    src={user.profile_image}
+                    name={user.name}
+                    size={28}
+                  />
                   <span className="font-medium">{user.name ?? user.email}</span>
                 </Link>
                 <button

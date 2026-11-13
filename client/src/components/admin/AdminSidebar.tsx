@@ -4,6 +4,7 @@ import { X, PanelLeftClose, PanelLeftOpen, LogOut } from "lucide-react";
 import { adminNavItems } from "../../config/adminNav.config";
 import { useAuth } from "../../context/AuthContext";
 import UserAvatar from "@/components/common/UserAvatar";
+import Logo from "../Logo";
 
 interface AdminSidebarProps {
   isOpen: boolean;
@@ -44,14 +45,11 @@ const AdminSidebar = ({ isOpen, onClose }: AdminSidebarProps) => {
             collapsed ? "lg:justify-center" : ""
           }`}
         >
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-card/15 text-sm font-bold">
-              AP
-            </div>
-            <span className={`text-lg font-semibold ${hideWhenCollapsed}`}>
-              Aazath Plaza
-            </span>
-          </div>
+          {collapsed ? (
+           <Logo variant="icon" className="h-9 w-9" />
+         ) : (
+           <Logo variant="lockup" tone="light" className="" iconClassName="h-9 w-9" />
+         )}
           <button
             onClick={onClose}
             className="rounded-md p-1 hover:bg-card/10 lg:hidden"
