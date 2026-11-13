@@ -28,7 +28,7 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
             <li><Link to="/" className="hover:text-white">Home</Link></li>
             <li><Link to="/about" className="hover:text-white">About</Link></li>
             <li><Link to="/contact" className="hover:text-white">Contact</Link></li>
-            <li><Link to="/book-hall" className="hover:text-white">Book a Hall</Link></li>
+            <li><Link to="/book" className="hover:text-white">Book a Hall</Link></li>
             <li><Link to="/login" className="hover:text-white">Sign in</Link></li>
           </ul>
         </div>
