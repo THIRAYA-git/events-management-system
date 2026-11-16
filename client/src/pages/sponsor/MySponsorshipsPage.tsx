@@ -178,14 +178,14 @@ export default function MySponsorshipsPage() {
         </select>
       </div>
 
-      {error && (
-        <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
-          {error}
-        </div>
-      )}
       {success && (
         <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-400">
           {success}
+        </div>
+      )}
+      {error && (
+        <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
+          {error}
         </div>
       )}
 
