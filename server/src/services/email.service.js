@@ -472,6 +472,46 @@ const sendOrganizerProgressEmail = async (
   });
 };
 
+const sendSponsorshipAcceptedEmail = async ({
+  customerEmail, customerName, bookingRef, eventType, eventDate,
+  hallNames, proposedAmount, sponsor,
+}) => {
+  const amount = proposedAmount
+    ? `LKR ${Number(proposedAmount).toLocaleString("en-LK")}`
+    : "To be agreed with the sponsor";
+
+  const row = (label, value) =>
+    value ? `<tr><td style="padding:6px 12px 6px 0"><b>${label}</b></td><td>${value}</td></tr>` : "";
+
+  const html = `
+    <p>Dear ${customerName},</p>
+    <p><b>${sponsor.companyName}</b> has accepted your sponsorship request
+    for booking <b>${bookingRef}</b>.</p>
+    <table>
+      ${row("Event", eventType)}
+      ${row("Date", eventDate)}
+      ${row("Hall", hallNames)}
+      ${row("Sponsorship amount", amount)}
+    </table>
+    <h3>Sponsor contact details</h3>
+    <table>
+      ${row("Company", sponsor.companyName)}
+      ${row("Contact person", sponsor.contactName)}
+      ${row("Email", sponsor.email)}
+      ${row("Phone", sponsor.phone)}
+      ${row("Website", sponsor.websiteUrl)}
+    </table>
+    <p>Please contact the sponsor to arrange the payment. The sponsor will pay you
+    directly using the account details you provided, outside the system.</p>
+    <p>Regards,<br/>Aazath Plaza Reception Hall</p>`;
+
+  return sendEmail({
+    to: customerEmail,
+    subject: `Sponsorship confirmed for your event ${bookingRef}`,
+    html,
+  });
+};
+
 module.exports = {
   sendEmail,
   layout,
@@ -488,4 +528,5 @@ module.exports = {
   sendCateringStatusEmail,
   sendEventUpdateEmail,
   sendOrganizerProgressEmail,
+  sendSponsorshipAcceptedEmail,
 };

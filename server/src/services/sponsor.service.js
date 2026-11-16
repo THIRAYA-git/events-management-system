@@ -1,5 +1,6 @@
 const db = require("../config/db");
 const { notifyUsers } = require("./notify.service");
+const { sendSponsorshipAcceptedEmail } = require("./email.service");
 
 const getAllSponsors = async ({ industry, status } = {}) => {
   let query = `
@@ -223,10 +224,22 @@ const respondToSponsorRequest = async (
   try {
     const info = await db.query(
       `SELECT b.user_id AS customer_user_id, b.booking_id, b.booking_ref,
-              b.event_type, s.company_name
+              b.event_type, b.event_date::text AS event_date,
+              cu.full_name AS customer_name, cu.email AS customer_email,
+              bs.proposed_amount,
+              s.company_name, s.website_url,
+              su.full_name AS sponsor_contact_name,
+              su.email AS sponsor_email,
+              su.phone AS sponsor_phone,
+              (SELECT string_agg(h.hall_name, ' + ' ORDER BY h.floor_number)
+                 FROM hall_bookings hb
+                 JOIN halls h ON h.hall_id = hb.hall_id
+                WHERE hb.booking_id = b.booking_id) AS hall_names
          FROM booking_sponsors bs
          JOIN bookings b ON b.booking_id = bs.booking_id
+         JOIN users cu ON cu.user_id = b.user_id
          JOIN sponsors s ON s.sponsor_id = bs.sponsor_id
+         JOIN users su ON su.user_id = s.user_id
         WHERE bs.id = $1`,
       [requestId]
     );
@@ -244,6 +257,29 @@ const respondToSponsorRequest = async (
             ? `${i.company_name} accepted your sponsorship request for ${i.event_type} (${i.booking_ref}). They will pay you directly using the account details you provided.`
             : `${i.company_name} declined your sponsorship request for ${i.event_type} (${i.booking_ref}). You can request another sponsor from Find Sponsors.`,
       });
+
+      // Confirmation email with the sponsor's contact details.
+      // Failure here must never undo or block the accept.
+      if (action === "accepted" && i.customer_email) {
+        sendSponsorshipAcceptedEmail({
+          customerEmail: i.customer_email,
+          customerName: i.customer_name,
+          bookingRef: i.booking_ref,
+          eventType: i.event_type,
+          eventDate: i.event_date,
+          hallNames: i.hall_names,
+          proposedAmount: i.proposed_amount,
+          sponsor: {
+            companyName: i.company_name,
+            contactName: i.sponsor_contact_name,
+            email: i.sponsor_email,
+            phone: i.sponsor_phone,
+            websiteUrl: i.website_url,
+          },
+        }).catch((e) =>
+          console.error("[email] sponsorship accepted:", e.message)
+        );
+      }
     }
   } catch (e) {
     console.error("[notify] sponsor response:", e.message);
