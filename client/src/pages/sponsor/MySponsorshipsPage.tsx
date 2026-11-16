@@ -80,6 +80,7 @@ export default function MySponsorshipsPage() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
   const [respondingId, setRespondingId] = useState<number | null>(null);
   const [detail, setDetail] = useState<SponsorRequest | null>(null);
 
@@ -109,23 +110,35 @@ export default function MySponsorshipsPage() {
     setPage(1);
   }, [statusFilter, pageSize]);
 
+  useEffect(() => {
+    if (!success) return;
+    const t = setTimeout(() => setSuccess(null), 5000);
+    return () => clearTimeout(t);
+  }, [success]);
+
   const handleRespond = async (
     requestId: number,
     action: "accepted" | "rejected"
   ) => {
     setRespondingId(requestId);
     setError(null);
+    setSuccess(null);
     try {
       await respondToSponsorRequest(requestId, action);
       // Reload so the customer's account details (returned only once accepted) appear
       await load();
+      setSuccess(
+        action === "accepted"
+          ? "Sponsorship accepted. The customer's payment details are now shown on the request."
+          : "Sponsorship request rejected."
+      );
+      window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err: any) {
       setError(err?.response?.data?.message ?? "Failed to update request.");
     } finally {
       setRespondingId(null);
     }
   };
-
   const filtered =
     statusFilter === "all"
       ? requests
@@ -168,6 +181,11 @@ export default function MySponsorshipsPage() {
       {error && (
         <div className="mb-4 rounded-md border border-red-200 dark:border-red-500/30 bg-red-50 dark:bg-red-500/10 px-3 py-2 text-sm text-red-700 dark:text-red-400">
           {error}
+        </div>
+      )}
+      {success && (
+        <div className="mb-4 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-500/30 dark:bg-green-500/10 dark:text-green-400">
+          {success}
         </div>
       )}
 
