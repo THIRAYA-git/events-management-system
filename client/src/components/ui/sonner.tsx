@@ -37,7 +37,7 @@ const Toaster = ({ ...props }: ToasterProps) => {
 
           "--success-bg": "#26dc32",
           "--success-text": "#ffffff",
-          "--success-border": "#1cb94e",
+          "--success-border": "#0be550",
         } as React.CSSProperties
       }
       toastOptions={{
