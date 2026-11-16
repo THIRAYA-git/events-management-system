@@ -41,9 +41,12 @@ const formatEventDate = (d: string) =>
 
 const BADGE: Record<TimelineCategory, string> = {
   setup: "bg-blue-100 dark:bg-blue-500/15 text-blue-700 dark:text-blue-400",
-  catering: "bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400",
-  decoration: "bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400",
-  cleanup: "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
+  catering:
+    "bg-orange-100 dark:bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  decoration:
+    "bg-purple-100 dark:bg-purple-500/15 text-purple-700 dark:text-purple-400",
+  cleanup:
+    "bg-green-100 dark:bg-green-500/15 text-green-700 dark:text-green-400",
   other: "bg-muted text-foreground",
 };
 
@@ -59,7 +62,9 @@ const CHIP =
   "inline-flex items-center rounded-full bg-muted px-2.5 py-1 text-xs font-medium text-muted-foreground";
 
 const eventTypeLabel = (b: TimelineBookingSummary) =>
-  b.event_type === "Other" && b.custom_event_type ? b.custom_event_type : b.event_type;
+  b.event_type === "Other" && b.custom_event_type
+    ? b.custom_event_type
+    : b.event_type;
 
 export default function EventTimelinePage() {
   const { bookingId } = useParams<{ bookingId: string }>();
@@ -70,7 +75,8 @@ export default function EventTimelinePage() {
   const [booking, setBooking] = useState<TimelineBookingSummary | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [editingActivity, setEditingActivity] = useState<TimelineActivity | null>(null);
+  const [editingActivity, setEditingActivity] =
+    useState<TimelineActivity | null>(null);
   const [filter, setFilter] = useState<TimelineCategory | "all">("all");
 
   const numericBookingId = parseInt(bookingId || "0", 10);
@@ -95,7 +101,10 @@ export default function EventTimelinePage() {
   }, [numericBookingId]);
 
   const visible = useMemo(
-    () => (filter === "all" ? activities : activities.filter((a) => a.category === filter)),
+    () =>
+      filter === "all"
+        ? activities
+        : activities.filter((a) => a.category === filter),
     [activities, filter]
   );
 
@@ -111,7 +120,11 @@ export default function EventTimelinePage() {
 
   const handleSubmit = async (values: TimelineFormValues) => {
     if (editingActivity) {
-      await updateTimelineActivity(numericBookingId, editingActivity.timeline_id, values);
+      await updateTimelineActivity(
+        numericBookingId,
+        editingActivity.timeline_id,
+        values
+      );
       toast.success("Activity updated.");
     } else {
       await createTimelineActivity(numericBookingId, values);
@@ -121,7 +134,8 @@ export default function EventTimelinePage() {
   };
 
   const handleDelete = async (activity: TimelineActivity) => {
-    if (!confirm(`Remove "${activity.activity_name}" from the timeline?`)) return;
+    if (!confirm(`Remove "${activity.activity_name}" from the timeline?`))
+      return;
     try {
       await deleteTimelineActivity(numericBookingId, activity.timeline_id);
       toast.success("Activity removed.");
@@ -145,9 +159,19 @@ export default function EventTimelinePage() {
       <div className="rounded-lg border border-border bg-card p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold text-foreground">Event timeline</h1>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {booking ? booking.booking_ref : `Booking #${bookingId}`}
+            <h1 className="text-2xl font-semibold text-foreground">
+              Manage Event Timelines
+            </h1>
+            <p className="mt-1 flex flex-wrap items-center gap-2 text-sm">
+              {booking && (
+                <span className="font-medium text-foreground">
+                  {eventTypeLabel(booking)}
+                </span>
+              )}
+              {booking && <span className="text-muted-foreground">•</span>}
+              <span className="text-muted-foreground">
+                {booking ? booking.booking_ref : `Booking #${bookingId}`}
+              </span>
             </p>
           </div>
           {canManage && (
@@ -165,11 +189,14 @@ export default function EventTimelinePage() {
           <div className="mt-4 flex flex-wrap gap-2">
             <span className={CHIP}>{formatEventDate(booking.event_date)}</span>
             <span className={CHIP}>
-              {formatTime(booking.event_start_time)}–{formatTime(booking.event_end_time)}
+              {formatTime(booking.event_start_time)}–
+              {formatTime(booking.event_end_time)}
             </span>
-            <span className={CHIP}>{eventTypeLabel(booking)}</span>
+            <span className={CHIP}>{eventTypeLabel(booking)}</span>{" "}
             <span className={CHIP}>{booking.guest_count} guests</span>
-            <span className={CHIP}>{halls.map((h) => h.hall_name).join(" + ")}</span>
+            <span className={CHIP}>
+              {halls.map((h) => h.hall_name).join(" + ")}
+            </span>
           </div>
         )}
       </div>
@@ -219,7 +246,9 @@ export default function EventTimelinePage() {
         {!isLoading && activities.length === 0 && (
           <div className="flex flex-col items-center rounded-lg border border-dashed border-input bg-card py-14 text-center">
             <CalendarClock className="mb-2 h-8 w-8 text-muted-foreground/40" />
-            <p className="text-sm font-medium text-muted-foreground">No activities scheduled yet</p>
+            <p className="text-sm font-medium text-muted-foreground">
+              No activities scheduled yet
+            </p>
             {canManage && (
               <p className="mt-1 text-sm text-muted-foreground">
                 Add the first setup, catering, decoration or cleanup task.
@@ -230,7 +259,8 @@ export default function EventTimelinePage() {
 
         {!isLoading && activities.length > 0 && visible.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground">
-            No {filter === "all" ? "" : CATEGORY_LABELS[filter].toLowerCase()} activities.
+            No {filter === "all" ? "" : CATEGORY_LABELS[filter].toLowerCase()}{" "}
+            activities.
           </p>
         )}
 
@@ -243,24 +273,34 @@ export default function EventTimelinePage() {
                   <div className="text-sm font-semibold text-foreground">
                     {formatTime(a.start_time)}
                   </div>
-                  <div className="text-xs text-muted-foreground">{formatTime(a.end_time)}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {formatTime(a.end_time)}
+                  </div>
                 </div>
 
                 {/* rail */}
                 <div className="flex flex-col items-center">
                   <span
-                    className={`mt-5 h-3 w-3 shrink-0 rounded-full ring-4 ring-gray-50 ${DOT[a.category]}`}
+                    className={`mt-5 h-3 w-3 shrink-0 rounded-full ring-4 ring-gray-50 ${
+                      DOT[a.category]
+                    }`}
                   />
-                  {i < visible.length - 1 && <span className="w-px flex-1 bg-muted" />}
+                  {i < visible.length - 1 && (
+                    <span className="w-px flex-1 bg-muted" />
+                  )}
                 </div>
 
                 {/* card */}
                 <div className="mb-4 min-w-0 flex-1 rounded-lg border border-border bg-card p-4">
                   <div className="flex flex-wrap items-start justify-between gap-2">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium text-foreground">{a.activity_name}</span>
+                      <span className="font-medium text-foreground">
+                        {a.activity_name}
+                      </span>
                       <span
-                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${BADGE[a.category]}`}
+                        className={`rounded-full px-2 py-0.5 text-xs font-medium ${
+                          BADGE[a.category]
+                        }`}
                       >
                         {CATEGORY_LABELS[a.category]}
                       </span>
@@ -302,7 +342,11 @@ export default function EventTimelinePage() {
                     </div>
                   )}
 
-                  {a.notes && <p className="mt-2 text-sm text-muted-foreground">{a.notes}</p>}
+                  {a.notes && (
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      {a.notes}
+                    </p>
+                  )}
                 </div>
               </li>
             ))}
