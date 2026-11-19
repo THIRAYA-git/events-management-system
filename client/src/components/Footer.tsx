@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { MapPin, Phone, Mail } from "lucide-react";
+import { MapPin, Phone, Mail,Clock } from "lucide-react";
 import Logo from "./Logo";
 
 export default function Footer({ compact = false }: { compact?: boolean }) {
@@ -33,16 +33,33 @@ export default function Footer({ compact = false }: { compact?: boolean }) {
           </ul>
         </div>
 
-        <div>
-          <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-amber-200">
-            Contact
-          </h3>
-          <ul className="space-y-3 text-sm">
-            <li className="flex gap-2"><MapPin className="mt-0.5 h-4 w-4 shrink-0" />Aazath Plaza Reception Hall, Kalmunai</li>
-            <li className="flex gap-2"><Phone className="mt-0.5 h-4 w-4 shrink-0" />+94 XX XXX XXXX</li>
-            <li className="flex gap-2"><Mail className="mt-0.5 h-4 w-4 shrink-0" />admin@aazathplaza.lk</li>
-          </ul>
-        </div>
+       <div>
+  <h3 className="mb-3 text-sm font-semibold uppercase tracking-wider text-amber-200">
+    Contact
+  </h3>
+  <ul className="space-y-3 text-sm">
+    <li className="flex gap-2">
+      <MapPin className="mt-0.5 h-4 w-4 shrink-0" />
+      <span>
+        Aazath Plaza Reception Hall, Colombo - Batticaloa Hwy (Main Rd),
+        Kalmunai 32300, Sri Lanka
+      </span>
+    </li>
+    <li className="flex gap-2">
+      <Phone className="mt-0.5 h-4 w-4 shrink-0" />+94 77 307 4300
+    </li>
+    <li className="flex gap-2">
+      <Mail className="mt-0.5 h-4 w-4 shrink-0" />admin@aazathplaza.lk
+    </li>
+    <li className="flex gap-2">
+      <Clock className="mt-0.5 h-4 w-4 shrink-0" />
+      <div>
+        <p>Mon–Thu, Sat–Sun: 8:00 AM – 10:00 PM</p>
+        <p>Friday: 2:00 PM – 11:00 PM</p>
+      </div>
+    </li>
+  </ul>
+</div>
       </div>
 
       <div className="border-t border-white/10 py-4 text-center text-xs text-violet-300">

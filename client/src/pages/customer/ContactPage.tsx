@@ -12,8 +12,6 @@ import {
 } from "@/components/booking/bookingStyles";
 import { CONTACT_TOPICS, sendContactMessage } from "@/lib/contact.api";
 
-// TODO: replace with the hall's real contact details.
-// (Phone and email are the values from the project's seed data.)
 const CONTACT = {
   phone: "+94 77 123 4567",
   email: "admin@aazathplaza.lk",
