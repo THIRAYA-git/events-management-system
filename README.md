@@ -43,13 +43,12 @@ The restored database holds the schema and the reference data (halls, rooms, eve
 
 ## 4. Start the Backend
 
-```bash
-cd server
-npm install
-npm run dev
-```
-
 Edit `server/.env` before starting. The values to set:
+
+To generate the real values in your actual .env:
+node -e "console.log(require('crypto').randomBytes(64).toString('hex'))"
+
+Run it once per secret so all three differ.
 
 | Setting                   | Value                                                                  |
 | ------------------------- | ---------------------------------------------------------------------- |
@@ -62,6 +61,13 @@ Edit `server/.env` before starting. The values to set:
 | PayHere, SendGrid, SMS, Cloudinary keys | Optional. Without them the system still runs, but online payment, email, SMS and image upload are unavailable. |
 
 The backend is ready when the terminal shows it is listening on port 5000.
+
+```bash
+cd server
+npm install
+npm run dev
+```
+
 
 ---
 
