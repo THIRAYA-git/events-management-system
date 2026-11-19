@@ -133,14 +133,15 @@ export default function LoginPage() {
             </Link>
           </div>
           <PasswordToggle
-  name="password"
-  value={password}
-  onChange={(e) => setPassword(e.target.value)}
-  placeholder="Enter your password"
-  autoComplete="current-password"
-  className={authInputClass}
-  required
-/>
+            id="password"
+            name="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Enter your password"
+            autoComplete="current-password"
+            className={authInputClass}
+            required
+          />
         </div>
 
         <button

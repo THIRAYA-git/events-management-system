@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { api } from "@/lib/api";
 import AuthLayout from "@/components/auth/AuthLayout";
+import PasswordToggle from "@/components/common/PasswordToggle";
 import {
   authInputClass,
   authLabelClass,
@@ -43,7 +44,10 @@ export default function ResetPasswordPage() {
   };
 
   const backToSignIn = (
-    <Link to="/login" className="font-medium text-violet-700 dark:text-violet-400 hover:underline">
+    <Link
+      to="/login"
+      className="font-medium text-violet-700 dark:text-violet-400 hover:underline"
+    >
       Back to sign in
     </Link>
   );
@@ -55,7 +59,10 @@ export default function ResetPasswordPage() {
         subtitle="This reset link is missing its token. Request a new one below."
         footer={backToSignIn}
       >
-        <Link to="/forgot-password" className={`${authButtonClass} block text-center`}>
+        <Link
+          to="/forgot-password"
+          className={`${authButtonClass} block text-center`}
+        >
           Request a new reset link
         </Link>
       </AuthLayout>
@@ -73,9 +80,8 @@ export default function ResetPasswordPage() {
           <label htmlFor="new-password" className={authLabelClass}>
             New password
           </label>
-          <input
+          <PasswordToggle
             id="new-password"
-            type="password"
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             required
@@ -88,9 +94,8 @@ export default function ResetPasswordPage() {
           <label htmlFor="confirm-password" className={authLabelClass}>
             Confirm new password
           </label>
-          <input
+          <PasswordToggle
             id="confirm-password"
-            type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -99,7 +104,11 @@ export default function ResetPasswordPage() {
             className={authInputClass}
           />
         </div>
-        <button type="submit" className={authButtonClass} disabled={isSubmitting}>
+        <button
+          type="submit"
+          className={authButtonClass}
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Resetting…" : "Reset Password"}
         </button>
       </form>

@@ -10,6 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { useAuth } from "@/context/AuthContext";
+import PasswordToggle from "@/components/common/PasswordToggle";
 import {
   fetchStaff,
   createStaff,
@@ -464,9 +465,8 @@ export const AdminStaffPage = () => {
                 >
                   Temporary password
                 </label>
-                <input
+                <PasswordToggle
                   id="password"
-                  type="password"
                   className={fieldClass}
                   placeholder="Minimum 8 characters"
                   value={form.password}

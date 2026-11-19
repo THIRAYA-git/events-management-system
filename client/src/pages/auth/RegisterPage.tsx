@@ -4,6 +4,7 @@ import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import type { UserRole } from "@/types/auth.types";
 import AuthLayout from "@/components/auth/AuthLayout";
+import PasswordToggle from "@/components/common/PasswordToggle";
 import {
   authInputClass,
   authLabelClass,
@@ -71,7 +72,10 @@ export default function RegisterPage() {
       footer={
         <>
           Already have an account?{" "}
-          <Link to="/login" className="font-medium text-violet-700 dark:text-violet-400 hover:underline">
+          <Link
+            to="/login"
+            className="font-medium text-violet-700 dark:text-violet-400 hover:underline"
+          >
             Sign in
           </Link>
         </>
@@ -149,9 +153,8 @@ export default function RegisterPage() {
             <label htmlFor="password" className={authLabelClass}>
               Password
             </label>
-            <input
+            <PasswordToggle
               id="password"
-              type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -164,9 +167,8 @@ export default function RegisterPage() {
             <label htmlFor="confirm-password" className={authLabelClass}>
               Confirm password
             </label>
-            <input
+            <PasswordToggle
               id="confirm-password"
-              type="password"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -177,7 +179,11 @@ export default function RegisterPage() {
           </div>
         </div>
 
-        <button type="submit" className={authButtonClass} disabled={isSubmitting}>
+        <button
+          type="submit"
+          className={authButtonClass}
+          disabled={isSubmitting}
+        >
           {isSubmitting ? "Creating account…" : "Create account"}
         </button>
       </form>
