@@ -42,7 +42,7 @@ const PERMISSIONS = {
   "menu:create": ["admin", "restaurant"],
   "menu:read": ["admin", "front_desk", "customer", "restaurant"],
   "menu:update": ["admin", "restaurant"],
-  "menu:delete": ["admin"],
+  "menu:delete": ["restaurant"],
 
   // ── Catering orders ───────────────────────────────────────
   "catering:create": ["admin", "front_desk", "customer", "restaurant"],
