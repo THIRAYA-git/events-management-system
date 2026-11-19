@@ -1,3 +1,4 @@
+const { sendRoomPaymentReceivedSms } = require("./sms.service");
 // Email + SMS to the customer when a room booking is paid (online or cash).
 // Called from the cash-payment flow and from the PayHere room notify handler.
 const { sendEmail, layout, detailsTable, escapeHtml } = require("./email.service");
@@ -76,9 +77,20 @@ async function sendRoomPaymentNotifications(groupRef) {
     console.error("[roomNotify] email failed:", e.message);
   }
 
-  // ── SMS ──
-  // TODO: wire in sms.service once its send helper is shared (needs the same
-  // text.lk helper that sendPaymentReceivedSms uses).
+   // ── SMS ──
+  try {
+    if (first.phone) {
+      await sendRoomPaymentReceivedSms(first.phone, {
+        groupRef,
+        amount,
+        invoiceNumber: first.invoice_number,
+        checkIn,
+        checkOut,
+      });
+    }
+  } catch (e) {
+    console.error("[roomNotify] sms failed:", e.message);
+  }
 }
 
 module.exports = { sendRoomPaymentNotifications };
