@@ -13,8 +13,10 @@ const PG_DUMP = process.env.PG_DUMP_PATH || "pg_dump";
 
 // Same selection logic as config/db.js
 function getConnection() {
-  const isLocal = (process.env.DB_MODE || "neon").toLowerCase() === "local";
-  const url = new URL(isLocal ? process.env.LOCAL_DATABASE_URL : process.env.DATABASE_URL);
+  const isLocal = (process.env.DB_MODE || "local").toLowerCase() === "local";
+  const url = new URL(
+    isLocal ? process.env.LOCAL_DATABASE_URL : process.env.DATABASE_URL
+  );
   return {
     host: url.hostname,
     port: url.port || "5432",
@@ -66,14 +68,20 @@ async function createBackupUnsafe() {
   }
 
   // Retention: keep the newest KEEP non-empty dumps
-  const all = (await fs.readdir(BACKUP_DIR)).filter(f => f.endsWith(".dump"));
+  const all = (await fs.readdir(BACKUP_DIR)).filter((f) => f.endsWith(".dump"));
   const sized = await Promise.all(
-    all.map(async f => ({ f, size: (await fs.stat(path.join(BACKUP_DIR, f))).size }))
+    all.map(async (f) => ({
+      f,
+      size: (await fs.stat(path.join(BACKUP_DIR, f))).size,
+    }))
   );
-  const dumps = sized.filter(x => x.size > 0).map(x => x.f).sort();
+  const dumps = sized
+    .filter((x) => x.size > 0)
+    .map((x) => x.f)
+    .sort();
 
   // remove any leftover 0-byte files from earlier failed runs
-  for (const x of sized.filter(x => x.size === 0)) {
+  for (const x of sized.filter((x) => x.size === 0)) {
     await fs.unlink(path.join(BACKUP_DIR, x.f)).catch(() => {});
   }
 
@@ -87,9 +95,12 @@ async function createBackupUnsafe() {
 
 async function listBackups() {
   await fs.mkdir(BACKUP_DIR, { recursive: true });
-  const dumps = (await fs.readdir(BACKUP_DIR)).filter(f => f.endsWith(".dump")).sort().reverse();
+  const dumps = (await fs.readdir(BACKUP_DIR))
+    .filter((f) => f.endsWith(".dump"))
+    .sort()
+    .reverse();
   return Promise.all(
-    dumps.map(async f => {
+    dumps.map(async (f) => {
       const s = await fs.stat(path.join(BACKUP_DIR, f));
       return { file: f, sizeBytes: s.size, createdAt: s.mtime };
     })

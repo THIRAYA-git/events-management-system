@@ -16,7 +16,6 @@
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^16.6.1",
-    "drizzle-orm": "^0.45.2",
     "express": "^4.19.2",
     "express-rate-limit": "^8.5.2",
     "express-validator": "^7.3.2",
@@ -30,13 +29,9 @@
     "twilio": "^5.1.0"
   },
   "devDependencies": {
-    "@types/node": "^25.9.1",
-    "@types/pg": "^8.23.1",
-    "drizzle-kit": "^0.31.10",
     "jest": "^30.5.2",
     "nodemon": "^3.1.0",
     "supertest": "^7.3.1",
-    "tsx": "^4.22.3",
-    "typescript": "^6.0.3"
+    "tsx": "^4.22.3"
   }
 }

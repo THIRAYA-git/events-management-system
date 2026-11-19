@@ -1,8 +1,8 @@
 require("dotenv").config();
 
-// DB_MODE=local  -> local PostgreSQL via node-postgres (pg), uses LOCAL_DATABASE_URL
-// DB_MODE=neon   -> Neon serverless over HTTP (default), uses DATABASE_URL
-const DB_MODE = (process.env.DB_MODE || "neon").toLowerCase();
+// DB_MODE=local  -> local PostgreSQL via node-postgres (pg), uses LOCAL_DATABASE_URL (default)
+// DB_MODE=neon   -> optional cloud mode: Neon serverless over HTTP, uses DATABASE_URL
+const DB_MODE = (process.env.DB_MODE || "local").toLowerCase();
 const isLocal = DB_MODE === "local";
 
 let rawQuery; // (text, params) => Promise<rows[]>
