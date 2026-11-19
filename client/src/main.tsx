@@ -14,4 +14,3 @@ createRoot(document.getElementById('root')!).render(
   </StrictMode>,
 )
 
-console.log("GOOGLE ID:", import.meta.env.VITE_GOOGLE_CLIENT_ID);

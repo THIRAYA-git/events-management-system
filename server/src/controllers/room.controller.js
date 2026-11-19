@@ -41,9 +41,7 @@ exports.payStatusHandler = wrap((req) =>
 // PayHere calls this server-to-server, so it can't use the JSON envelope
 exports.payNotifyHandler = async (req, res) => {
   try {
-    console.log("ROOM NOTIFY body:", req.body);
     const r = await payments.handleNotify(req.body);
-    console.log("ROOM NOTIFY result:", r);
     res.sendStatus(r.ok ? 200 : 400);
   } catch (e) {
     console.error("room notify error", e);
