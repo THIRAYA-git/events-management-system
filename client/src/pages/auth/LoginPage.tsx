@@ -10,6 +10,7 @@ import {
   authLabelClass,
   authButtonClass,
 } from "@/components/auth/authStyles";
+import PasswordToggle from "@/components/common/PasswordToggle";
 
 export default function LoginPage() {
   const { login, loginWithGoogle } = useAuth();
@@ -36,8 +37,8 @@ export default function LoginPage() {
     return home;
   };
 
-const handleSubmit = async (e: SyntheticEvent) => {
-      e.preventDefault();
+  const handleSubmit = async (e: SyntheticEvent) => {
+    e.preventDefault();
     setIsSubmitting(true);
     try {
       const loggedInUser = await login({ email, password });
@@ -131,15 +132,15 @@ const handleSubmit = async (e: SyntheticEvent) => {
               Forgot password?
             </Link>
           </div>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            autoComplete="current-password"
-            className={authInputClass}
-          />
+          <PasswordToggle
+  name="password"
+  value={password}
+  onChange={(e) => setPassword(e.target.value)}
+  placeholder="Enter your password"
+  autoComplete="current-password"
+  className={authInputClass}
+  required
+/>
         </div>
 
         <button

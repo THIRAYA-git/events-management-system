@@ -3,11 +3,14 @@ import { Loader2, CheckCircle2 } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { updateProfile, changePassword } from "@/api/profile.api";
 import AvatarUploader from "@/components/common/AvatarUploader";
+import PasswordToggle from "@/components/common/PasswordToggle";
 
 export function AdminSettingsPage() {
   const { user, refreshUser, logout } = useAuth();
 
-  const [avatarUrl, setAvatarUrl] = useState<string | null>(user?.profile_image ?? null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(
+    user?.profile_image ?? null
+  );
   const [fullName, setFullName] = useState(user?.name ?? "");
   const [phone, setPhone] = useState(user?.phone ?? "");
   const [profileSaving, setProfileSaving] = useState(false);
@@ -21,7 +24,7 @@ export function AdminSettingsPage() {
   const [passwordError, setPasswordError] = useState<string | null>(null);
 
   const handleAvatarUploaded = async (url: string) => {
-    setAvatarUrl(url); // show immediately, independent of /auth/me
+    setAvatarUrl(url);
     await refreshUser();
   };
 
@@ -35,7 +38,9 @@ export function AdminSettingsPage() {
       await refreshUser();
       setProfileMessage("Profile updated successfully.");
     } catch (err: any) {
-      setProfileError(err?.response?.data?.message ?? "Failed to update profile.");
+      setProfileError(
+        err?.response?.data?.message ?? "Failed to update profile."
+      );
     } finally {
       setProfileSaving(false);
     }
@@ -52,142 +57,220 @@ export function AdminSettingsPage() {
 
     setPasswordSaving(true);
     try {
-      await changePassword({ current_password: currentPassword, new_password: newPassword });
-      // Backend clears the refresh token on password change, so the
-      // current session is invalid server-side — log out locally too.
+      await changePassword({
+        current_password: currentPassword,
+        new_password: newPassword,
+      });
       await logout();
     } catch (err: any) {
-      setPasswordError(err?.response?.data?.message ?? "Failed to change password.");
+      setPasswordError(
+        err?.response?.data?.message ?? "Failed to change password."
+      );
       setPasswordSaving(false);
     }
   };
 
   return (
-    <div>
-      <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
-      <p className="mt-1 text-sm text-muted-foreground">Manage your account details and password.</p>
+    <div className="flex min-h-[calc(100vh-12rem)] flex-col justify-center">
+      <div className="mx-auto w-full max-w-5xl">
+        <div className="text-center">
+          <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Manage your account details and password.
+          </p>
+        </div>
 
-      <div className="mt-6 grid max-w-2xl gap-6">
-        {/* Profile section */}
-        <form
-          onSubmit={handleProfileSubmit}
-          className="rounded-lg border border-border bg-card p-5"
-        >
-          <h2 className="text-base font-medium text-foreground">Profile</h2>
+        <div className="mt-6 grid gap-6 md:grid-cols-2">
+          {/* Profile */}
+          <div className="auth-shine flex rounded-2xl p-[2px]">
+            <form
+              onSubmit={handleProfileSubmit}
+              className="flex flex-1 flex-col rounded-2xl bg-card p-5"
+            >
+              <h2 className="text-base font-medium text-foreground">Profile</h2>
 
-          <div className="mt-4">
-            <AvatarUploader
-              currentUrl={avatarUrl}
-              name={user?.name}
-              onUploaded={handleAvatarUploaded}
-            />
+              <div className="mt-3">
+                <AvatarUploader
+                  currentUrl={avatarUrl}
+                  name={user?.name}
+                  onUploaded={handleAvatarUploaded}
+                />
+              </div>
+
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label
+                    htmlFor="full_name"
+                    className="block text-sm text-muted-foreground"
+                  >
+                    Full name
+                  </label>
+                  <input
+                    id="full_name"
+                    type="text"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                    className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="phone"
+                    className="block text-sm text-muted-foreground"
+                  >
+                    Phone
+                  </label>
+                  <input
+                    id="phone"
+                    type="tel"
+                    value={phone ?? ""}
+                    onChange={(e) => setPhone(e.target.value)}
+                    className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-muted-foreground">
+                    Email
+                  </label>
+                  <input
+                    type="email"
+                    value={user?.email ?? ""}
+                    disabled
+                    className="mt-1 w-full rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-muted-foreground"
+                  />
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Email cannot be changed here.
+                  </p>
+                </div>
+              </div>
+
+              {profileError && (
+                <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+                  {profileError}
+                </p>
+              )}
+              {profileMessage && (
+                <p className="mt-3 flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
+                  <CheckCircle2 className="h-4 w-4" /> {profileMessage}
+                </p>
+              )}
+
+              <div className="mt-auto pt-4">
+                <button
+                  type="submit"
+                  disabled={profileSaving}
+                  className="flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {profileSaving && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  Save Profile
+                </button>
+              </div>
+            </form>
           </div>
 
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm text-muted-foreground">Full name</label>
+          {/* Password */}
+          <div className="auth-shine flex rounded-2xl p-[2px]">
+            <form
+              onSubmit={handlePasswordSubmit}
+              className="flex flex-1 flex-col rounded-2xl bg-card p-5"
+            >
+              <h2 className="text-base font-medium text-foreground">
+                Change Password
+              </h2>
+              <p className="mt-1 text-xs text-muted-foreground">
+                You'll be signed out after changing your password.
+              </p>
+
+              {/* Helps the password manager identify the account */}
               <input
                 type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                required
-                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground">Phone</label>
-              <input
-                type="tel"
-                value={phone ?? ""}
-                onChange={(e) => setPhone(e.target.value)}
-                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground">Email</label>
-              <input
-                type="email"
+                name="username"
                 value={user?.email ?? ""}
-                disabled
-                className="mt-1 w-full rounded-md border border-border bg-muted px-3 py-1.5 text-sm text-muted-foreground"
+                autoComplete="username"
+                readOnly
+                tabIndex={-1}
+                aria-hidden="true"
+                className="sr-only"
               />
-              <p className="mt-1 text-xs text-muted-foreground">Email cannot be changed here.</p>
-            </div>
+
+              <div className="mt-3 space-y-3">
+                <div>
+                  <label
+                    htmlFor="current_password"
+                    className="block text-sm text-muted-foreground"
+                  >
+                    Current password
+                  </label>
+                  <PasswordToggle
+                    id="current_password"
+                    name="current_password"
+                    value={currentPassword}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    autoComplete="current-password"
+                    required
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="new_password"
+                    className="block text-sm text-muted-foreground"
+                  >
+                    New password
+                  </label>
+                  <PasswordToggle
+                    id="new_password"
+                    name="new_password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                  />
+                </div>
+                <div>
+                  <label
+                    htmlFor="confirm_password"
+                    className="block text-sm text-muted-foreground"
+                  >
+                    Confirm new password
+                  </label>
+                  <PasswordToggle
+                    wrapperClassName="mt-1"
+                    id="confirm_password"
+                    name="confirm_password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    autoComplete="new-password"
+                    required
+                    minLength={8}
+                  />
+                </div>
+              </div>
+
+              {passwordError && (
+                <p className="mt-3 text-sm text-red-600 dark:text-red-400">
+                  {passwordError}
+                </p>
+              )}
+
+              <div className="mt-auto pt-4">
+                <button
+                  type="submit"
+                  disabled={passwordSaving}
+                  className="flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
+                >
+                  {passwordSaving && (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  )}
+                  Change Password
+                </button>
+              </div>
+            </form>
           </div>
-
-          {profileError && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{profileError}</p>}
-          {profileMessage && (
-            <p className="mt-3 flex items-center gap-1 text-sm text-green-600 dark:text-green-400">
-              <CheckCircle2 className="h-4 w-4" /> {profileMessage}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={profileSaving}
-            className="mt-4 flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {profileSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Save Profile
-          </button>
-        </form>
-
-        {/* Password section */}
-        <form
-          onSubmit={handlePasswordSubmit}
-          className="rounded-lg border border-border bg-card p-5"
-        >
-          <h2 className="text-base font-medium text-foreground">Change Password</h2>
-          <p className="mt-1 text-xs text-muted-foreground">
-            You'll be signed out after changing your password.
-          </p>
-
-          <div className="mt-4 space-y-4">
-            <div>
-              <label className="block text-sm text-muted-foreground">Current password</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                required
-                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground">New password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                required
-                minLength={8}
-                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-sm text-muted-foreground">Confirm new password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                required
-                minLength={8}
-                className="mt-1 w-full rounded-md border border-input px-3 py-1.5 text-sm"
-              />
-            </div>
-          </div>
-
-          {passwordError && <p className="mt-3 text-sm text-red-600 dark:text-red-400">{passwordError}</p>}
-
-          <button
-            type="submit"
-            disabled={passwordSaving}
-            className="mt-4 flex items-center gap-2 rounded-md bg-primary px-4 py-1.5 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-          >
-            {passwordSaving && <Loader2 className="h-4 w-4 animate-spin" />}
-            Change Password
-          </button>
-        </form>
+        </div>
       </div>
     </div>
   );
