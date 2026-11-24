@@ -9,7 +9,7 @@ import { getSettingsPath, isStaffRole } from "@/utils/navigation";
 import Logo from "../Logo";
 
 const NAV_LINK_CLASS = ({ isActive }: { isActive: boolean }) =>
-  `rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+  `whitespace-nowrap rounded-md px-3 py-2 text-sm font-medium transition-colors ${
     isActive
       ? "bg-muted text-foreground"
       : "text-muted-foreground hover:bg-muted hover:text-foreground"
@@ -65,22 +65,22 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
 
   return (
     <header className="sticky top-0 z-30 border-b border-border bg-card">
-<div className="flex h-16 w-full items-center justify-between px-4 lg:px-6">
-          <Link
-  to="/customer"
-  aria-label="Aazath Plaza home"
-  className="shrink-0 whitespace-nowrap"
->
-  <Logo
-    variant="lockup"
-    tone="auto"
-    className=""
-    iconClassName="h-8 w-8"
-  />
-</Link>
+      <div className="flex h-16 w-full items-center justify-between px-4 lg:px-6">
+        <Link
+          to="/"
+          aria-label="Aazath Plaza home"
+          className="shrink-0 whitespace-nowrap"
+        >
+          <Logo
+            variant="lockup"
+            tone="auto"
+            className=""
+            iconClassName="h-8 w-8"
+          />
+        </Link>
 
         {/* Desktop nav */}
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center gap-1 lg:flex">
           {links.map((link) => (
             <NavLink
               key={link.to}
@@ -94,7 +94,7 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-3 md:flex">
+        <div className="hidden shrink-0 items-center gap-3 lg:flex">
           <ThemeToggle />
           {user ? (
             <>
@@ -120,7 +120,9 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
                   name={user.name}
                   size={32}
                 />
-                <span className="font-medium">{user.name ?? user.email}</span>
+                <span className="max-w-[140px] truncate font-medium">
+                  {user.name ?? user.email}
+                </span>{" "}
               </Link>
               <button
                 onClick={handleLogout}
@@ -141,7 +143,7 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
         </div>
 
         {/* Mobile bell + menu toggle */}
-        <div className="flex items-center gap-1 md:hidden">
+        <div className="flex items-center gap-1 lg:hidden">
           <ThemeToggle />
           {user && <NotificationBell buttonClassName={BELL_CLASS} />}
           <button
@@ -161,7 +163,7 @@ const CustomerNavbar = ({ onRestartTour }: CustomerNavbarProps) => {
 
       {/* Mobile nav panel */}
       {mobileOpen && (
-        <nav className="border-t border-border bg-card px-4 py-3 md:hidden">
+        <nav className="border-t border-border bg-card px-4 py-3 lg:hidden">
           <div className="flex flex-col gap-1">
             {links.map((link) => (
               <NavLink
