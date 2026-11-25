@@ -16,15 +16,23 @@ const {
   forgotPassword,
   resetPassword,
 } = require("../controllers/auth.controller");
+const rateLimit = require("express-rate-limit");
+
+// Strict limit only on abuse-prone endpoints (login, register, reset…)
+const strictLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: process.env.NODE_ENV === "production" ? 20 : 1000,
+  message: { message: "Too many requests. Try again later." },
+});
 
 // Public
-router.post("/register",        register);
-router.post("/login",           login);
-router.post("/google", googleLoginHandler);
+router.post("/register",        strictLimiter, register);
+router.post("/login",           strictLimiter, login);
+router.post("/google",          strictLimiter, googleLoginHandler);
 router.post("/refresh",         refresh);
 router.post("/logout",          logout);
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password",  resetPassword);
+router.post("/forgot-password", strictLimiter, forgotPassword);
+router.post("/reset-password",  strictLimiter, resetPassword);
 
 // Protected
 router.get("/me", authenticate, me);

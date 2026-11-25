@@ -4,7 +4,6 @@ require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
-const rateLimit = require("express-rate-limit");
 const customerRoutes = require("./routes/customer.routes");
 const hallRoutes = require("./routes/hall.routes");
 const authRoutes = require("./routes/auth.routes");
@@ -26,6 +25,7 @@ const reportRoutes = require("./routes/report.routes");
 const notificationRoutes = require("./routes/notification.routes");
 const roomRoutes = require("./routes/room.routes");
 const backupRoutes = require("./routes/backup.routes");
+const dashboardRoutes = require("./routes/dashboard.routes");
 const db = require("./config/db");
 
 const app = express();
@@ -41,15 +41,10 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-// ── Rate limiter (relaxed under Jest so tests are not blocked) ─
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: process.env.NODE_ENV === "test" ? 1000 : 20,
-  message: { message: "Too many requests. Try again later." },
-});
+
 
 // ── Routes ────────────────────────────────────────────────────
-app.use("/api/auth", authLimiter, authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/customers", customerRoutes);
 app.use("/api/halls", hallRoutes);
@@ -61,6 +56,7 @@ app.use("/api/sponsors", sponsorRoutes);
 app.use("/api/menu-items", menuRoutes);
 app.use("/api/catering-orders", cateringRoutes);
 app.use("/api/analytics", analyticsRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/uploads", uploadRoutes);
 app.use("/api/contact", contactRoutes);
